@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registre de reserves</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    /* Superfícies i vores */
+    --fons: #FBFBFA;
+    --superficie: #FFFFFF;
+    --subtil: #F4F4F2;
+    --vora: #E8E8E5;
+    --vora-forta: #D7D7D3;
+    /* Text */
+    --tinta: #17181C;
+    --tinta-suau: #5D6169;
+    --tinta-tenue: #8B8F96;
+    /* Accent, usat amb comptagotes */
+    --accent: #4E5490;
+    --accent-fons: #EEEFF7;
+    /* Estats */
+    --verd: #2E7351;
+    --verd-fons: #EAF2ED;
+    --ambre: #8E6412;
+    --ambre-fons: #F9F1DE;
+    --vermell: #A4402F;
+    --vermell-fons: #F8EDEA;
+    --radi: 12px;
+    --radi-petit: 7px;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--fons);
+    color: var(--tinta);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+
+  header {
+    border-bottom: 1px solid var(--vora);
+    padding: 18px 28px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  h1 {
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+  header .compta { font-size: 13px; color: var(--tinta-tenue); font-variant-numeric: tabular-nums; }
+
+  main { max-width: 1120px; margin: 0 auto; padding: 24px 28px 40px; }
+  .pista { color: var(--tinta-suau); font-size: 13.5px; margin: 0 0 12px; }
+
+  /* ── Barra d'accions ── */
+  .barra-accions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+  .barra-accions .separa { flex: 1; }
+
+  button {
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: var(--radi-petit);
+    border: 1px solid var(--vora-forta);
+    background: var(--superficie);
+    color: var(--tinta);
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  }
+  button:hover { background: var(--subtil); }
+  button.primari { background: var(--tinta); border-color: var(--tinta); color: #fff; }
+  button.primari:hover { background: #000; border-color: #000; }
+  button.subtil { border-color: transparent; background: none; color: var(--tinta-suau); }
+  button.subtil:hover { background: var(--subtil); color: var(--tinta); }
+  button.perill { border-color: transparent; background: none; color: var(--vermell); }
+  button.perill:hover { background: var(--vermell-fons); }
+  button.mini { font-size: 12.5px; padding: 5px 10px; margin: 0 2px 2px 0; }
+  textarea:focus, input:focus, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+
+  .commutador { display: flex; gap: 2px; background: var(--subtil); border-radius: var(--radi-petit); padding: 3px; }
+  .commutador button { border: none; background: none; color: var(--tinta-suau); padding: 5px 13px; border-radius: 5px; font-size: 13px; }
+  .commutador button:hover { background: rgba(0, 0, 0, 0.03); }
+  .commutador button[aria-pressed="true"] {
+    background: var(--superficie);
+    color: var(--tinta);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+  }
+
+  /* ── Panell per afegir ── */
+  .panell {
+    background: var(--superficie);
+    border: 1px solid var(--vora);
+    border-radius: var(--radi);
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 148px;
+    padding: 13px;
+    border: 1px solid var(--vora);
+    border-radius: 8px;
+    background: var(--fons);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--tinta);
+    resize: vertical;
+  }
+  .accions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+  /* ── Fitxa de revisió ── */
+  #fitxa {
+    display: none;
+    background: var(--superficie);
+    border: 1px solid var(--vora-forta);
+    border-radius: var(--radi);
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+  #fitxa.visible { display: block; }
+  .fitxa-cap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .fitxa-titol { font-size: 16px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .segell {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-fons);
+    border-radius: 999px;
+    padding: 3px 10px;
+    white-space: nowrap;
+  }
+  .segell.desconeguda { color: var(--ambre); background: var(--ambre-fons); }
+  .fitxa-sub { font-size: 13px; color: var(--tinta-suau); margin: 4px 0 16px; }
+  .graella { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px 16px; }
+  .camp label { display: block; font-size: 12px; font-weight: 500; color: var(--tinta-tenue); margin-bottom: 4px; }
+  .camp input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--vora);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--tinta);
+    background: var(--superficie);
+  }
+  .camp.buit input { border-color: var(--ambre); background: var(--ambre-fons); }
+  .camp.buit label::after { content: ' — per completar'; color: var(--ambre); }
+  .camp.ample { grid-column: 1 / -1; }
+  .fitxa-peu { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+
+  /* ── Vista de llista ── */
+  .llista {
+    background: var(--superficie);
+    border: 1px solid var(--vora);
+    border-radius: var(--radi);
+    padding: 0 20px 10px;
+  }
+  .graella-fila {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr) 116px 128px 112px 16px;
+    grid-template-areas: "punt nom dates cancel preu chev";
+    gap: 14px;
+    align-items: center;
+  }
+  .llista-capcalera {
+    padding: 14px 0 10px;
+    border-bottom: 1px solid var(--vora-forta);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--tinta-tenue);
+  }
+  .grup {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 22px 0 4px;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--tinta-tenue);
+  }
+  .grup span:last-child { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+  .fila-cap {
+    width: 100%;
+    padding: 12px 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--vora);
+    border-radius: 0;
+    cursor: pointer;
+  }
+  .fila-cap:hover { background: none; }
+  .fila-cap:hover .nom { color: var(--accent); }
+  .fila.oberta .fila-cap { border-bottom-color: transparent; }
+  .cel-punt { grid-area: punt; }
+  .cel-nom { grid-area: nom; min-width: 0; }
+  .cel-dates { grid-area: dates; }
+  .cel-cancel { grid-area: cancel; font-size: 13px; }
+  .cel-preu { grid-area: preu; text-align: right; }
+  .cel-chev { grid-area: chev; text-align: right; color: var(--tinta-tenue); }
+  .punt { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--verd); }
+  .punt.revisar { background: var(--ambre); }
+  .nom {
+    display: block; font-weight: 500; font-size: 14px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    transition: color 0.12s ease;
+  }
+  .sotanom {
+    display: block; font-size: 12.5px; color: var(--tinta-suau);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .sotanom.alerta { color: var(--ambre); }
+  .xifra { display: block; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .menuda { display: block; font-size: 12px; color: var(--tinta-tenue); }
+  .cancel-urgent { color: var(--ambre); font-weight: 500; }
+  .cancel-calma { color: var(--tinta-suau); }
+  .cancel-apagat { color: var(--tinta-tenue); opacity: 0.75; }
+  .preu-pagat { color: var(--verd); }
+  .preu-pendent { color: var(--vermell); }
+  .preu-desconegut { color: var(--tinta-tenue); }
+  .chev { transition: transform 0.15s ease; }
+  .fila.oberta .chev { transform: rotate(180deg); }
+  .pregunta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    padding: 2px 0 12px 26px;
+    border-bottom: 1px solid var(--vora);
+    font-size: 13px;
+    color: var(--ambre);
+  }
+  /* Els botons van al costat de la pregunta, no a l'altra punta de la
+     pantalla: en monitors amples se separaven tant que ja no es llegien
+     com a resposta. */
+  .pregunta-botons { display: flex; gap: 6px; }
+  .fila.te-pregunta .fila-cap { border-bottom-color: transparent; padding-bottom: 6px; }
+  .fila-detall { padding: 6px 0 20px 26px; border-bottom: 1px solid var(--vora); }
+  .detall-graella { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px 24px; }
+  .detall-camp span { display: block; font-size: 12px; font-weight: 500; color: var(--tinta-tenue); }
+  .detall-camp p { margin: 2px 0 0; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  .detall-camp p.absent { color: var(--tinta-tenue); opacity: 0.8; font-style: italic; }
+  .detall-camp.ample { grid-column: 1 / -1; }
+  .enllac-maps {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: -3px;
+    padding: 3px;
+    border-radius: 5px;
+    color: var(--tinta-tenue);
+    text-decoration: none;
+    transition: color 0.12s ease, background 0.12s ease;
+  }
+  .enllac-maps:hover { color: var(--accent); background: var(--accent-fons); }
+  .detall-accions { display: flex; gap: 8px; margin-top: 18px; }
+  .barra-demo {
+    background: var(--ambre-fons);
+    color: var(--ambre);
+    border-bottom: 1px solid var(--vora);
+    padding: 10px 28px;
+    font-size: 13px;
+  }
+  .barra-demo a { color: inherit; font-weight: 500; }
+  .llista-buida, .buida-taula {
+    padding: 40px 0;
+    text-align: center;
+    color: var(--tinta-suau);
+    font-size: 13.5px;
+  }
+  .ocult { display: none; }
+
+  /* ── Taula ── */
+  .embolcall-taula {
+    overflow-x: auto;
+    border: 1px solid var(--vora);
+    border-radius: var(--radi);
+    background: var(--superficie);
+  }
+  table { border-collapse: collapse; width: 100%; min-width: 1150px; }
+  th {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--tinta-tenue);
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid var(--vora-forta);
+    white-space: nowrap;
+    background: var(--superficie);
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--vora);
+    font-size: 13px;
+    vertical-align: top;
+    max-width: 220px;
+  }
+  td.dada { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--subtil); }
+  td .hora { color: var(--tinta-tenue); font-size: 12px; display: block; }
+  .cancel-lliure { color: var(--verd); font-weight: 500; }
+  .cancel-no { color: var(--vermell); font-weight: 500; }
+
+  /* ── Avisos i peu ── */
+  .avis { display: none; margin-top: 10px; padding: 10px 13px; border-radius: 8px; font-size: 13.5px; }
+  .avis.ok { display: block; background: var(--verd-fons); color: var(--verd); }
+  .avis.mal { display: block; background: var(--ambre-fons); color: var(--ambre); }
+
+  footer {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 28px 48px;
+    color: var(--tinta-tenue);
+    font-size: 13px;
+  }
+  footer .interior { border-top: 1px solid var(--vora); padding-top: 16px; }
+  #fitxer-importa { display: none; }
+
+  @media (max-width: 780px) {
+    header, main, footer { padding-left: 18px; padding-right: 18px; }
+    .llista { padding: 0 14px 10px; }
+    .llista-capcalera { display: none; }
+    .graella-fila {
+      grid-template-columns: 12px minmax(0, 1fr) auto 16px;
+      grid-template-areas:
+        "punt nom preu chev"
+        ".    dates dates ."
+        ".    cancel cancel .";
+      row-gap: 3px;
+      gap: 10px;
+    }
+    .cel-dates .xifra, .cel-dates .menuda { display: inline; }
+    .cel-dates .menuda::before { content: ' · '; }
+    .fila-detall { padding-left: 22px; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    #fitxa.visible { animation: entra 0.22s ease-out; }
+    @keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Registre de reserves</h1>
+  <span class="compta" id="comptador"></span>
+</header>
+
+<main>
+  <h2 class="sr-only">Les teves reserves</h2>
+
+  <div class="barra-accions">
+    <div class="commutador" role="group" aria-label="Manera de veure el registre">
+      <button id="btn-vista-llista" aria-pressed="true">Llista</button>
+      <button id="btn-vista-taula" aria-pressed="false">Taula</button>
+    </div>
+    <span class="separa"></span>
+    <button id="btn-excel">Exporta a Excel</button>
+    <button class="primari" id="btn-afegeix" aria-expanded="false" aria-controls="panell-afegeix">Afegeix una reserva</button>
+  </div>
+
+  <section class="panell ocult" id="panell-afegeix" aria-label="Afegeix una reserva">
+    <p class="pista">Copia tot el text de l'email de confirmació i enganxa'l aquí. No cal netejar res: l'app hi buscarà les dades.</p>
+    <textarea id="entrada" placeholder="Enganxa aquí el text de l'email de Booking, Expedia, Airbnb…" spellcheck="false"></textarea>
+    <div class="accions">
+      <button class="primari" id="btn-llegeix">Llegeix la reserva</button>
+      <button class="subtil" id="btn-neteja">Buida la caixa</button>
+    </div>
+    <div class="avis" id="avis-enganxa"></div>
+  </section>
+
+  <div id="fitxa" aria-live="polite">
+    <div class="fitxa-cap">
+      <p class="fitxa-titol" id="fitxa-titol">Fitxa de la reserva</p>
+      <span class="segell" id="segell">Booking.com</span>
+    </div>
+    <p class="fitxa-sub" id="fitxa-sub">Revisa les dades i completa els camps marcats abans de desar.</p>
+    <div class="graella" id="graella-camps"></div>
+    <div class="fitxa-peu">
+      <button class="primari" id="btn-desa">Afegeix al registre</button>
+      <button class="subtil" id="btn-descarta">Descarta</button>
+    </div>
+  </div>
+
+  <div class="llista" id="llista">
+    <div class="graella-fila llista-capcalera">
+      <span class="cel-punt"></span>
+      <span class="cel-nom">Allotjament</span>
+      <span class="cel-dates">Dates</span>
+      <span class="cel-cancel">Cancel·lació</span>
+      <span class="cel-preu">Preu</span>
+      <span class="cel-chev"></span>
+    </div>
+    <div id="cos-llista"></div>
+    <div class="llista-buida" id="llista-buida">Encara no hi ha cap reserva. Enganxa un email de confirmació a la caixa de dalt per començar.</div>
+  </div>
+
+  <div class="embolcall-taula ocult" id="embolcall-taula">
+    <table id="taula">
+      <thead>
+        <tr>
+          <th>Entrada</th><th>Sortida</th><th>Allotjament</th><th>Client</th>
+          <th>Adreça</th><th>Hostes</th><th>Preu</th><th>Pagament</th>
+          <th>Cancel·lació</th><th>Telèfon</th><th>Núm. reserva</th>
+          <th>Plataforma</th><th>Notes</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="cos-taula"></tbody>
+    </table>
+    <div class="buida-taula" id="taula-buida">Encara no hi ha cap reserva.</div>
+  </div>
+</main>
+
+<footer>
+  <div class="interior">
+    Les dades es desen en aquest navegador. Si canvies d'ordinador o esborres les dades de navegació, es perdran: exporta còpies de tant en tant.
+    <div class="accions">
+      <button class="subtil" id="btn-backup">Desa una còpia de seguretat</button>
+      <button class="subtil" id="btn-restaura">Recupera una còpia</button>
+      <input type="file" id="fitxer-importa" accept=".json">
+    </div>
+    <div class="avis" id="avis-peu"></div>
+  </div>
+</footer>
+
+<script>
+/* ═══════════════ PARSER (provat amb mostres reals) ═══════════════ */
+// ─── Parser de confirmacions de reserva (Booking + genèric) ───
+// Idiomes: català, castellà, anglès.
+
+const MESOS = {
+  ca: ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'],
+  es: ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'],
+  en: ['january','february','march','april','may','june','july','august','september','october','november','december']
+};
+
+function mesANum(nom) {
+  const n = nom.toLowerCase();
+  for (const lang of Object.keys(MESOS)) {
+    const i = MESOS[lang].findIndex(m => m === n || (n.length >= 3 && m.startsWith(n.replace(/\.$/, ''))));
+    if (i >= 0) return i + 1;
+  }
+  return null;
+}
+
+const MES_RE = '(?:gener|febrer|març|abril|maig|juny|juliol|agost|setembre|octubre|novembre|desembre|enero|febrero|marzo|mayo|junio|julio|septiembre|octubre|noviembre|diciembre|january|february|march|april|may|june|july|august|september|october|november|december)';
+
+// «3 de setembre de 2025», «19 d'agost de 2025», «2 de septiembre de 2024», «2 September 2024»
+const DATA_RE = new RegExp(`(\\d{1,2})(?:r|n|t|è|a)?\\s+(?:de\\s+|d['’]\\s?)?(${MES_RE})(?:\\s+(?:de(?:l)?\\s+)?(\\d{4}))?`, 'i');
+// Format anglès americà: «September 2, 2024»
+const DATA_EN_RE = new RegExp(`(${MES_RE})\\s+(\\d{1,2})(?:st|nd|rd|th)?,?\\s+(\\d{4})`, 'i');
+
+function trobaData(text) {
+  let m = text.match(DATA_RE);
+  if (m) {
+    const mes = mesANum(m[2]);
+    if (mes) return { dia: +m[1], mes, any: m[3] ? +m[3] : null, index: m.index };
+  }
+  m = text.match(DATA_EN_RE);
+  if (m) {
+    const mes = mesANum(m[1]);
+    if (mes) return { dia: +m[2], mes, any: +m[3], index: m.index };
+  }
+  return null;
+}
+
+function dataISO(d) {
+  if (!d || !d.any) return '';
+  return `${d.any}-${String(d.mes).padStart(2,'0')}-${String(d.dia).padStart(2,'0')}`;
+}
+
+function normalitza(text) {
+  return text
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')   // enllaços markdown
+    .replace(/https?:\/\/\S+/g, ' ')            // URLs
+    .replace(/[|#*_>]+/g, ' ')                  // restes de format
+    .replace(/-{3,}/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function detectaPlataforma(flat) {
+  // Accor primer: és la marca la que identifica el correu, no cap domini genèric
+  if (/\baccor\b|\ball\.com\b|\b(?:ibis|novotel|mercure|pullman|sofitel|adagio|mama shelter)\b/i.test(flat)) {
+    return /\bibis\b/i.test(flat) ? 'ibis (Accor)' : 'Accor';
+  }
+  if (/booking\.com/i.test(flat)) return 'Booking.com';
+  if (/expedia/i.test(flat)) return 'Expedia';
+  if (/airbnb/i.test(flat)) return 'Airbnb';
+  if (/hotels\.com/i.test(flat)) return 'Hotels.com';
+  return 'Desconeguda';
+}
+
+// Retalla un fragment entre una etiqueta i la següent etiqueta coneguda
+function fragment(flat, iniciRe, finalRe, maxLen = 200) {
+  const mi = flat.match(iniciRe);
+  if (!mi) return null;
+  const desDe = mi.index + mi[0].length;
+  const resta = flat.slice(desDe, desDe + maxLen);
+  const mf = resta.match(finalRe);
+  return (mf ? resta.slice(0, mf.index) : resta).trim();
+}
+
+function extreuHores(seg) {
+  const hores = seg.match(/\d{1,2}:\d{2}/g) || [];
+  if (hores.length >= 2) return `${hores[0]}–${hores[1]}`;
+  if (hores.length === 1) return hores[0];
+  return '';
+}
+
+/* Filtre de sanejament: abans, qualsevol cosa que enganxés una regla es
+   desava com a nom d'allotjament, i el text dels botons de la interfície
+   («Más info», «Ver detalles») s'hi colava. Ara cap candidat s'accepta
+   sense passar per aquí. */
+function nomPlausible(nom) {
+  if (!nom) return false;
+  const t = nom.trim();
+  if (t.length < 3 || t.length > 70) return false;
+  if (!/^[\p{Lu}\d]/u.test(t)) return false;   // els noms comencen en majúscula
+  if (!/\p{L}{3}/u.test(t)) return false;      // i tenen alguna paraula de debò
+  return !/^(?:M[áà]s info|M[ée]s info|More info|Ver\b|Veure\b|See\b|Datos\b|Dades\b|Details\b|Detalls\b|Inbox\b|Safata\b|Gracias\b|Gr[àa]cies\b|Thanks\b|Hola\b|Booking\.com|Confirmaci|PIN\b|Reserva\b|Tu reserva|La teva reserva)/i.test(t);
+}
+
+/* L'assumpte és on Booking sempre escriu el nom sencer de l'allotjament,
+   i és el més estable entre idiomes. Les altres regles hi van al darrere. */
+const NOMS_BOOKING = [
+  /(?:Tu|La teva|La seva|Your)\s+(?:reserva|booking|reservation)\s+(?:en|a|al|at|in)\s+(.{2,70}?)\s+(?:est[àáa]\s+confirmad[ao]|ha\s+estat\s+confirmada|is\s+confirmed)/i,
+  /(?:reserva està confirmada|booking is confirmed):?\s*([^.!?]{2,70}?)(?:\s+(?:Safata|Inbox|Viatges|Confirmaci|De:|noreply)|$)/i,
+  /(?:El|La|L['’]|Los|Las)?\s*([A-ZÀ-Ž][^.!?]{2,60}?)\s+(?:te espera el|t['’]espera el|is expecting you)/,
+  /([^.!?:]{2,70}?)\s+(?:Detalls de la reserva|Datos de la reserva|Booking details)/i
+];
+
+function parseBooking(flat) {
+  const r = {};
+
+  // Ancoratge: la secció de detalls de la reserva (evita la capçalera del Gmail,
+  // on «Safata d'entrada» es confon amb el camp «Entrada»)
+  const anc = flat.search(/(?:Detalls de la reserva|Datos de la reserva|Booking details)/i);
+  const cos = anc >= 0 ? flat.slice(anc) : flat;
+
+  // Allotjament — cascada d'estratègies, amb el resultat sempre validat
+  let m;
+  for (const re of NOMS_BOOKING) {
+    const candidat = flat.match(re);
+    if (!candidat) continue;
+    // Booking hi posa un article en minúscula davant del nom («en el Apartaments…»).
+    // Si l'article va en majúscula forma part del nom («El Molino») i es respecta.
+    // L'apòstrof, en canvi, sempre és article: «L'Hotel Rialto» → «Hotel Rialto».
+    const nom = candidat[1]
+      .replace(/^(?:el|la|els|les|los|las|the)\s+/, '')
+      .replace(/^[lL]['’]\s*/, '')
+      .trim();
+    if (nomPlausible(nom)) { r.allotjament = nom; break; }
+  }
+
+  // Número de confirmació
+  m = flat.match(/(?:Confirmaci[óò]n?|Confirmation|Booking number|Booking no\.?)\s*:?\s*(\d{6,14})/i);
+  if (m) r.numReserva = m[1];
+
+  // PIN (útil per modificar la reserva → va a notes)
+  m = flat.match(/PIN\s*:?\s*(\d{3,6})/i);
+  if (m) r.notes = `PIN Booking: ${m[1]}`;
+
+  // Entrada
+  let seg = fragment(cos, /(?<![dD]['\u2019]\s?)(?<!de )\b(?:Entrada|Check.?in)\b/i, /(?:Sortida|Salida|Check.?out)/i);
+  if (seg) {
+    const d = trobaData(seg);
+    if (d) { r.checkinISO = dataISO(d); }
+    r.checkinHora = extreuHores(seg);
+  }
+
+  // Sortida
+  seg = fragment(cos, /(?:Sortida|Salida|Check.?out)/i, /(?:La teva reserva|Tu reserva|Your (?:reservation|booking)|Reserva per|Reservaste)/i);
+  if (seg) {
+    const d = trobaData(seg);
+    if (d) { r.checkoutISO = dataISO(d); }
+    r.checkoutHora = extreuHores(seg);
+  }
+
+  // Nits / habitacions + hostes
+  // Nits: del fragment només ens interessa el recompte. Booking hi enganxa
+  // el tipus d'allotjament («4 noches, Apartamento de 2 dormitorios») i
+  // això allargava el camp sense aportar res.
+  const tros = fragment(cos, /(?:La teva reserva|Tu reserva|Your (?:reservation|booking))/i, /(?:Reserva per a|Reservaste para|You booked for|Situació|Ubicación|Location)/i, 90);
+  const mn = tros && tros.match(/\d+\s*(?:nits?|noches?|nights?)/i);
+  const nits = mn ? mn[0].replace(/\s+/g, ' ').trim() : null;
+  const hostes = fragment(cos, /(?:Reserva per a|Reservaste para|You booked for)/i, /(?:Situació|Ubicación|Location|Adreça|Dirección|Address)/i, 60);
+  const parts = [hostes, nits].filter(Boolean);
+  if (parts.length) r.hostes = hostesEnCatala(parts.join(' · '));
+
+  // Adreça
+  seg = fragment(cos, /(?:Situació|Ubicación|Location|Address)/i, /(?:Tel[eè\u00e9]fono?|Phone|Contacte|Contacto|Contact)/i, 160);
+  if (seg) r.adreca = seg;
+
+  // Telèfon
+  m = cos.match(/(?:Tel[eè\u00e9]fono?|Phone)\s*:?\s*(\+?[\d][\d\s().-]{6,18}\d)/i);
+  if (m) r.telefon = m[1].replace(/\s+/g, ' ').trim();
+
+  // Preu total
+  m = flat.match(/(?:Preu total|Precio total|Total price|Total cost)\s*:?\s*([€$£]?\s*[\d.]+(?:,\d{1,2})?|[\d.]+(?:,\d{1,2})?\s*[€$£])/i);
+  if (m) r.preu = netejaImport(m[1]);
+
+  // Estat del pagament
+  if (/(?:Has pagat|Has pagado|You (?:have )?paid)/i.test(flat)) {
+    const mp = flat.match(/(?:Has pagat|Has pagado|You (?:have )?paid)\s*([€$£]?\s*[\d.]+(?:,\d{1,2})?)/i);
+    r.pagament = 'Pagat' + (mp ? ` (${netejaImport(mp[1])})` : '');
+  } else if (/(?:Has programat|Has programado|scheduled)/i.test(flat)) {
+    const mp = flat.match(/(?:Programat|Programado|Scheduled)\s*([€$£]?\s*[\d.]+(?:,\d{1,2})?)/i);
+    r.pagament = 'Programat' + (mp ? ` (${netejaImport(mp[1])})` : '');
+  } else if (/(?:pagaràs? (?:aquests càrrecs )?a l['’]allotjament|pagarás en el alojamiento|pay at the property)/i.test(flat)) {
+    r.pagament = 'Es paga a l’allotjament';
+  } else if (/Has (?:confirmado y )?garantizado[^.]{0,60}tarjeta|Has garantit[^.]{0,60}targeta|(?:You have )?guaranteed[^.]{0,50}credit card/i.test(flat)) {
+    r.pagament = 'Garantit amb targeta';
+  }
+
+  // Cancel·lació
+  if (/no (?:es )?re(?:e)?mbo[lr]sable|non.?refundable|no reemborsable/i.test(flat)) {
+    r.cancelacio = 'No reemborsable';
+  } else {
+    m = flat.match(/(?:cancel·lar\s+gratis|cancelaci[óo]n?\s+gratuita|cancelar\s+gratis|free\s+cancellation)[^.]{0,80}?(?:fins(?:\s+a(?:\s+les)?)?|hasta(?:\s+el|\s+las)?|until|before)\s+([^.]{4,60})/i)
+     || flat.match(/(?:Fins al|Hasta el|Until)\s+([^:]{4,50}?\d{4}(?:\s+\d{1,2}:\d{2})?)\s*:\s*[€$£]?\s*0\b/i);
+    if (m) {
+      const span = m[1];
+      const d = trobaData(span);
+      const h = span.match(/\d{1,2}:\d{2}/);
+      if (d && d.any) r.cancelacio = `Gratis fins ${String(d.dia).padStart(2,'0')}/${String(d.mes).padStart(2,'0')}/${d.any}` + (h ? ` ${h[0]}` : '');
+      else r.cancelacio = 'Gratis fins ' + span.trim();
+    }
+  }
+
+  // Nom del client
+  m = flat.match(/(?:Nombre del hu\u00e9sped|Guest name|Nom del client|Client)\s*:?\s+((?:\p{Lu}[\p{L}'\u2019\u00b7.-]*\s+){0,5}\p{Lu}[\p{L}'\u2019\u00b7.-]*)/u);
+  if (m) {
+    const stop = ['Àpats','Garanteix','Comidas','Garantiza','Meals','Ensure',
+                  'Régimen','Regimen','Règim','Regim','Board','Nombre','Nom','Name',
+                  'Apartamento','Apartament','Habitación','Habitació','Habitacion','Room','Chambre',
+                  'Información','Informació','Information','Pago','Pagament','Payment',
+                  'Modificar','Modifica','Detalles','Detalls','Details','Precio','Preu','Price',
+                  'El','La','Los','Las','The','Per','Por','For'];
+    const paraules = m[1].trim().split(/\s+/);
+    const tall = paraules.findIndex(p => stop.includes(p));
+    r.client = (tall > 0 ? paraules.slice(0, tall) : paraules).join(' ');
+  }
+
+  return r;
+}
+
+/* ─────────── Accor: ibis, Novotel, Mercure, Pullman, Sofitel ───────────
+   Tres diferències respecte de Booking: dates numèriques (19/07/2026),
+   imports amb punt decimal i codi de moneda (99.90 EUR), i una
+   cancel·lació expressada en dies abans de l'arribada en comptes de
+   com una data. L'última la convertim en data a partir de l'entrada. */
+
+function isoNumerica(txt) {
+  const m = String(txt).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (!m) return '';
+  return `${m[3]}-${String(+m[2]).padStart(2, '0')}-${String(+m[1]).padStart(2, '0')}`;
+}
+
+function menysDies(iso, dies) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return '';
+  const [a, m, d] = iso.split('-').map(Number);
+  const data = new Date(a, m - 1, d);
+  data.setDate(data.getDate() - dies);
+  return `${String(data.getDate()).padStart(2, '0')}/${String(data.getMonth() + 1).padStart(2, '0')}/${data.getFullYear()}`;
+}
+
+/* «99.90» + «EUR» → «99,90 €» · «1.234,56» + «EUR» → «1234,56 €» */
+function importAmbMoneda(num, moneda) {
+  let t = String(num).trim();
+  const simbols = { EUR: '€', USD: '$', GBP: '£' };
+  const simbol = simbols[(moneda || '').toUpperCase()]
+    || (/[€$£]/.test(moneda || '') ? moneda.trim() : '€');
+  if (/,\d{1,2}$/.test(t)) {                 // 1.234,56 → decimals amb coma
+    t = t.replace(/\./g, '');
+  } else if (/\.\d{1,2}$/.test(t)) {         // 99.90 o 1,234.56 → decimals amb punt
+    t = t.replace(/,/g, '');
+    const i = t.lastIndexOf('.');
+    t = t.slice(0, i).replace(/\./g, '') + ',' + t.slice(i + 1);
+  } else {                                   // 1.234 → només milers
+    t = t.replace(/[.,]/g, '');
+  }
+  return t + ' ' + simbol;
+}
+
+function parseAccor(flat) {
+  const r = {};
+
+  // Ancoratge al cos de la confirmació: evita les capçaleres del client de correu
+  const anc = flat.search(/SU RESERVA EST[ÁA] CONFIRMADA|LA (?:TEVA|SEVA) RESERVA EST[ÀA] CONFIRMADA|YOUR (?:BOOKING|RESERVATION) IS CONFIRMED|VOTRE R[ÉE]SERVATION EST CONFIRM[ÉE]E/i);
+  const cos = anc >= 0 ? flat.slice(anc) : flat;
+
+  // Número de reserva: la capçalera en majúscules, o el codi de l'assumpte
+  let m = flat.match(/(?:RESERVA|RESERVATION|RÉSERVATION|BOOKING)\s*N[°ºo.]{0,2}\s*:?\s*([A-Z0-9]{6,14})\b/)
+       || flat.match(/\bn\.?\s*[º°]\s*([A-Z0-9]{6,14})\b/);
+  if (m) r.numReserva = m[1];
+
+  // Allotjament: primer per l'assumpte, que és el més net; si no, pel cos
+  m = flat.match(/Confirmaci[óo]n? de (?:su|la teva|la seva) reserva\s*:\s*(.+?)\s+n\.?\s*[º°]\s*[A-Z0-9]{5,}/i)
+   || flat.match(/(?:Confirmation of your (?:reservation|booking)|Confirmation de votre r[ée]servation)\s*:\s*(.+?)\s+n[°º.]{0,2}\s*[A-Z0-9]{5,}/i)
+   || cos.match(/(?:\bal\b|\bau\b|\bto\b)\s+\d{1,2}\/\d{1,2}\/\d{4}\s+(.{3,70}?)\s+(?=Avenue|Av\.|Rue\b|Route|Chemin|Boulevard|Bd\b|Place|Plaza|Calle|C\/|Carrer|Via\b|Piazza|Street|Road|\d{1,4}[ ,])/i);
+  if (m) r.allotjament = m[1].replace(/\s+/g, ' ').trim();
+
+  // Dates de l'estada, en format numèric
+  m = cos.match(/(?:Fecha de la estancia|Data de l['’]estada|Date du s[ée]jour|Stay dates?)[^\d]{0,20}(\d{1,2}\/\d{1,2}\/\d{4})[^\d]{0,12}(\d{1,2}\/\d{1,2}\/\d{4})/i);
+  if (!m) {
+    const totes = cos.match(/\d{1,2}\/\d{1,2}\/\d{4}/g) || [];
+    if (totes.length >= 2) m = [null, totes[0], totes[1]];
+  }
+  if (m) {
+    r.checkinISO = isoNumerica(m[1]);
+    r.checkoutISO = isoNumerica(m[2]);
+  }
+
+  // Hores: viuen a les polítiques d'entrada i de sortida, al final del correu
+  m = cos.match(/(?:Pol[íi]tica de entrada|Pol[íi]tica d['’]entrada|Check.?in policy|Politique d['’]arriv[ée]e)[^\d]{0,90}(\d{1,2}:\d{2})/i);
+  if (m) r.checkinHora = m[1];
+  m = cos.match(/(?:Pol[íi]tica de salida|Pol[íi]tica de sortida|Check.?out policy|Politique de d[ée]part)[^\d]{0,110}(\d{1,2}:\d{2})/i);
+  if (m) r.checkoutHora = m[1];
+
+  // Hostes: «1 habitación, 1 noche, 2 adultos»
+  m = cos.match(/(?:Su estancia|La teva estada|La seva estada|Votre s[ée]jour|Your stay)\s*:?\s*([^.]{3,70})/i);
+  if (m) {
+    const trossos = m[1].split(',').map(s => s.trim())
+      .filter(s => /^\d+\s+\p{L}/u.test(s))
+      .map(s => s.split(/\s+/).slice(0, 2).join(' '));
+    if (trossos.length) r.hostes = hostesEnCatala(trossos.join(' · '));
+  }
+
+  // Adreça i telèfon: van just abans i just després del correu de l'hotel
+  const mail = cos.match(/[\w.+-]+@[\w-]+\.[\w.]{2,}/);
+  if (mail) {
+    let previ = cos.slice(Math.max(0, mail.index - 180), mail.index).trim();
+    if (r.allotjament) {
+      const j = previ.lastIndexOf(r.allotjament);
+      if (j >= 0) previ = previ.slice(j + r.allotjament.length);
+    }
+    const mv = previ.match(/(?:Avenue|Av\.|Rue\b|Route|Chemin|Boulevard|Bd\b|Place|Plaza|Calle|C\/|Carrer|Via\b|Piazza|Street|Road|\d{1,4}[ ,]).*/i);
+    if (mv) previ = mv[0];
+    previ = previ.replace(/\s+/g, ' ').trim();
+    if (previ.length >= 8 && previ.length <= 140) r.adreca = previ;
+  }
+  m = cos.match(/\+\d[\d\s()\/.-]{6,20}\d/);
+  if (m) r.telefon = m[0].replace(/\s+/g, ' ').trim();
+
+  // Preu total de l'estada
+  m = cos.match(/(?:PRECIO TOTAL DE LA ESTANCIA|PREU TOTAL DE L['’]ESTADA|TOTAL PRICE OF (?:THE|YOUR) STAY|PRIX TOTAL DU S[ÉE]JOUR)[^\d]{0,40}([\d.,]+)\s*(EUR|USD|GBP|CHF|[€$£])/i);
+  if (m) r.preu = importAmbMoneda(m[1], m[2]);
+
+  // Pagament: Accor detalla què queda per pagar a l'hotel
+  m = cos.match(/(?:Cantidad restante a abonar en el hotel|Quantitat restant a abonar a l['’]hotel|Montant restant [àa] r[ée]gler [àa] l['’]h[ôo]tel|(?:Amount|Balance) remaining to be paid at the hotel)\s*:?\s*([\d.,]+)\s*(EUR|USD|GBP|CHF|[€$£])/i);
+  if (m) {
+    const queda = parseFloat(importAmbMoneda(m[1], m[2]).replace(/[^\d,]/g, '').replace(',', '.'));
+    r.pagament = queda > 0
+      ? 'Es paga a l’allotjament (' + importAmbMoneda(m[1], m[2]) + ')'
+      : 'Pagat';
+  } else if (/(?:importe (?:ya )?pagado|ja pagat|already paid|d[ée]j[àa] pay[ée])/i.test(cos)) {
+    r.pagament = 'Pagat';
+  }
+
+  // Cancel·lació: ve en dies abans de l'arribada, la convertim en data
+  m = cos.match(/(?:sin (?:cargo|gastos) por (?:anulaci[óo]n|cancelaci[óo]n)|cancelaci[óo]n gratuita|sense c[àa]rrec|cancel·lació gratu[ïi]ta|free cancellation|annulation (?:gratuite|sans frais))[^.]{0,90}?(\d+)\s*(?:d[íi]as?|dies?|jours?|days?)[^.]{0,40}?(?:antes de la llegada|abans de l['’]arribada|before arrival|avant l['’]arriv[ée]e)/i);
+  if (m && r.checkinISO) {
+    const limit = menysDies(r.checkinISO, +m[1]);
+    if (limit) r.cancelacio = 'Gratis fins ' + limit;
+  }
+  if (!r.cancelacio) {
+    const abs = cos.match(/(?:sin (?:cargo|gastos)|cancelaci[óo]n gratuita|free cancellation)[^.]{0,80}?(?:hasta|fins|until|jusqu['’]au)\s+(?:el\s+)?(\d{1,2}\/\d{1,2}\/\d{4})/i);
+    if (abs) r.cancelacio = 'Gratis fins ' + abs[1];
+    else if (/tarifa no reembolsable|no reembolsable|no reemborsable|non remboursable|non.?refundable/i.test(cos)) r.cancelacio = 'No reemborsable';
+  }
+
+  // Nom de qui ha fet la reserva
+  m = cos.match(/(?:Reserva realizada en nombre de|Reserva feta a nom de|R[ée]servation effectu[ée]e au nom de|Booking made on behalf of)\s*:?\s*((?:\p{Lu}[\p{L}'’·.-]*\s+){0,4}\p{Lu}[\p{L}'’·.-]*)/u);
+  if (m) {
+    const stop = ['Habitación','Habitacion','Habitació','Chambre','Room','Standard','Superior','Doble','Individual','Suite','Su','Tu','La','El','Los','Las','The'];
+    const paraules = m[1].trim().split(/\s+/);
+    const tall = paraules.findIndex(p => stop.includes(p));
+    r.client = (tall > 0 ? paraules.slice(0, tall) : paraules).join(' ');
+  }
+
+  // La tarifa contractada explica què inclou el preu: va bé tenir-la a mà
+  m = cos.match(/\b(TARIFA\s+[A-ZÀ-Ú][^\d]{2,60}?)\s+\d+\s*x\s*[\d.,]+\s*(?:EUR|USD|GBP|[€$£])/);
+  if (m) r.notes = 'Tarifa: ' + m[1].replace(/\s+/g, ' ').trim();
+
+  return r;
+}
+
+/* ─── Els valors es desen sempre en català ───
+   Els correus arriben en l'idioma del compte, però el registre és teu i
+   es llegeix en un sol idioma. De moment només afecta el camp d'hostes.
+   La funció és idempotent: aplicar-la a un valor ja traduït no el canvia.
+   Els delimitadors són \p{L} i no \b, perquè \b no considera lletra
+   els accents i deixaria paraules com «bebé» sense traduir. */
+const TRADUCCIONS_HOSTES = [
+  ['habitaciones', 'habitacions'], ['habitaci[óo]n', 'habitació'],
+  ['chambres', 'habitacions'],     ['chambre', 'habitació'],
+  ['rooms', 'habitacions'],        ['room', 'habitació'],
+  ['noches', 'nits'],              ['noche', 'nit'],
+  ['nights', 'nits'],              ['night', 'nit'],
+  ['nuits', 'nits'],               ['nuit', 'nit'],
+  ['adultos', 'adults'],           ['adulto', 'adult'],
+  ['adultes', 'adults'],           ['adulte', 'adult'],
+  ['adults', 'adults'],            ['adult', 'adult'],
+  ['ni[ñn]os', 'nens'],            ['ni[ñn]o', 'nen'],
+  ['children', 'nens'],            ['child', 'nen'],
+  ['enfants', 'nens'],             ['enfant', 'nen'],
+  ['hu[ée]spedes', 'hostes'],      ['hu[ée]sped', 'hoste'],
+  ['guests', 'hostes'],            ['guest', 'hoste'],
+  ['beb[ée]s', 'nadons'],          ['beb[ée]', 'nadó'],
+  ['babies', 'nadons'],            ['baby', 'nadó']
+].map(([patro, ca]) => [new RegExp('(?<!\\p{L})(?:' + patro + ')(?!\\p{L})', 'giu'), ca]);
+
+function hostesEnCatala(s) {
+  if (!s) return s;
+  let t = String(s);
+  for (const [re, ca] of TRADUCCIONS_HOSTES) t = t.replace(re, ca);
+  return t;
+}
+
+function netejaImport(s) {
+  let t = s.replace(/\s+/g, '');
+  if (!/[€$£]/.test(t)) t += ' €';
+  else if (/^[€$£]/.test(t)) t = t.slice(1) + ' ' + t[0];
+  else t = t.slice(0, -1) + ' ' + t.slice(-1);
+  return t.trim();
+}
+
+function parseGeneric(flat) {
+  const r = {};
+  // Dues primeres dates → entrada i sortida (a revisar)
+  const d1 = trobaData(flat);
+  if (d1) {
+    r.checkinISO = dataISO(d1);
+    const resta = flat.slice(d1.index + 8);
+    const d2 = trobaData(resta);
+    if (d2) r.checkoutISO = dataISO(d2);
+  }
+  // Telèfon: exigeix «+» o separadors, per no confondre'l amb números de referència
+  const m1 = flat.match(/\+\d[\d\s().-]{7,16}\d/) || flat.match(/\b\d{2,3}(?:[\s.-]\d{2,3}){2,5}\b/);
+  if (m1 && m1[0].replace(/\D/g,'').length >= 9) r.telefon = m1[0].trim();
+  const m2 = flat.match(/\b\d{8,14}\b/);
+  if (m2) r.numReserva = m2[0];
+  // Import més alt trobat com a candidat a preu
+  const imports = [...flat.matchAll(/[€$£]\s*([\d.]+(?:,\d{1,2})?)|([\d.]+(?:,\d{1,2})?)\s*[€$£]/g)]
+    .map(m => parseFloat((m[1] || m[2]).replace(/\./g,'').replace(',', '.')))
+    .filter(n => !isNaN(n));
+  if (imports.length) {
+    const max = Math.max(...imports);
+    r.preu = (String(max).includes('.') ? max.toFixed(2).replace('.', ',') : String(max)) + ' €';
+  }
+  return r;
+}
+
+function parseReserva(textOriginal) {
+  const flat = normalitza(textOriginal);
+  const plataforma = detectaPlataforma(flat);
+  let camps;
+  if (plataforma === 'Booking.com') camps = parseBooking(flat);
+  else if (/Accor/.test(plataforma)) camps = parseAccor(flat);
+  else camps = parseGeneric(flat);
+  return { plataforma, camps };
+}
+
+/* ═══════════════ APLICACIÓ ═══════════════ */
+
+/* ── PENDENT PER A LA PROPERA TANDA ──────────────────────────────────
+   1. Viatges. Agrupar les reserves per viatge i no per mes. És el pas
+      que desbloqueja tota la resta.
+   2. Pressupost del viatge. Relacionar-hi els preus de les reserves.
+      importNum() i formataImport() ja hi són, preparades.
+   3. Qui ha pagat cada reserva. Camp discret a la fitxa, visible només
+      des de la vista de despeses del viatge.
+   FET · Pregunta del cobrament quan arriba la data (versió 12). No és
+      la data de cancel·lació sinó la de pagament, que segons el cas és
+      el final del termini gratuït o el dia d'entrada.
+   4. (lliure)
+   FET · Botó per obrir l'adreça a Google Maps (versió 9).
+   FET · Mode demostració amb ?demo a l'adreça (versió 10).
+   ─────────────────────────────────────────────────────────────────── */
+const CLAU = 'registre-reserves-v1';
+
+/* ── MODE DEMOSTRACIÓ ──────────────────────────────────────────────
+   S'activa afegint ?demo al final de l'adreça de la pàgina. Serveix per
+   veure com queda una versió nova sense haver d'introduir reserves a mà.
+   En aquest mode el magatzem viu només a la memòria: no escriu res al
+   navegador i no toca les reserves de debò. Es pot afegir, editar i
+   esborrar amb normalitat; en tancar la pestanya, tot desapareix. */
+const MODE_DEMO = /[?&]demo(?:[=&]|$)/.test(location.search);
+
+function diesDesDavui(dies) {
+  const d = new Date();
+  d.setDate(d.getDate() + dies);
+  return d.toISOString().slice(0, 10);
+}
+
+function aDdMmAaaa(iso) {
+  const [a, m, d] = iso.split('-');
+  return `${d}/${m}/${a}`;
+}
+
+/* Les dates es calculen a partir d'avui perquè els estats de la
+   cancel·lació (lluny, imminent, vençuda) es vegin sempre tots. */
+function reservesDemo() {
+  return [
+    { id: 'demo-1', plataforma: 'Booking.com',
+      allotjament: 'Apartaments La Llucana', client: 'Pepita Ramos',
+      adreca: 'Passeig Sant Feliu, 53, 25527 Barruera',
+      checkinISO: diesDesDavui(22), checkinHora: '14:00',
+      checkoutISO: diesDesDavui(26), checkoutHora: '12:00',
+      hostes: '2 adults · 4 nits', preu: '395,44 €', pagament: 'Pagat (395,44 €)',
+      cancelacio: 'Gratis fins ' + aDdMmAaaa(diesDesDavui(17)) + ' 23:59',
+      telefon: '+34 650 96 43 47', numReserva: '5522751498', notes: 'PIN Booking: 9110' },
+
+    { id: 'demo-2', plataforma: 'ibis (Accor)',
+      allotjament: 'ibis Styles Arles Palacio de los Congresos', client: 'Pepita Ramos',
+      adreca: 'Avenue de la Première, 13200 Arles, França',
+      checkinISO: diesDesDavui(4), checkinHora: '14:00',
+      checkoutISO: diesDesDavui(5), checkoutHora: '12:00',
+      hostes: '1 habitació · 1 nit · 2 adults', preu: '99,90 €',
+      pagament: 'Es paga a l’allotjament (99,90 €)',
+      cancelacio: 'Gratis fins ' + aDdMmAaaa(diesDesDavui(3)),
+      telefon: '+33 4 90 93 98 80', numReserva: 'QLVDJLJL',
+      notes: 'Tarifa: TARIFA FLEXIBLE - DESAYUNO INCLUIDO' },
+
+    { id: 'demo-3', plataforma: 'Airbnb',
+      allotjament: 'Estudi al Barri Gòtic', client: '',
+      adreca: '',
+      checkinISO: diesDesDavui(24), checkoutISO: diesDesDavui(25),
+      hostes: '2 adults · 1 nit', preu: '', pagament: '',
+      cancelacio: 'No reemborsable', telefon: '', numReserva: 'HMQ4T2XY', notes: '' },
+
+    { id: 'demo-4', plataforma: 'Booking.com',
+      allotjament: 'Casa da Ribeira', client: 'Pepita Ramos',
+      adreca: 'Rua dos Canastreiros, 4, 4050-149 Porto',
+      checkinISO: diesDesDavui(52), checkinHora: '15:00',
+      checkoutISO: diesDesDavui(54), checkoutHora: '11:00',
+      hostes: '2 adults · 2 nits', preu: '198,00 €', pagament: 'Garantit amb targeta',
+      cancelacio: 'Gratis fins ' + aDdMmAaaa(diesDesDavui(-2)),
+      telefon: '+351 222 000 111', numReserva: '5510999', notes: '' }
+  ];
+}
+
+let magatzemDemo = MODE_DEMO ? reservesDemo() : null;
+const CAMPS = [
+  { id: 'allotjament', nom: 'Allotjament' },
+  { id: 'client',      nom: 'Nom del client' },
+  { id: 'adreca',      nom: 'Adreça', ample: true },
+  { id: 'checkinISO',  nom: 'Data d\u2019entrada (AAAA-MM-DD)' },
+  { id: 'checkinHora', nom: 'Hora d\u2019entrada' },
+  { id: 'checkoutISO', nom: 'Data de sortida (AAAA-MM-DD)' },
+  { id: 'checkoutHora',nom: 'Hora de sortida' },
+  { id: 'hostes',      nom: 'Hostes / habitacions' },
+  { id: 'preu',        nom: 'Preu total' },
+  { id: 'pagament',    nom: 'Estat del pagament' },
+  { id: 'cancelacio',  nom: 'Cancel\u00b7laci\u00f3 gratu\u00efta' },
+  { id: 'telefon',     nom: 'Tel\u00e8fon' },
+  { id: 'numReserva',  nom: 'N\u00fam. de reserva' },
+  { id: 'notes',       nom: 'Notes', ample: true }
+];
+
+let reserves = [];        // cau en memòria; qui la manté és el Magatzem
+let editantId = null;
+let plataformaActual = '';
+
+const $ = id => document.getElementById(id);
+
+/* ═══════════════ MAGATZEM ═══════════════
+   Única porta d'entrada i sortida de les dades. Avui escriu al navegador;
+   el dia que hi hagi Supabase només canvia el cos d'aquestes funcions,
+   i la resta de l'aplicació no se n'assabenta. Per això són asíncrones
+   des del primer dia, encara que ara no calgui esperar res. */
+
+function nouId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'r-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+}
+
+const Magatzem = {
+  async llista() {
+    try {
+      const dades = MODE_DEMO
+        ? magatzemDemo
+        : JSON.parse(localStorage.getItem(CLAU) || '[]');
+      if (!Array.isArray(dades)) return [];
+      // Les reserves desades abans que el parser traduís es normalitzen en
+      // llegir-les, i queden desades en català la primera vegada que s'editin.
+      return dades.map(r => r && r.hostes ? { ...r, hostes: hostesEnCatala(r.hostes) } : r);
+    } catch (e) { return []; }
+  },
+
+  async afegeix(dades) {
+    const totes = await this.llista();
+    const ara = new Date().toISOString();
+    const nova = {
+      ...dades,
+      id: dades.id || nouId(),
+      creatA: dades.creatA || ara,
+      modificatA: ara
+    };
+    totes.push(nova);
+    await this._escriu(totes);
+    return nova;
+  },
+
+  async actualitza(id, canvis) {
+    const totes = await this.llista();
+    const i = totes.findIndex(r => r.id === id);
+    if (i < 0) return null;
+    totes[i] = { ...totes[i], ...canvis, id, modificatA: new Date().toISOString() };
+    await this._escriu(totes);
+    return totes[i];
+  },
+
+  async esborra(id) {
+    const totes = (await this.llista()).filter(r => r.id !== id);
+    await this._escriu(totes);
+  },
+
+  async _escriu(totes) {
+    if (MODE_DEMO) { magatzemDemo = totes; return; }
+    try { localStorage.setItem(CLAU, JSON.stringify(totes)); }
+    catch (e) { avisa($('avis-peu'), 'No s\u2019han pogut desar les dades en aquest navegador. Fes una c\u00f2pia de seguretat ara mateix.', 'mal'); }
+  }
+};
+
+/* ── Panell per afegir: replegat per defecte, obert quan el registre és buit ── */
+function obrePanell(obert) {
+  $('panell-afegeix').classList.toggle('ocult', !obert);
+  $('btn-afegeix').setAttribute('aria-expanded', obert ? 'true' : 'false');
+  $('btn-afegeix').textContent = obert ? 'Tanca' : 'Afegeix una reserva';
+  if (obert) $('entrada').focus();
+}
+$('btn-afegeix').addEventListener('click', () => {
+  obrePanell($('panell-afegeix').classList.contains('ocult'));
+});
+
+/* Rellegeix les dades i repinta les dues vistes. */
+async function refresca() {
+  reserves = await Magatzem.llista();
+  reserves.sort((a, b) => (a.checkinISO || '9999') < (b.checkinISO || '9999') ? -1 : 1);
+  $('comptador').textContent = reserves.length === 1 ? '1 reserva' : reserves.length + ' reserves';
+  pintaLlista();
+  pintaTaula();
+  // Sense res al registre, l'única cosa a fer és enganxar: obrim la caixa.
+  if (!reserves.length) obrePanell(true);
+}
+
+function dataBonica(iso) {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso || '';
+  const [a, m, d] = iso.split('-');
+  return `${d}/${m}/${a}`;
+}
+
+function avisa(el, text, tipus) {
+  el.textContent = text;
+  el.className = 'avis ' + tipus;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.className = 'avis'; }, 5000);
+}
+
+/* ── Llegir l'email enganxat ── */
+$('btn-llegeix').addEventListener('click', () => {
+  const text = $('entrada').value.trim();
+  if (!text) { avisa($('avis-enganxa'), 'La caixa és buida. Enganxa-hi primer el text d\u2019un email de reserva.', 'mal'); return; }
+  const { plataforma, camps } = parseReserva(text);
+  editantId = null;
+  plataformaActual = plataforma;
+  mostraFitxa(camps, plataforma);
+  const trobats = CAMPS.filter(c => camps[c.id]).length;
+  if (plataforma === 'Desconeguda') {
+    avisa($('avis-enganxa'), 'No he reconegut la plataforma: he omplert el que he pogut amb regles gen\u00e8riques. Revisa-ho b\u00e9.', 'mal');
+  } else {
+    avisa($('avis-enganxa'), `Email de ${plataforma} reconegut: ${trobats} de ${CAMPS.length} camps omplerts. Revisa la fitxa.`, 'ok');
+  }
+});
+
+$('btn-neteja').addEventListener('click', () => { $('entrada').value = ''; $('entrada').focus(); });
+
+/* ── Fitxa de revisió ── */
+function mostraFitxa(camps, plataforma, titol) {
+  const seg = $('segell');
+  seg.textContent = plataforma === 'Desconeguda' ? 'Plataforma?' : plataforma;
+  seg.className = 'segell' + (plataforma === 'Desconeguda' ? ' desconeguda' : '');
+  $('fitxa-titol').textContent = titol || 'Fitxa de la reserva';
+  $('btn-desa').textContent = editantId ? 'Desa els canvis' : 'Afegeix al registre';
+
+  const g = $('graella-camps');
+  g.innerHTML = '';
+  for (const c of CAMPS) {
+    const valor = camps[c.id] || '';
+    const div = document.createElement('div');
+    div.className = 'camp' + (valor ? '' : ' buit') + (c.ample ? ' ample' : '');
+    const label = document.createElement('label');
+    label.textContent = c.nom;
+    label.htmlFor = 'camp-' + c.id;
+    const input = document.createElement('input');
+    input.id = 'camp-' + c.id;
+    input.value = valor;
+    input.addEventListener('input', () => { div.classList.toggle('buit', !input.value.trim()); });
+    div.append(label, input);
+    g.append(div);
+  }
+  $('fitxa').classList.add('visible');
+  $('fitxa').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+$('btn-descarta').addEventListener('click', () => {
+  $('fitxa').classList.remove('visible');
+  editantId = null;
+});
+
+$('btn-desa').addEventListener('click', async () => {
+  const dades = {};
+  for (const c of CAMPS) dades[c.id] = $('camp-' + c.id).value.trim();
+  if (!dades.allotjament && !dades.checkinISO) {
+    avisa($('avis-enganxa'), 'Com a m\u00ednim cal l\u2019allotjament o la data d\u2019entrada per desar la reserva.', 'mal');
+    return;
+  }
+  if (editantId) {
+    await Magatzem.actualitza(editantId, dades);
+  } else {
+    dades.plataforma = plataformaActual === 'Desconeguda' ? '' : plataformaActual;
+    await Magatzem.afegeix(dades);
+    $('entrada').value = '';
+  }
+  editantId = null;
+  $('fitxa').classList.remove('visible');
+  await refresca();
+  if (reserves.length) obrePanell(false);
+});
+
+/* ══════════ VISTA DE LLISTA ══════════ */
+
+const MESOS_CURT = ['gen','feb','març','abr','maig','juny','jul','ago','set','oct','nov','des'];
+const MESOS_LLARG = ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
+
+function aData(iso) {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  const [a, m, d] = iso.split('-').map(Number);
+  return new Date(a, m - 1, d);
+}
+
+/* «342,50 €» → 342.5 · «1.234,50 €» → 1234.5
+   Ara mateix no la fa servir ningú: queda a punt per al pressupost del viatge. */
+function importNum(preu) {
+  if (!preu) return null;
+  const m = String(preu).replace(/\s/g, '').match(/[\d.,]+/);
+  if (!m) return null;
+  let t = m[0];
+  if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
+  else if (/^\d{1,3}(?:\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+  const n = parseFloat(t);
+  return isNaN(n) ? null : n;
+}
+
+function formataImport(n) {
+  return n.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+
+function rangDates(r) {
+  const a = aData(r.checkinISO), b = aData(r.checkoutISO);
+  if (!a && !b) return { principal: 'sense dates', secundari: '' };
+  if (!a) return { principal: 'fins ' + b.getDate() + ' ' + MESOS_CURT[b.getMonth()], secundari: '' };
+  if (!b) return { principal: a.getDate() + ' ' + MESOS_CURT[a.getMonth()], secundari: '' };
+  const principal = a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()
+    ? `${a.getDate()} → ${b.getDate()} ${MESOS_CURT[b.getMonth()]}`
+    : `${a.getDate()} ${MESOS_CURT[a.getMonth()]} → ${b.getDate()} ${MESOS_CURT[b.getMonth()]}`;
+  const nits = Math.round((b - a) / 86400000);
+  return { principal, secundari: nits > 0 ? (nits === 1 ? '1 nit' : nits + ' nits') : '' };
+}
+
+/* Semàfor de la cancel·lació: groc si venç aviat, apagat si ja no cal vigilar-la */
+function infoCancel(r) {
+  const s = r.cancelacio || '';
+  if (/^no\s*ree?mbo/i.test(s)) return { text: 'no cancel·lable', classe: 'cancel-apagat' };
+  if (!s) return { text: '—', classe: 'cancel-apagat' };
+  const m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (!m) return { text: s.replace(/^gratis\s+fins\s+/i, 'fins '), classe: 'cancel-calma' };
+  const d = new Date(+m[3], +m[2] - 1, +m[1]);
+  const dies = Math.ceil((d - new Date()) / 86400000);
+  const text = 'fins ' + d.getDate() + ' ' + MESOS_CURT[d.getMonth()];
+  if (dies < 0) return { text: 'ja ha vençut', classe: 'cancel-apagat' };
+  if (dies <= 7) return { text, classe: 'cancel-urgent' };
+  return { text, classe: 'cancel-calma' };
+}
+
+/* ── QUAN TOCA COBRAR ─────────────────────────────────────────────
+   La data del càrrec no és sempre la mateixa cosa: amb cancel·lació
+   gratuïta cau quan s'acaba el termini, i si es paga a l'allotjament
+   cau el dia d'entrada. Arribat el dia, l'app no marca res tota sola:
+   pregunta i espera resposta. */
+const DIES_REPESCA = 7;
+
+function avui() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+
+function avuiISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function dataLlarga(d) {
+  const mes = MESOS_LLARG[d.getMonth()];
+  return d.getDate() + (/^[aeiou]/i.test(mes) ? ' d’' : ' de ') + mes;
+}
+
+function dataCobrament(r) {
+  const pag = r.pagament || '';
+  if (/^pagat/i.test(pag)) return null;                  // ja resolt
+  if (/allotjament/i.test(pag)) return aData(r.checkinISO);  // es cobra en arribar
+  const m = (r.cancelacio || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return new Date(+m[3], +m[2] - 1, +m[1]);       // fi del termini gratuït
+  return aData(r.checkinISO);                            // sense més pistes
+}
+
+function calPreguntarCobrament(r) {
+  const d = dataCobrament(r);
+  if (!d || d > avui()) return false;
+  if (r.preguntatA) {
+    const dies = (avui() - aData(r.preguntatA)) / 86400000;
+    if (dies >= 0 && dies < DIES_REPESCA) return false;   // ja ha contestat fa poc
+  }
+  return true;
+}
+
+function preguntaCobrament(r) {
+  if (!calPreguntarCobrament(r)) return '';
+  const d = dataCobrament(r);
+  const text = r.preguntatA
+    ? `El ${esc(dataBonica(r.preguntatA))} encara no t’ho havien cobrat. Ja te l’han cobrat?`
+    : `El càrrec estava previst per al ${esc(dataLlarga(d))}. Te l’han cobrat?`;
+  return `<div class="pregunta">
+    <span>${text}</span>
+    <span class="pregunta-botons">
+      <button class="mini" data-cobrat="${esc(r.id)}">Sí, ja està cobrat</button>
+      <button class="mini subtil" data-nocobrat="${esc(r.id)}">Encara no</button>
+    </span>
+  </div>`;
+}
+
+/* El color va sempre acompanyat de la paraula: mai el color tot sol */
+function infoPagament(r) {
+  const s = r.pagament || '';
+  if (/^pagat/i.test(s)) return { text: 'pagat', classe: 'preu-pagat' };
+  if (!s) return { text: 'sense dades', classe: 'preu-desconegut' };
+  if (/^pendent de cobrament/i.test(s)) return { text: 'no cobrat', classe: 'preu-pendent' };
+  if (/^programat/i.test(s)) return { text: 'programat', classe: 'preu-pendent' };
+  if (/allotjament/i.test(s)) return { text: 'a l’allotjament', classe: 'preu-pendent' };
+  return { text: 'pendent', classe: 'preu-pendent' };
+}
+
+/* El punt de l'esquerra diu una sola cosa: si la fitxa està completa o no */
+const CAMPS_CLAU = ['allotjament', 'checkinISO', 'checkoutISO', 'preu', 'adreca'];
+function calRevisar(r) {
+  return CAMPS_CLAU.some(k => !r[k]);
+}
+
+function agrupaPerMes(llista) {
+  const grups = new Map();
+  for (const r of llista) {
+    const clau = (r.checkinISO || '').slice(0, 7) || 'sense-data';
+    if (!grups.has(clau)) grups.set(clau, []);
+    grups.get(clau).push(r);
+  }
+  return [...grups.entries()];
+}
+
+function titolGrup(clau) {
+  if (clau === 'sense-data') return 'Sense data d’entrada';
+  const [a, m] = clau.split('-');
+  return MESOS_LLARG[+m - 1] + ' ' + a;
+}
+
+/* De l'adreça sencera només ens interessa la població per a la línia
+   de sota el nom: l'adreça completa ja surt al desplegable, i repetir-la
+   era soroll. Estratègia: partir per comes i guions, descartar el país,
+   i buscar el tros que comenci per codi postal, perquè la població ve
+   just al darrere. Si no n'hi ha, ens quedem l'últim tros. */
+const PAISOS = /^(?:espanya|españa|spain|fran[çc]a|francia|france|portugal|it[àa]lia|italia|italy|andorra|alemanya|alemania|germany|deutschland|regne unit|reino unido|united kingdom|uk|pa[ïi]sos baixos|holanda|netherlands|b[èe]lgica|b[ée]lgica|belgium|su[ïi]ssa|suiza|switzerland|[àa]ustria|austria|gr[èe]cia|grecia|greece|marroc|marruecos|morocco|irlanda|ireland|dinamarca|denmark|su[èe]cia|suecia|sweden)$/i;
+
+/* Les partícules d'enllaç dels topònims van en minúscula: «Vilanova i la
+   Geltrú», no «Vilanova I La Geltrú». Només actua si el text ve tot en
+   majúscules, com passa amb les adreces d'Accor. */
+const MENUDES = /^(?:i|y|e|de|del|dels|de\s?l['’]|la|les|els|el|lo|los|las|da|do|dos|das|du|des|en|sur|a|al|als|amb|the|of|on)$/i;
+
+function capitalitza(t) {
+  if (t !== t.toUpperCase()) return t;   // si ja porta minúscules, es respecta
+  return t.toLowerCase().split(/\s+/).map((paraula, i) =>
+    i > 0 && MENUDES.test(paraula)
+      ? paraula
+      : paraula.replace(/(^|['’·-])(\p{L})/gu, (_, sep, lletra) => sep + lletra.toUpperCase())
+  ).join(' ');
+}
+
+function poblacio(adreca) {
+  if (!adreca) return '';
+  const trossos = String(adreca).split(/\s*(?:,|\s-\s|·)\s*/).map(t => t.trim()).filter(Boolean);
+  if (!trossos.length) return '';
+  while (trossos.length > 1 && PAISOS.test(trossos[trossos.length - 1])) trossos.pop();
+  for (let i = trossos.length - 1; i >= 0; i--) {
+    const m = trossos[i].match(/^\d{4,5}(?:[-\s]\d{3})?\s+(.{2,40})$/);
+    if (m) return capitalitza(m[1].trim());
+  }
+  return capitalitza(trossos[trossos.length - 1]);
+}
+
+const CHEVRON = '<svg class="chev" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">'
+  + '<path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+/* Enllaç a Google Maps. Cerquem pel nom de l'allotjament i l'adreça junts:
+   els allotjaments rurals tenen adreces que Maps sovint no situa bé, i el
+   nom sol desfer l'ambigüitat. L'adreça web universal obre l'app al mòbil
+   i el web a l'ordinador, sense haver de detectar el dispositiu. */
+const ICONA_MAPA = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">'
+  + '<path d="M12 21s7-6.4 7-11a7 7 0 1 0-14 0c0 4.6 7 11 7 11z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>'
+  + '<circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>';
+
+function enllacMaps(r) {
+  const cerca = [r.allotjament, r.adreca].filter(Boolean).join(', ').trim();
+  if (!cerca) return '';
+  const url = 'https://www.google.com/maps/search/?api=1&amp;query=' + encodeURIComponent(cerca);
+  // L'espai dur manté la icona enganxada a l'última paraula quan l'adreça salta de línia
+  return '&nbsp;<a class="enllac-maps" href="' + url + '" target="_blank" rel="noopener noreferrer"'
+    + ' title="Obre a Google Maps" aria-label="Obre ' + esc(cerca) + ' a Google Maps">' + ICONA_MAPA + '</a>';
+}
+
+function campDetall(etiqueta, valor, ample, extra) {
+  const buit = !valor;
+  return `<div class="detall-camp${ample ? ' ample' : ''}">
+    <span>${esc(etiqueta)}</span>
+    <p class="${buit ? 'absent' : ''}">${buit ? 'no detectat' : esc(valor)}${extra || ''}</p>
+  </div>`;
+}
+
+function pintaLlista() {
+  const cos = $('cos-llista');
+  cos.innerHTML = '';
+  $('llista-buida').style.display = reserves.length ? 'none' : 'block';
+  $('llista').querySelector('.llista-capcalera').style.display = reserves.length ? '' : 'none';
+  if (!reserves.length) return;
+
+  let html = '';
+  for (const [clau, grup] of agrupaPerMes(reserves)) {
+    html += `<div class="grup"><span>${esc(titolGrup(clau))}</span>`
+          + `<span>${grup.length === 1 ? '1 reserva' : grup.length + ' reserves'}</span></div>`;
+
+    for (const r of grup) {
+      const dates = rangDates(r);
+      const canc = infoCancel(r);
+      const pag = infoPagament(r);
+      const revisar = calRevisar(r);
+      const nom = r.allotjament || 'Reserva sense nom';
+      const sota = poblacio(r.adreca) || (revisar ? 'falten dades per completar' : '');
+      const preuTxt = r.preu ? esc(r.preu) : '—';
+
+      const pregunta = preguntaCobrament(r);
+
+      html += `<div class="fila${pregunta ? ' te-pregunta' : ''}" data-id="${esc(r.id)}">
+        <button class="fila-cap graella-fila" aria-expanded="false" aria-controls="detall-${esc(r.id)}">
+          <span class="cel-punt"><span class="punt${revisar ? ' revisar' : ''}" role="img"
+            aria-label="${revisar ? 'Cal revisar aquesta reserva' : 'Fitxa completa'}"></span></span>
+          <span class="cel-nom">
+            <span class="nom">${esc(nom)}</span>
+            <span class="sotanom${revisar && !r.adreca ? ' alerta' : ''}">${esc(sota)}</span>
+          </span>
+          <span class="cel-dates">
+            <span class="xifra">${esc(dates.principal)}</span>
+            <span class="menuda">${esc(dates.secundari)}</span>
+          </span>
+          <span class="cel-cancel ${canc.classe}">${esc(canc.text)}</span>
+          <span class="cel-preu">
+            <span class="xifra ${pag.classe}">${preuTxt}</span>
+            <span class="menuda ${pag.classe}">${esc(pag.text)}</span>
+          </span>
+          <span class="cel-chev">${CHEVRON}</span>
+        </button>
+        ${pregunta}
+        <div class="fila-detall ocult" id="detall-${esc(r.id)}">
+          <div class="detall-graella">
+            ${campDetall('Adreça', r.adreca, true, enllacMaps(r))}
+            ${campDetall('Telèfon', r.telefon)}
+            ${campDetall('Núm. de reserva', r.numReserva)}
+            ${campDetall('Nom del client', r.client)}
+            ${campDetall('Hostes / habitacions', r.hostes)}
+            ${campDetall('Entrada', [dataBonica(r.checkinISO), r.checkinHora].filter(Boolean).join(' · '))}
+            ${campDetall('Sortida', [dataBonica(r.checkoutISO), r.checkoutHora].filter(Boolean).join(' · '))}
+            ${campDetall('Plataforma', r.plataforma)}
+            ${campDetall('Estat del pagament', r.pagament)}
+            ${campDetall('Cancel·lació', r.cancelacio, true)}
+            ${campDetall('Notes', r.notes, true)}
+          </div>
+          <div class="detall-accions">
+            <button class="subtil" data-edita="${esc(r.id)}">Edita</button>
+            <button class="perill" data-esborra="${esc(r.id)}">Esborra</button>
+          </div>
+        </div>
+      </div>`;
+    }
+  }
+
+  cos.innerHTML = html;
+}
+
+/* Desplegar i plegar una fila */
+$('cos-llista').addEventListener('click', e => {
+  const cap = e.target.closest('.fila-cap');
+  if (!cap) return;
+  const fila = cap.closest('.fila');
+  const detall = fila.querySelector('.fila-detall');
+  const obert = fila.classList.toggle('oberta');
+  detall.classList.toggle('ocult', !obert);
+  cap.setAttribute('aria-expanded', obert ? 'true' : 'false');
+});
+
+/* ── Commutador de vista ── */
+const CLAU_VISTA = 'registre-reserves-vista';
+function aplicaVista(vista) {
+  const esLlista = vista !== 'taula';
+  $('llista').classList.toggle('ocult', !esLlista);
+  $('embolcall-taula').classList.toggle('ocult', esLlista);
+  $('btn-vista-llista').setAttribute('aria-pressed', esLlista ? 'true' : 'false');
+  $('btn-vista-taula').setAttribute('aria-pressed', esLlista ? 'false' : 'true');
+  try { localStorage.setItem(CLAU_VISTA, esLlista ? 'llista' : 'taula'); } catch (e) {}
+}
+$('btn-vista-llista').addEventListener('click', () => aplicaVista('llista'));
+$('btn-vista-taula').addEventListener('click', () => aplicaVista('taula'));
+
+/* ── Taula ── */
+function pintaTaula() {
+  const cos = $('cos-taula');
+  cos.innerHTML = '';
+  $('taula-buida').style.display = reserves.length ? 'none' : 'block';
+
+  for (const r of reserves) {
+    const tr = document.createElement('tr');
+    const cancelClasse = /^No reemborsable/i.test(r.cancelacio || '') ? 'cancel-no'
+                       : /^Gratis/i.test(r.cancelacio || '') ? 'cancel-lliure' : '';
+    tr.innerHTML = `
+      <td class="dada">${esc(dataBonica(r.checkinISO))}${r.checkinHora ? `<span class="hora">${esc(r.checkinHora)}</span>` : ''}</td>
+      <td class="dada">${esc(dataBonica(r.checkoutISO))}${r.checkoutHora ? `<span class="hora">${esc(r.checkoutHora)}</span>` : ''}</td>
+      <td><strong>${esc(r.allotjament)}</strong></td>
+      <td>${esc(r.client)}</td>
+      <td>${esc(r.adreca)}</td>
+      <td>${esc(r.hostes)}</td>
+      <td class="dada">${esc(r.preu)}</td>
+      <td>${esc(r.pagament)}</td>
+      <td class="${cancelClasse}">${esc(r.cancelacio)}</td>
+      <td class="dada">${esc(r.telefon)}</td>
+      <td class="dada">${esc(r.numReserva)}</td>
+      <td>${esc(r.plataforma)}</td>
+      <td>${esc(r.notes)}</td>
+      <td style="white-space:nowrap">
+        <button class="subtil mini" data-edita="${r.id}">Edita</button>
+        <button class="perill mini" data-esborra="${r.id}">Esborra</button>
+      </td>`;
+    cos.append(tr);
+  }
+}
+
+function esc(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function gestionaAccions(e) {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  // Respostes a la pregunta del cobrament: qui decideix és sempre la usuària
+  if (btn.dataset.cobrat) {
+    await Magatzem.actualitza(btn.dataset.cobrat, {
+      pagament: 'Pagat (confirmat el ' + dataBonica(avuiISO()) + ')',
+      preguntatA: ''
+    });
+    await refresca();
+    return;
+  }
+  if (btn.dataset.nocobrat) {
+    await Magatzem.actualitza(btn.dataset.nocobrat, {
+      pagament: 'Pendent de cobrament',
+      preguntatA: avuiISO()
+    });
+    await refresca();
+    return;
+  }
+  if (btn.dataset.edita) {
+    const r = reserves.find(x => x.id === btn.dataset.edita);
+    if (!r) return;
+    editantId = r.id;
+    plataformaActual = r.plataforma || 'Desconeguda';
+    mostraFitxa(r, r.plataforma || 'Desconeguda', 'Edita la reserva');
+  }
+  if (btn.dataset.esborra) {
+    const r = reserves.find(x => x.id === btn.dataset.esborra);
+    if (r && confirm(`Segur que vols esborrar la reserva de «${r.allotjament || 'sense nom'}»?`)) {
+      await Magatzem.esborra(btn.dataset.esborra);
+      await refresca();
+    }
+  }
+}
+$('cos-taula').addEventListener('click', gestionaAccions);
+$('cos-llista').addEventListener('click', gestionaAccions);
+
+/* ── Exportació a Excel ── */
+const COLUMNES_EXCEL = [
+  ['Entrada', r => dataBonica(r.checkinISO)],
+  ['Hora entrada', r => r.checkinHora],
+  ['Sortida', r => dataBonica(r.checkoutISO)],
+  ['Hora sortida', r => r.checkoutHora],
+  ['Allotjament', r => r.allotjament],
+  ['Client', r => r.client],
+  ['Adre\u00e7a', r => r.adreca],
+  ['Hostes / habitacions', r => r.hostes],
+  ['Preu total', r => r.preu],
+  ['Pagament', r => r.pagament],
+  ['Cancel\u00b7laci\u00f3 gratu\u00efta', r => r.cancelacio],
+  ['Tel\u00e8fon', r => r.telefon],
+  ['N\u00fam. reserva', r => r.numReserva],
+  ['Plataforma', r => r.plataforma],
+  ['Notes', r => r.notes]
+];
+
+$('btn-excel').addEventListener('click', () => {
+  if (!reserves.length) { avisa($('avis-peu'), 'El registre \u00e9s buit: no hi ha res a exportar.', 'mal'); return; }
+  const ordenades = [...reserves].sort((a, b) => (a.checkinISO || '9999') < (b.checkinISO || '9999') ? -1 : 1);
+  const files = ordenades.map(r => COLUMNES_EXCEL.map(([, f]) => f(r) || ''));
+  const capceleres = COLUMNES_EXCEL.map(([nom]) => nom);
+  const dataAvui = new Date().toISOString().slice(0, 10);
+
+  if (typeof XLSX !== 'undefined') {
+    const full = XLSX.utils.aoa_to_sheet([capceleres, ...files]);
+    full['!cols'] = capceleres.map((c, i) => ({ wch: Math.max(c.length, ...files.map(f => String(f[i]).length), 8) + 2 }));
+    const llibre = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(llibre, full, 'Reserves');
+    XLSX.writeFile(llibre, `reserves-${dataAvui}.xlsx`);
+  } else {
+    // Sense connexió al CDN: exportem CSV compatible amb Excel (BOM + punt i coma)
+    const csv = '\uFEFF' + [capceleres, ...files]
+      .map(f => f.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+    baixa(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `reserves-${dataAvui}.csv`);
+    avisa($('avis-peu'), 'No s\u2019ha pogut carregar el m\u00f2dul d\u2019Excel (cal internet); he exportat un CSV equivalent que Excel obre igualment.', 'mal');
+  }
+});
+
+/* ── Còpia de seguretat JSON ── */
+$('btn-backup').addEventListener('click', () => {
+  if (!reserves.length) { avisa($('avis-peu'), 'El registre \u00e9s buit: no hi ha res a copiar.', 'mal'); return; }
+  baixa(new Blob([JSON.stringify(reserves, null, 2)], { type: 'application/json' }),
+        `reserves-copia-${new Date().toISOString().slice(0, 10)}.json`);
+  avisa($('avis-peu'), 'C\u00f2pia desada. Guarda-la en lloc segur (Drive, USB\u2026).', 'ok');
+});
+
+$('btn-restaura').addEventListener('click', () => $('fitxer-importa').click());
+$('fitxer-importa').addEventListener('change', e => {
+  const fitxer = e.target.files[0];
+  if (!fitxer) return;
+  const lector = new FileReader();
+  lector.onload = async () => {
+    try {
+      const dades = JSON.parse(lector.result);
+      if (!Array.isArray(dades)) throw new Error();
+      const existents = new Set(reserves.map(r => r.numReserva).filter(Boolean));
+      const ids = new Set(reserves.map(r => r.id));
+      let afegides = 0;
+      for (const r of dades) {
+        if (r.numReserva && existents.has(r.numReserva)) continue;
+        if (r.id && ids.has(r.id)) continue;
+        await Magatzem.afegeix(r);
+        afegides++;
+      }
+      await refresca();
+      avisa($('avis-peu'), `C\u00f2pia recuperada: ${afegides} reserves afegides` + (dades.length - afegides ? ` (${dades.length - afegides} ja hi eren i s\u2019han omès)` : '') + '.', 'ok');
+    } catch (err) {
+      avisa($('avis-peu'), 'Aquest fitxer no sembla una c\u00f2pia de seguretat del registre.', 'mal');
+    }
+    e.target.value = '';
+  };
+  lector.readAsText(fitxer);
+});
+
+function baixa(blob, nom) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nom;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+/* ── Arrencada ── */
+(async function inicia() {
+  if (MODE_DEMO) {
+    const barra = document.createElement('div');
+    barra.className = 'barra-demo';
+    barra.innerHTML = 'Mode demostració: aquestes reserves són d\u2019exemple. '
+      + 'No es desa res i les teves no es toquen. '
+      + '<a href="' + location.pathname + '">Surt del mode demostració</a>';
+    document.querySelector('header').after(barra);
+  }
+  let vista = 'llista';
+  try { vista = localStorage.getItem(CLAU_VISTA) || 'llista'; } catch (e) {}
+  aplicaVista(vista);
+  await refresca();
+})();
+</script>
+</body>
+</html>
