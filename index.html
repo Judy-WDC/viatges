@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     /* Superfícies i vores */
@@ -282,6 +283,48 @@
   }
   .enllac-maps:hover { color: var(--accent); background: var(--accent-fons); }
   .detall-accions { display: flex; gap: 8px; margin-top: 18px; }
+  /* ── Capçalera i estat de la sincronització ── */
+  .cap-dreta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .estat-sinc { font-size: 12.5px; color: var(--tinta-tenue); }
+  .estat-sinc.treballant { color: var(--accent); }
+  .estat-sinc.avis { color: var(--ambre); }
+
+  /* ── Pantalla d'accés ── */
+  .acces {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: var(--fons);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .acces-caixa {
+    width: 100%;
+    max-width: 360px;
+    background: var(--superficie);
+    border: 1px solid var(--vora);
+    border-radius: var(--radi);
+    padding: 28px;
+  }
+  .acces-titol { font-size: 17px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.015em; }
+  .acces-intro { font-size: 13.5px; color: var(--tinta-suau); margin: 0 0 20px; }
+  .acces-camp { margin-bottom: 14px; }
+  .acces-camp label { display: block; font-size: 12px; font-weight: 500; color: var(--tinta-tenue); margin-bottom: 4px; }
+  .acces-camp input {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--vora);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--tinta);
+    background: var(--superficie);
+  }
+  .acces-botons { display: flex; gap: 8px; margin-top: 18px; }
+  .acces-botons button { flex: 1; }
+
   .barra-demo {
     background: var(--ambre-fons);
     color: var(--ambre);
@@ -373,8 +416,32 @@
 
 <header>
   <h1>Registre de reserves</h1>
-  <span class="compta" id="comptador"></span>
+  <div class="cap-dreta">
+    <span class="compta" id="comptador"></span>
+    <span class="estat-sinc" id="estat-sinc" aria-live="polite"></span>
+    <button class="subtil mini ocult" id="btn-surt">Surt</button>
+  </div>
 </header>
+
+<div class="acces ocult" id="acces">
+  <div class="acces-caixa">
+    <p class="acces-titol">Registre de reserves</p>
+    <p class="acces-intro" id="acces-intro">Identifica’t per accedir a les teves reserves.</p>
+    <div class="acces-camp">
+      <label for="acces-correu">Correu electrònic</label>
+      <input type="email" id="acces-correu" autocomplete="email" autocapitalize="none" spellcheck="false">
+    </div>
+    <div class="acces-camp">
+      <label for="acces-clau">Contrasenya</label>
+      <input type="password" id="acces-clau" autocomplete="current-password">
+    </div>
+    <div class="acces-botons">
+      <button class="primari" id="btn-entra">Entra</button>
+      <button class="subtil" id="btn-registra">Crea el compte</button>
+    </div>
+    <div class="avis" id="avis-acces"></div>
+  </div>
+</div>
 
 <main>
   <h2 class="sr-only">Les teves reserves</h2>
@@ -907,6 +974,12 @@ function parseReserva(textOriginal) {
    4. (lliure)
    FET · Botó per obrir l'adreça a Google Maps (versió 9).
    FET · Mode demostració amb ?demo a l'adreça (versió 10).
+   FET · Supabase: magatzem local-first amb sincronització (versió 14).
+
+   ⚠ RECORDATORI PENDENT: un cop creat el compte des de l'app, cal anar a
+      Supabase → Authentication → Sign In / Providers i DESACTIVAR
+      «Allow new users to sign up». L'adreça de GitHub Pages és pública i,
+      sense això, qualsevol s'hi podria registrar.
    ─────────────────────────────────────────────────────────────────── */
 const CLAU = 'registre-reserves-v1';
 
@@ -1006,21 +1079,56 @@ function nouId() {
   return 'r-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
 }
 
+/* ═══════════════ CONFIGURACIÓ DEL NÚVOL ═══════════════
+   La clau «publishable» està pensada per anar dins d'una pàgina web i
+   és pública: qui protegeix les dades no és ella, sinó les regles de
+   seguretat per files (RLS) que hi ha definides a Supabase. */
+const SUPABASE_URL  = 'https://njfwnrjlkybemuygxkah.supabase.co';
+const SUPABASE_CLAU = 'sb_publishable_MXTkH7Mkb24Ad2iE3ZThgg_I6twsL41';
+const CLAU_SINC = 'registre-reserves-sincronitzat';
+
+/* ═══════════════ MAGATZEM LOCAL ═══════════════
+   Les dades es llegeixen i s'escriuen SEMPRE aquí primer: és instantani
+   i funciona sense connexió, que és justament la situació de qualsevol
+   viatge. El núvol arriba després, en segon pla. */
+
+function _llegeixTot() {
+  if (MODE_DEMO) return magatzemDemo;
+  try {
+    const d = JSON.parse(localStorage.getItem(CLAU) || '[]');
+    return Array.isArray(d) ? d : [];
+  } catch (e) { return []; }
+}
+
+function _escriuTot(totes) {
+  if (MODE_DEMO) { magatzemDemo = totes; return; }
+  try { localStorage.setItem(CLAU, JSON.stringify(totes)); }
+  catch (e) { avisa($('avis-peu'), 'No s\u2019han pogut desar les dades en aquest navegador. Fes una c\u00f2pia de seguretat ara mateix.', 'mal'); }
+}
+
+/* Les dates viatgen en dos formats: el que escrivim nosaltres acaba en
+   Z i el que retorna Postgres porta desplaçament i microsegons. Per això
+   mai no es comparen com a text. */
+function tempsDe(x) {
+  const t = Date.parse(x || '');
+  return isNaN(t) ? 0 : t;
+}
+
+function calPujar(r) {
+  return tempsDe(r.modificatA) > tempsDe(r.sincronitzatA);
+}
+
 const Magatzem = {
   async llista() {
-    try {
-      const dades = MODE_DEMO
-        ? magatzemDemo
-        : JSON.parse(localStorage.getItem(CLAU) || '[]');
-      if (!Array.isArray(dades)) return [];
-      // Les reserves desades abans que el parser traduís es normalitzen en
-      // llegir-les, i queden desades en català la primera vegada que s'editin.
-      return dades.map(r => r && r.hostes ? { ...r, hostes: hostesEnCatala(r.hostes) } : r);
-    } catch (e) { return []; }
+    return _llegeixTot()
+      .filter(r => r && !r.esborrat)
+      // Les reserves desades abans que el parser traduís es normalitzen
+      // en llegir-les, i queden desades en català quan s'editin.
+      .map(r => r.hostes ? { ...r, hostes: hostesEnCatala(r.hostes) } : r);
   },
 
   async afegeix(dades) {
-    const totes = await this.llista();
+    const totes = _llegeixTot();
     const ara = new Date().toISOString();
     const nova = {
       ...dades,
@@ -1029,30 +1137,173 @@ const Magatzem = {
       modificatA: ara
     };
     totes.push(nova);
-    await this._escriu(totes);
+    _escriuTot(totes);
+    Nuvol.demanaSincronitzar();
     return nova;
   },
 
   async actualitza(id, canvis) {
-    const totes = await this.llista();
+    const totes = _llegeixTot();
     const i = totes.findIndex(r => r.id === id);
     if (i < 0) return null;
     totes[i] = { ...totes[i], ...canvis, id, modificatA: new Date().toISOString() };
-    await this._escriu(totes);
+    _escriuTot(totes);
+    Nuvol.demanaSincronitzar();
     return totes[i];
   },
 
   async esborra(id) {
-    const totes = (await this.llista()).filter(r => r.id !== id);
-    await this._escriu(totes);
-  },
-
-  async _escriu(totes) {
-    if (MODE_DEMO) { magatzemDemo = totes; return; }
-    try { localStorage.setItem(CLAU, JSON.stringify(totes)); }
-    catch (e) { avisa($('avis-peu'), 'No s\u2019han pogut desar les dades en aquest navegador. Fes una c\u00f2pia de seguretat ara mateix.', 'mal'); }
+    const totes = _llegeixTot();
+    const i = totes.findIndex(r => r.id === id);
+    if (i < 0) return;
+    // No s'esborra: es marca. Si desaparegués del tot, un altre dispositiu
+    // que hagi estat dies sense connexió la tornaria a pujar.
+    totes[i] = { id, esborrat: true, modificatA: new Date().toISOString() };
+    _escriuTot(totes);
+    Nuvol.demanaSincronitzar();
   }
 };
+
+/* ═══════════════ SINCRONITZACIÓ ═══════════════ */
+
+const Nuvol = {
+  client: null,
+  usuari: null,
+  disponible: false,   // hi ha biblioteca i configuració
+  ocupat: false,
+  repetir: false,
+  temporitzador: null,
+
+  init() {
+    if (MODE_DEMO) return false;
+    if (!window.supabase || !window.supabase.createClient) return false;
+    if (!SUPABASE_URL || !SUPABASE_CLAU) return false;
+    try {
+      this.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_CLAU);
+      this.disponible = true;
+    } catch (e) { this.disponible = false; }
+    return this.disponible;
+  },
+
+  async sessio() {
+    if (!this.disponible) return null;
+    try {
+      const { data } = await this.client.auth.getSession();
+      return data && data.session ? data.session : null;
+    } catch (e) { return null; }
+  },
+
+  async entra(correu, clau) {
+    return this.client.auth.signInWithPassword({ email: correu, password: clau });
+  },
+
+  async registra(correu, clau) {
+    return this.client.auth.signUp({ email: correu, password: clau });
+  },
+
+  async surt() {
+    try { await this.client.auth.signOut(); } catch (e) {}
+    this.usuari = null;
+  },
+
+  /* Agrupa les crides seguides: desar tres coses de cop no dispara tres
+     sincronitzacions. */
+  demanaSincronitzar() {
+    if (!this.disponible || !this.usuari) return;
+    clearTimeout(this.temporitzador);
+    this.temporitzador = setTimeout(() => this.sincronitza(), 400);
+  },
+
+  async sincronitza() {
+    if (!this.disponible || !this.usuari) return;
+    if (this.ocupat) { this.repetir = true; return; }
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      mostraEstat('sense-connexio');
+      return;
+    }
+    this.ocupat = true;
+    mostraEstat('treballant');
+    try {
+      await this._baixa();
+      await this._puja();
+      try { localStorage.setItem(CLAU_SINC, new Date().toISOString()); } catch (e) {}
+      mostraEstat('al-dia');
+      await refresca();
+    } catch (e) {
+      mostraEstat('error', e && e.message ? e.message : '');
+    } finally {
+      this.ocupat = false;
+      if (this.repetir) { this.repetir = false; this.demanaSincronitzar(); }
+    }
+  },
+
+  /* Es queda la versió més recent de cada reserva, la local o la remota. */
+  async _baixa() {
+    const { data, error } = await this.client
+      .from('reserves')
+      .select('id, dades, modificat_a, esborrat');
+    if (error) throw error;
+
+    const locals = _llegeixTot();
+    const mapa = new Map(locals.filter(r => r && r.id).map(r => [r.id, r]));
+    for (const fila of (data || [])) {
+      const remot = {
+        ...(fila.dades || {}),
+        id: fila.id,
+        modificatA: fila.modificat_a,
+        sincronitzatA: fila.modificat_a,
+        esborrat: !!fila.esborrat
+      };
+      const local = mapa.get(fila.id);
+      if (!local || tempsDe(local.modificatA) < tempsDe(remot.modificatA)) mapa.set(fila.id, remot);
+    }
+    _escriuTot([...mapa.values()]);
+  },
+
+  async _puja() {
+    const totes = _llegeixTot();
+    const perPujar = totes.filter(calPujar);
+    if (!perPujar.length) return;
+
+    const files = perPujar.map(r => {
+      const dades = { ...r };
+      // Aquests camps són de control i viuen a les seves pròpies columnes
+      delete dades.id; delete dades.modificatA;
+      delete dades.sincronitzatA; delete dades.esborrat;
+      return {
+        id: r.id,
+        user_id: Nuvol.usuari.id,
+        dades,
+        modificat_a: r.modificatA,
+        esborrat: !!r.esborrat
+      };
+    });
+
+    const { error } = await this.client.from('reserves').upsert(files, { onConflict: 'id' });
+    if (error) throw error;
+
+    const pujades = new Set(perPujar.map(r => r.id));
+    _escriuTot(totes.map(r => pujades.has(r.id) ? { ...r, sincronitzatA: r.modificatA } : r));
+  }
+};
+
+/* ── Indicador d'estat a la capçalera ── */
+function mostraEstat(quin, detall) {
+  const el = $('estat-sinc');
+  if (!el) return;
+  el.className = 'estat-sinc';
+  if (quin === 'local') { el.textContent = 'Només en aquest navegador'; el.classList.add('avis'); return; }
+  if (quin === 'treballant') { el.textContent = 'Sincronitzant\u2026'; el.classList.add('treballant'); return; }
+  if (quin === 'sense-connexio') {
+    const n = _llegeixTot().filter(calPujar).length;
+    el.textContent = n ? 'Sense connexió · ' + n + ' per desar' : 'Sense connexió';
+    el.classList.add('avis');
+    return;
+  }
+  if (quin === 'error') { el.textContent = 'No s\u2019ha pogut sincronitzar'; el.classList.add('avis'); el.title = detall || ''; return; }
+  const pendents = _llegeixTot().filter(calPujar).length;
+  el.textContent = pendents ? pendents + ' per sincronitzar' : 'Al dia';
+}
 
 /* ── Panell per afegir: replegat per defecte, obert quan el registre és buit ── */
 function obrePanell(obert) {
@@ -1614,6 +1865,72 @@ function baixa(blob, nom) {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
+/* ═══════════════ ACCÉS ═══════════════ */
+
+function mostraAcces(visible) {
+  $('acces').classList.toggle('ocult', !visible);
+  $('btn-surt').classList.toggle('ocult', visible);
+  if (visible) $('acces-correu').focus();
+}
+
+function textErrorAcces(e) {
+  const m = ((e && e.message) || '').toLowerCase();
+  if (m.includes('invalid login')) return 'El correu o la contrasenya no són correctes.';
+  if (m.includes('already registered') || m.includes('already exists')) return 'Aquest correu ja té compte. Prova d\u2019entrar-hi.';
+  if (m.includes('password') && m.includes('6')) return 'La contrasenya ha de tenir com a mínim 6 caràcters.';
+  if (m.includes('rate limit')) return 'Massa intents seguits. Espera una estona.';
+  if (m.includes('failed to fetch') || m.includes('network')) return 'No s\u2019ha pogut connectar amb el servidor.';
+  return (e && e.message) || 'Hi ha hagut un problema.';
+}
+
+async function haEntrat(usuari) {
+  Nuvol.usuari = usuari;
+  mostraAcces(false);
+  await refresca();
+  await Nuvol.sincronitza();
+}
+
+$('btn-entra').addEventListener('click', async () => {
+  const correu = $('acces-correu').value.trim();
+  const clau = $('acces-clau').value;
+  if (!correu || !clau) { avisa($('avis-acces'), 'Cal el correu i la contrasenya.', 'mal'); return; }
+  $('btn-entra').disabled = true;
+  const { data, error } = await Nuvol.entra(correu, clau);
+  $('btn-entra').disabled = false;
+  if (error) { avisa($('avis-acces'), textErrorAcces(error), 'mal'); return; }
+  await haEntrat(data.user);
+});
+
+$('btn-registra').addEventListener('click', async () => {
+  const correu = $('acces-correu').value.trim();
+  const clau = $('acces-clau').value;
+  if (!correu || clau.length < 6) {
+    avisa($('avis-acces'), 'Cal un correu i una contrasenya de sis caràcters com a mínim.', 'mal');
+    return;
+  }
+  $('btn-registra').disabled = true;
+  const { data, error } = await Nuvol.registra(correu, clau);
+  $('btn-registra').disabled = false;
+  if (error) { avisa($('avis-acces'), textErrorAcces(error), 'mal'); return; }
+  if (data.session) { await haEntrat(data.user); return; }
+  avisa($('avis-acces'), 'Compte creat. Ara ja pots entrar-hi.', 'ok');
+});
+
+// Enter a qualsevol dels dos camps equival a prémer Entra
+for (const id of ['acces-correu', 'acces-clau']) {
+  $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-entra').click(); });
+}
+
+$('btn-surt').addEventListener('click', async () => {
+  if (!confirm('Vols tancar la sessió? Les reserves es queden desades al núvol.')) return;
+  await Nuvol.surt();
+  location.reload();
+});
+
+// En recuperar la connexió, el que hi hagi pendent puja tot sol
+window.addEventListener('online', () => Nuvol.demanaSincronitzar());
+window.addEventListener('offline', () => mostraEstat('sense-connexio'));
+
 /* ── Arrencada ── */
 (async function inicia() {
   if (MODE_DEMO) {
@@ -1628,6 +1945,16 @@ function baixa(blob, nom) {
   try { vista = localStorage.getItem(CLAU_VISTA) || 'llista'; } catch (e) {}
   aplicaVista(vista);
   await refresca();
+
+  if (MODE_DEMO) return;
+
+  // Si la biblioteca no ha carregat (per exemple, sense connexió el primer
+  // dia), l'app segueix funcionant amb la còpia d'aquest navegador.
+  if (!Nuvol.init()) { mostraEstat('local'); return; }
+
+  const sessio = await Nuvol.sessio();
+  if (!sessio) { mostraAcces(true); return; }
+  await haEntrat(sessio.user);
 })();
 </script>
 </body>
