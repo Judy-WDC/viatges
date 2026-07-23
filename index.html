@@ -654,9 +654,11 @@ function parseBooking(flat) {
   m = flat.match(/(?:Confirmaci[óò]n?|Confirmation|Booking number|Booking no\.?)\s*:?\s*(\d{6,14})/i);
   if (m) r.numReserva = m[1];
 
-  // PIN (útil per modificar la reserva → va a notes)
-  m = flat.match(/PIN\s*:?\s*(\d{3,6})/i);
-  if (m) r.notes = `PIN Booking: ${m[1]}`;
+  // El PIN de Booking NO es captura a propòsit: serveix per modificar o
+  // cancel·lar la reserva, i és la dada més sensible del correu. Si algun
+  // dia el vols al registre, aquí hi anava.
+  //   m = flat.match(/PIN\s*:?\s*(\d{3,6})/i);
+  //   if (m) r.notes = `PIN Booking: ${m[1]}`;
 
   // Entrada
   let seg = fragment(cos, /(?<![dD]['\u2019]\s?)(?<!de )\b(?:Entrada|Check.?in)\b/i, /(?:Sortida|Salida|Check.?out)/i);
@@ -1013,7 +1015,7 @@ function reservesDemo() {
       checkoutISO: diesDesDavui(26), checkoutHora: '12:00',
       hostes: '2 adults · 4 nits', preu: '395,44 €', pagament: 'Pagat (395,44 €)',
       cancelacio: 'Gratis fins ' + aDdMmAaaa(diesDesDavui(17)) + ' 23:59',
-      telefon: '+34 650 96 43 47', numReserva: '5522751498', notes: 'PIN Booking: 9110' },
+      telefon: '+34 650 96 43 47', numReserva: '5522751498', notes: '' },
 
     { id: 'demo-2', plataforma: 'ibis (Accor)',
       allotjament: 'ibis Styles Arles Palacio de los Congresos', client: 'Pepita Ramos',
@@ -1865,6 +1867,28 @@ function baixa(blob, nom) {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
+/* Les reserves desades quan el parser encara capturava el PIN de Booking
+   es netegen una sola vegada. Es toca modificatA a posta perquè el canvi
+   pugi al núvol i el PIN també desaparegui d'allà. */
+function netejaPinsAntics() {
+  const totes = _llegeixTot();
+  let tocades = 0;
+  const netes = totes.map(r => {
+    if (!r || !r.notes || !/PIN/i.test(r.notes)) return r;
+    const notes = r.notes
+      .replace(/PIN\s*(?:Booking)?\s*:?\s*\d{3,6}/gi, '')
+      .replace(/\s*[·|,;]\s*$/, '')
+      .trim();
+    tocades++;
+    return { ...r, notes, modificatA: new Date().toISOString() };
+  });
+  if (tocades) {
+    _escriuTot(netes);
+    avisa($('avis-peu'), 'S\u2019han tret els PIN de Booking de ' + tocades
+      + (tocades === 1 ? ' reserva' : ' reserves') + ' que ja tenies desades.', 'ok');
+  }
+}
+
 /* ═══════════════ ACCÉS ═══════════════ */
 
 function mostraAcces(visible) {
@@ -1947,6 +1971,8 @@ window.addEventListener('offline', () => mostraEstat('sense-connexio'));
   await refresca();
 
   if (MODE_DEMO) return;
+
+  netejaPinsAntics();
 
   // Si la biblioteca no ha carregat (per exemple, sense connexió el primer
   // dia), l'app segueix funcionant amb la còpia d'aquest navegador.
