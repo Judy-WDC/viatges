@@ -271,6 +271,20 @@
   .detall-camp p { margin: 2px 0 0; font-size: 13.5px; font-variant-numeric: tabular-nums; }
   .detall-camp p.absent { color: var(--tinta-tenue); opacity: 0.8; font-style: italic; }
   .detall-camp.ample { grid-column: 1 / -1; }
+  .camp-viu {
+    width: 100%;
+    max-width: 280px;
+    margin-top: 2px;
+    padding: 5px 9px;
+    border: 1px solid var(--vora);
+    border-radius: 6px;
+    background: var(--superficie);
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--tinta);
+  }
+  .camp-viu::placeholder { color: var(--tinta-tenue); font-style: italic; }
+  .camp-viu:hover { border-color: var(--vora-forta); }
   .enllac-maps {
     display: inline-flex;
     align-items: center;
@@ -283,6 +297,92 @@
   }
   .enllac-maps:hover { color: var(--accent); background: var(--accent-fons); }
   .detall-accions { display: flex; gap: 8px; margin-top: 18px; }
+  /* ── Pestanyes ── */
+  .pestanyes {
+    display: flex;
+    gap: 4px;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 28px;
+    border-bottom: 1px solid var(--vora);
+  }
+  .pestanyes button {
+    border: none;
+    border-radius: 0;
+    background: none;
+    color: var(--tinta-tenue);
+    font-size: 14.5px;
+    padding: 12px 4px;
+    margin-right: 14px;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .pestanyes button:hover { background: none; color: var(--tinta); }
+  .pestanyes button[aria-current="page"] {
+    color: var(--tinta);
+    font-weight: 500;
+    border-bottom-color: var(--tinta);
+  }
+
+  /* ── Idees ── */
+  .coincidencia {
+    background: var(--accent-fons);
+    color: var(--accent);
+    border-radius: var(--radi);
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    font-size: 13.5px;
+  }
+  .idees {
+    background: var(--superficie);
+    border: 1px solid var(--vora);
+    border-radius: var(--radi);
+    padding: 4px 20px;
+  }
+  .idea { padding: 16px 0; border-bottom: 1px solid var(--vora); }
+  .idea:last-child { border-bottom: none; }
+  .idea-text {
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: none;
+    padding: 6px 8px;
+    margin: 0 0 6px -8px;
+    font-family: inherit;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--tinta);
+    resize: none;
+    overflow: hidden;
+    display: block;
+  }
+  .idea-text:hover { border-color: var(--vora); }
+  .idea-text:focus { border-color: var(--accent); background: var(--superficie); }
+  .idea-text::placeholder { color: var(--tinta-tenue); font-style: italic; }
+  .idea-peu { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .fitxa-camp {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 3px 11px;
+    font-family: inherit;
+    font-size: 12.5px;
+    color: var(--tinta-suau);
+    background: none;
+    min-width: 0;
+  }
+  .fitxa-camp:hover { border-color: var(--vora); }
+  .fitxa-camp:focus { border-color: var(--accent); border-radius: 6px; }
+  .fitxa-camp::placeholder { color: var(--tinta-tenue); font-style: italic; }
+  .fitxa-camp.zona { background: var(--accent-fons); color: var(--accent); }
+  .fitxa-camp.zona:placeholder-shown { background: none; color: var(--tinta-suau); }
+  .fitxa-camp.etiquetes { border-color: var(--vora); }
+  .fitxa-camp.etiquetes:placeholder-shown { border-color: transparent; }
+  .idea-enllac { font-size: 12.5px; color: var(--tinta-suau); text-decoration: none; }
+  .idea-enllac:hover { color: var(--accent); }
+  .idea-data { font-size: 12px; color: var(--tinta-tenue); margin-left: auto; }
+  .idea-fora { border: none; background: none; color: var(--tinta-tenue); padding: 3px 6px; font-size: 12.5px; }
+  .idea-fora:hover { background: var(--vermell-fons); color: var(--vermell); }
+
   /* ── Capçalera i estat de la sincronització ── */
   .cap-dreta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .estat-sinc { font-size: 12.5px; color: var(--tinta-tenue); }
@@ -443,7 +543,13 @@
   </div>
 </div>
 
+<nav class="pestanyes" aria-label="Seccions">
+  <button id="tab-reserves" aria-current="page">Reserves</button>
+  <button id="tab-idees">Idees</button>
+</nav>
+
 <main>
+  <section id="vista-reserves">
   <h2 class="sr-only">Les teves reserves</h2>
 
   <div class="barra-accions">
@@ -498,7 +604,7 @@
         <tr>
           <th>Entrada</th><th>Sortida</th><th>Allotjament</th><th>Client</th>
           <th>Adreça</th><th>Hostes</th><th>Preu</th><th>Pagament</th>
-          <th>Cancel·lació</th><th>Telèfon</th><th>Núm. reserva</th>
+          <th>Qui ho paga</th><th>Cancel·lació</th><th>Telèfon</th><th>Núm. reserva</th>
           <th>Plataforma</th><th>Notes</th><th></th>
         </tr>
       </thead>
@@ -506,6 +612,24 @@
     </table>
     <div class="buida-taula" id="taula-buida">Encara no hi ha cap reserva.</div>
   </div>
+  </section>
+
+  <section id="vista-idees" class="ocult">
+    <h2 class="sr-only">Les teves idees</h2>
+
+    <div class="barra-accions">
+      <span class="compta" id="compta-idees"></span>
+      <span class="separa"></span>
+      <button class="primari" id="btn-nova-idea">Afegeix una idea</button>
+    </div>
+
+    <div id="coincidencies"></div>
+
+    <div class="idees" id="llista-idees"></div>
+    <div class="llista-buida" id="idees-buida">
+      Encara no hi ha cap idea. Apunta-hi el que et vagin recomanant, encara que no sàpigues quan hi aniràs.
+    </div>
+  </section>
 </main>
 
 <footer>
@@ -968,8 +1092,14 @@ function parseReserva(textOriginal) {
       que desbloqueja tota la resta.
    2. Pressupost del viatge. Relacionar-hi els preus de les reserves.
       importNum() i formataImport() ja hi són, preparades.
-   3. Qui ha pagat cada reserva. Camp discret a la fitxa, visible només
-      des de la vista de despeses del viatge.
+   FET · Idees: segona col·lecció amb taula pròpia a Supabase, pestanyes
+      i creuament de zona amb la població de les reserves (versió 17).
+      PENDENT: buscador quan n'hi hagi moltes, i normalitzar les zones
+      amb geocodificació (Barruera i Alta Ribagorça són el mateix lloc a
+      escales diferents; Nominatim d'OpenStreetMap retorna la jerarquia).
+   FET · Camp «qui ho paga» (versió 16). Text lliure amb suggeriments dels
+      noms ja fets servir, editable directament al desplegable. El parser
+      no l'omple mai: a nom de qui va la reserva no vol dir qui la paga.
    FET · Pregunta del cobrament quan arriba la data (versió 12). No és
       la data de cancel·lació sinó la de pagament, que segons el cas és
       el final del termini gratuït o el dia d'entrada.
@@ -1046,7 +1176,7 @@ function reservesDemo() {
   ];
 }
 
-let magatzemDemo = MODE_DEMO ? reservesDemo() : null;
+
 const CAMPS = [
   { id: 'allotjament', nom: 'Allotjament' },
   { id: 'client',      nom: 'Nom del client' },
@@ -1058,6 +1188,7 @@ const CAMPS = [
   { id: 'hostes',      nom: 'Hostes / habitacions' },
   { id: 'preu',        nom: 'Preu total' },
   { id: 'pagament',    nom: 'Estat del pagament' },
+  { id: 'quiPaga',     nom: 'Qui ho paga' },
   { id: 'cancelacio',  nom: 'Cancel\u00b7laci\u00f3 gratu\u00efta' },
   { id: 'telefon',     nom: 'Tel\u00e8fon' },
   { id: 'numReserva',  nom: 'N\u00fam. de reserva' },
@@ -1065,6 +1196,9 @@ const CAMPS = [
 ];
 
 let reserves = [];        // cau en memòria; qui la manté és el Magatzem
+// Repintar la llista la tornava a plegar sencera. Amb això, el que tenies
+// obert segueix obert després de desar, sincronitzar o esborrar.
+const filesObertes = new Set();
 let editantId = null;
 let plataformaActual = '';
 
@@ -1088,25 +1222,37 @@ function nouId() {
 const SUPABASE_URL  = 'https://njfwnrjlkybemuygxkah.supabase.co';
 const SUPABASE_CLAU = 'sb_publishable_MXTkH7Mkb24Ad2iE3ZThgg_I6twsL41';
 const CLAU_SINC = 'registre-reserves-sincronitzat';
+const CLAU_IDEES = 'registre-idees-v1';
+
+/* Les idees d'exemple cobreixen els casos que han de quedar bé: una de
+   curta amb zona, una de llarga amb enllaç, i una sense zona. */
+function ideesDemo() {
+  return [
+    { id: 'idea-1',
+      text: 'Taberna do Real, al carrer de sota del mirador. La Marta diu que el bacallà amb nata i que hi anem aviat perquè a les nou ja no hi cap ningú.',
+      zona: 'Lisboa', etiquetes: ['menjar'], enllac: '',
+      creatA: diesDesDavui(-3) + 'T10:00:00.000Z', modificatA: diesDesDavui(-3) + 'T10:00:00.000Z' },
+
+    { id: 'idea-2',
+      text: 'Baixar el Douro en tren de Porto a Pocinho. Són unes tres hores i diuen que l\u2019últim tram, a partir del Tua, és el bonic — val la pena seure a la dreta.\n\nEs pot partir en dos dies dormint a Pinhão. Hi ha quintes que fan visita amb tast però cal reservar amb temps.',
+      zona: 'Douro', etiquetes: ['ruta', 'tren'], enllac: 'https://www.cp.pt',
+      creatA: diesDesDavui(-14) + 'T10:00:00.000Z', modificatA: diesDesDavui(-14) + 'T10:00:00.000Z' },
+
+    { id: 'idea-3',
+      text: 'Fer un curs de ceràmica de cap de setmana, en algun lloc.',
+      zona: '', etiquetes: ['algun dia'], enllac: '',
+      creatA: diesDesDavui(-62) + 'T10:00:00.000Z', modificatA: diesDesDavui(-62) + 'T10:00:00.000Z' }
+  ];
+}
 
 /* ═══════════════ MAGATZEM LOCAL ═══════════════
    Les dades es llegeixen i s'escriuen SEMPRE aquí primer: és instantani
    i funciona sense connexió, que és justament la situació de qualsevol
-   viatge. El núvol arriba després, en segon pla. */
+   viatge. El núvol arriba després, en segon pla.
 
-function _llegeixTot() {
-  if (MODE_DEMO) return magatzemDemo;
-  try {
-    const d = JSON.parse(localStorage.getItem(CLAU) || '[]');
-    return Array.isArray(d) ? d : [];
-  } catch (e) { return []; }
-}
-
-function _escriuTot(totes) {
-  if (MODE_DEMO) { magatzemDemo = totes; return; }
-  try { localStorage.setItem(CLAU, JSON.stringify(totes)); }
-  catch (e) { avisa($('avis-peu'), 'No s\u2019han pogut desar les dades en aquest navegador. Fes una c\u00f2pia de seguretat ara mateix.', 'mal'); }
-}
+   La fàbrica serveix per a qualsevol col·lecció: reserves, idees i, quan
+   toqui, viatges. Cadascuna té la seva taula a Supabase i la seva clau
+   al navegador, però comparteixen tot el mecanisme. */
 
 /* Les dates viatgen en dos formats: el que escrivim nosaltres acaba en
    Z i el que retorna Postgres porta desplaçament i microsegons. Per això
@@ -1120,51 +1266,90 @@ function calPujar(r) {
   return tempsDe(r.modificatA) > tempsDe(r.sincronitzatA);
 }
 
-const Magatzem = {
-  async llista() {
-    return _llegeixTot()
-      .filter(r => r && !r.esborrat)
-      // Les reserves desades abans que el parser traduís es normalitzen
-      // en llegir-les, i queden desades en català quan s'editin.
-      .map(r => r.hostes ? { ...r, hostes: hostesEnCatala(r.hostes) } : r);
-  },
+function creaMagatzem({ taula, clauLocal, demo, normalitza }) {
+  let enMemoria = MODE_DEMO ? (demo ? demo() : []) : null;
 
-  async afegeix(dades) {
-    const totes = _llegeixTot();
-    const ara = new Date().toISOString();
-    const nova = {
-      ...dades,
-      id: dades.id || nouId(),
-      creatA: dades.creatA || ara,
-      modificatA: ara
-    };
-    totes.push(nova);
-    _escriuTot(totes);
-    Nuvol.demanaSincronitzar();
-    return nova;
-  },
+  return {
+    taula,
+    clauLocal,
 
-  async actualitza(id, canvis) {
-    const totes = _llegeixTot();
-    const i = totes.findIndex(r => r.id === id);
-    if (i < 0) return null;
-    totes[i] = { ...totes[i], ...canvis, id, modificatA: new Date().toISOString() };
-    _escriuTot(totes);
-    Nuvol.demanaSincronitzar();
-    return totes[i];
-  },
+    llegeixCru() {
+      if (MODE_DEMO) return enMemoria;
+      try {
+        const d = JSON.parse(localStorage.getItem(clauLocal) || '[]');
+        return Array.isArray(d) ? d : [];
+      } catch (e) { return []; }
+    },
 
-  async esborra(id) {
-    const totes = _llegeixTot();
-    const i = totes.findIndex(r => r.id === id);
-    if (i < 0) return;
-    // No s'esborra: es marca. Si desaparegués del tot, un altre dispositiu
-    // que hagi estat dies sense connexió la tornaria a pujar.
-    totes[i] = { id, esborrat: true, modificatA: new Date().toISOString() };
-    _escriuTot(totes);
-    Nuvol.demanaSincronitzar();
-  }
-};
+    escriuCru(totes) {
+      if (MODE_DEMO) { enMemoria = totes; return; }
+      try { localStorage.setItem(clauLocal, JSON.stringify(totes)); }
+      catch (e) { avisa($('avis-peu'), 'No s\u2019han pogut desar les dades en aquest navegador. Fes una c\u00f2pia de seguretat ara mateix.', 'mal'); }
+    },
+
+    async llista() {
+      const vives = this.llegeixCru().filter(r => r && !r.esborrat);
+      return normalitza ? vives.map(normalitza) : vives;
+    },
+
+    async afegeix(dades) {
+      const totes = this.llegeixCru();
+      const ara = new Date().toISOString();
+      const nova = {
+        ...dades,
+        id: dades.id || nouId(),
+        creatA: dades.creatA || ara,
+        modificatA: ara
+      };
+      totes.push(nova);
+      this.escriuCru(totes);
+      Nuvol.demanaSincronitzar();
+      return nova;
+    },
+
+    async actualitza(id, canvis) {
+      const totes = this.llegeixCru();
+      const i = totes.findIndex(r => r.id === id);
+      if (i < 0) return null;
+      totes[i] = { ...totes[i], ...canvis, id, modificatA: new Date().toISOString() };
+      this.escriuCru(totes);
+      Nuvol.demanaSincronitzar();
+      return totes[i];
+    },
+
+    async esborra(id) {
+      const totes = this.llegeixCru();
+      const i = totes.findIndex(r => r.id === id);
+      if (i < 0) return;
+      // No s'esborra: es marca. Si desaparegués del tot, un altre dispositiu
+      // que hagi estat dies sense connexió la tornaria a pujar.
+      totes[i] = { id, esborrat: true, modificatA: new Date().toISOString() };
+      this.escriuCru(totes);
+      Nuvol.demanaSincronitzar();
+    }
+  };
+}
+
+const Magatzem = creaMagatzem({
+  taula: 'reserves',
+  clauLocal: CLAU,
+  demo: reservesDemo,
+  // Les reserves desades abans que el parser traduís es normalitzen en
+  // llegir-les, i queden desades en català quan s'editin.
+  normalitza: r => r.hostes ? { ...r, hostes: hostesEnCatala(r.hostes) } : r
+});
+
+const MagatzemIdees = creaMagatzem({
+  taula: 'idees',
+  clauLocal: CLAU_IDEES,
+  demo: ideesDemo
+});
+
+const MAGATZEMS = [Magatzem, MagatzemIdees];
+
+function totPendent() {
+  return MAGATZEMS.reduce((n, m) => n + m.llegeixCru().filter(calPujar).length, 0);
+}
 
 /* ═══════════════ SINCRONITZACIÓ ═══════════════ */
 
@@ -1226,8 +1411,10 @@ const Nuvol = {
     this.ocupat = true;
     mostraEstat('treballant');
     try {
-      await this._baixa();
-      await this._puja();
+      for (const m of MAGATZEMS) {
+        await this._baixa(m);
+        await this._puja(m);
+      }
       try { localStorage.setItem(CLAU_SINC, new Date().toISOString()); } catch (e) {}
       mostraEstat('al-dia');
       await refresca();
@@ -1239,14 +1426,14 @@ const Nuvol = {
     }
   },
 
-  /* Es queda la versió més recent de cada reserva, la local o la remota. */
-  async _baixa() {
+  /* Es queda la versió més recent de cada element, la local o la remota. */
+  async _baixa(m) {
     const { data, error } = await this.client
-      .from('reserves')
+      .from(m.taula)
       .select('id, dades, modificat_a, esborrat');
     if (error) throw error;
 
-    const locals = _llegeixTot();
+    const locals = m.llegeixCru();
     const mapa = new Map(locals.filter(r => r && r.id).map(r => [r.id, r]));
     for (const fila of (data || [])) {
       const remot = {
@@ -1259,11 +1446,11 @@ const Nuvol = {
       const local = mapa.get(fila.id);
       if (!local || tempsDe(local.modificatA) < tempsDe(remot.modificatA)) mapa.set(fila.id, remot);
     }
-    _escriuTot([...mapa.values()]);
+    m.escriuCru([...mapa.values()]);
   },
 
-  async _puja() {
-    const totes = _llegeixTot();
+  async _puja(m) {
+    const totes = m.llegeixCru();
     const perPujar = totes.filter(calPujar);
     if (!perPujar.length) return;
 
@@ -1281,11 +1468,11 @@ const Nuvol = {
       };
     });
 
-    const { error } = await this.client.from('reserves').upsert(files, { onConflict: 'id' });
+    const { error } = await this.client.from(m.taula).upsert(files, { onConflict: 'id' });
     if (error) throw error;
 
     const pujades = new Set(perPujar.map(r => r.id));
-    _escriuTot(totes.map(r => pujades.has(r.id) ? { ...r, sincronitzatA: r.modificatA } : r));
+    m.escriuCru(totes.map(r => pujades.has(r.id) ? { ...r, sincronitzatA: r.modificatA } : r));
   }
 };
 
@@ -1297,13 +1484,13 @@ function mostraEstat(quin, detall) {
   if (quin === 'local') { el.textContent = 'Només en aquest navegador'; el.classList.add('avis'); return; }
   if (quin === 'treballant') { el.textContent = 'Sincronitzant\u2026'; el.classList.add('treballant'); return; }
   if (quin === 'sense-connexio') {
-    const n = _llegeixTot().filter(calPujar).length;
+    const n = totPendent();
     el.textContent = n ? 'Sense connexió · ' + n + ' per desar' : 'Sense connexió';
     el.classList.add('avis');
     return;
   }
   if (quin === 'error') { el.textContent = 'No s\u2019ha pogut sincronitzar'; el.classList.add('avis'); el.title = detall || ''; return; }
-  const pendents = _llegeixTot().filter(calPujar).length;
+  const pendents = totPendent();
   el.textContent = pendents ? pendents + ' per sincronitzar' : 'Al dia';
 }
 
@@ -1325,6 +1512,7 @@ async function refresca() {
   $('comptador').textContent = reserves.length === 1 ? '1 reserva' : reserves.length + ' reserves';
   pintaLlista();
   pintaTaula();
+  await refrescaIdees();
   // Sense res al registre, l'única cosa a fer és enganxar: obrim la caixa.
   if (!reserves.length) obrePanell(true);
 }
@@ -1607,6 +1795,25 @@ function enllacMaps(r) {
     + ' title="Obre a Google Maps" aria-label="Obre ' + esc(cerca) + ' a Google Maps">' + ICONA_MAPA + '</a>';
 }
 
+/* Aquest camp no l'omple mai el parser: «Nom del client» és a nom de qui
+   va la reserva, que no vol dir que sigui qui la paga. S'edita aquí mateix
+   per no haver d'obrir la fitxa sencera cada vegada. */
+function campQuiPaga(r) {
+  return `<div class="detall-camp ample">
+    <span><label for="paga-${esc(r.id)}">Qui ho paga</label></span>
+    <input class="camp-viu" id="paga-${esc(r.id)}" list="noms-pagadors"
+      value="${esc(r.quiPaga || '')}" placeholder="sense assignar"
+      autocomplete="off" spellcheck="false" data-paga="${esc(r.id)}">
+  </div>`;
+}
+
+function llistaPagadors() {
+  const noms = new Set();
+  for (const r of reserves) if (r.quiPaga) noms.add(r.quiPaga.trim());
+  return [...noms].sort((a, b) => a.localeCompare(b, 'ca'))
+    .map(n => `<option value="${esc(n)}"></option>`).join('');
+}
+
 function campDetall(etiqueta, valor, ample, extra) {
   const buit = !valor;
   return `<div class="detall-camp${ample ? ' ample' : ''}">
@@ -1617,6 +1824,11 @@ function campDetall(etiqueta, valor, ample, extra) {
 
 function pintaLlista() {
   const cos = $('cos-llista');
+  // Si s'està escrivint dins de la llista, repintar esborraria el que
+  // s'està teclejant. La sincronització en segon pla pot arribar en
+  // qualsevol moment, així que cal aquesta protecció.
+  const focus = document.activeElement;
+  if (focus && focus.closest && focus.closest('#cos-llista')) return;
   cos.innerHTML = '';
   $('llista-buida').style.display = reserves.length ? 'none' : 'block';
   $('llista').querySelector('.llista-capcalera').style.display = reserves.length ? '' : 'none';
@@ -1637,9 +1849,10 @@ function pintaLlista() {
       const preuTxt = r.preu ? esc(r.preu) : '—';
 
       const pregunta = preguntaCobrament(r);
+      const obert = filesObertes.has(r.id);
 
-      html += `<div class="fila${pregunta ? ' te-pregunta' : ''}" data-id="${esc(r.id)}">
-        <button class="fila-cap graella-fila" aria-expanded="false" aria-controls="detall-${esc(r.id)}">
+      html += `<div class="fila${pregunta ? ' te-pregunta' : ''}${obert ? ' oberta' : ''}" data-id="${esc(r.id)}">
+        <button class="fila-cap graella-fila" aria-expanded="${obert ? 'true' : 'false'}" aria-controls="detall-${esc(r.id)}">
           <span class="cel-punt"><span class="punt${revisar ? ' revisar' : ''}" role="img"
             aria-label="${revisar ? 'Cal revisar aquesta reserva' : 'Fitxa completa'}"></span></span>
           <span class="cel-nom">
@@ -1658,7 +1871,7 @@ function pintaLlista() {
           <span class="cel-chev">${CHEVRON}</span>
         </button>
         ${pregunta}
-        <div class="fila-detall ocult" id="detall-${esc(r.id)}">
+        <div class="fila-detall${obert ? '' : ' ocult'}" id="detall-${esc(r.id)}">
           <div class="detall-graella">
             ${campDetall('Adreça', r.adreca, true, enllacMaps(r))}
             ${campDetall('Telèfon', r.telefon)}
@@ -1669,6 +1882,7 @@ function pintaLlista() {
             ${campDetall('Sortida', [dataBonica(r.checkoutISO), r.checkoutHora].filter(Boolean).join(' · '))}
             ${campDetall('Plataforma', r.plataforma)}
             ${campDetall('Estat del pagament', r.pagament)}
+            ${campQuiPaga(r)}
             ${campDetall('Cancel·lació', r.cancelacio, true)}
             ${campDetall('Notes', r.notes, true)}
           </div>
@@ -1681,7 +1895,9 @@ function pintaLlista() {
     }
   }
 
-  cos.innerHTML = html;
+  cos.innerHTML = html + `<datalist id="noms-pagadors">${llistaPagadors()}</datalist>`;
+  // Una fila esborrada o sincronitzada des d'un altre lloc ja no existeix
+  for (const id of [...filesObertes]) if (!reserves.some(r => r.id === id)) filesObertes.delete(id);
 }
 
 /* Desplegar i plegar una fila */
@@ -1693,6 +1909,7 @@ $('cos-llista').addEventListener('click', e => {
   const obert = fila.classList.toggle('oberta');
   detall.classList.toggle('ocult', !obert);
   cap.setAttribute('aria-expanded', obert ? 'true' : 'false');
+  if (obert) filesObertes.add(fila.dataset.id); else filesObertes.delete(fila.dataset.id);
 });
 
 /* ── Commutador de vista ── */
@@ -1727,6 +1944,7 @@ function pintaTaula() {
       <td>${esc(r.hostes)}</td>
       <td class="dada">${esc(r.preu)}</td>
       <td>${esc(r.pagament)}</td>
+      <td>${esc(r.quiPaga)}</td>
       <td class="${cancelClasse}">${esc(r.cancelacio)}</td>
       <td class="dada">${esc(r.telefon)}</td>
       <td class="dada">${esc(r.numReserva)}</td>
@@ -1782,6 +2000,23 @@ async function gestionaAccions(e) {
 $('cos-taula').addEventListener('click', gestionaAccions);
 $('cos-llista').addEventListener('click', gestionaAccions);
 
+/* El camp de «qui ho paga» es desa en sortir-ne, no cal cap botó.
+   S'usa «focusout» perquè «blur» no puja fins al contenidor. */
+$('cos-llista').addEventListener('focusout', async e => {
+  const camp = e.target.closest('[data-paga]');
+  if (!camp) return;
+  const r = reserves.find(x => x.id === camp.dataset.paga);
+  const nou = camp.value.trim();
+  if (!r || (r.quiPaga || '') === nou) return;
+  await Magatzem.actualitza(r.id, { quiPaga: nou });
+  await refresca();
+});
+
+// Enter confirma i surt del camp
+$('cos-llista').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.closest('[data-paga]')) { e.preventDefault(); e.target.blur(); }
+});
+
 /* ── Exportació a Excel ── */
 const COLUMNES_EXCEL = [
   ['Entrada', r => dataBonica(r.checkinISO)],
@@ -1794,6 +2029,7 @@ const COLUMNES_EXCEL = [
   ['Hostes / habitacions', r => r.hostes],
   ['Preu total', r => r.preu],
   ['Pagament', r => r.pagament],
+  ['Qui ho paga', r => r.quiPaga],
   ['Cancel\u00b7laci\u00f3 gratu\u00efta', r => r.cancelacio],
   ['Tel\u00e8fon', r => r.telefon],
   ['N\u00fam. reserva', r => r.numReserva],
@@ -1871,7 +2107,7 @@ function baixa(blob, nom) {
    es netegen una sola vegada. Es toca modificatA a posta perquè el canvi
    pugi al núvol i el PIN també desaparegui d'allà. */
 function netejaPinsAntics() {
-  const totes = _llegeixTot();
+  const totes = Magatzem.llegeixCru();
   let tocades = 0;
   const netes = totes.map(r => {
     if (!r || !r.notes || !/PIN/i.test(r.notes)) return r;
@@ -1883,11 +2119,253 @@ function netejaPinsAntics() {
     return { ...r, notes, modificatA: new Date().toISOString() };
   });
   if (tocades) {
-    _escriuTot(netes);
+    Magatzem.escriuCru(netes);
     avisa($('avis-peu'), 'S\u2019han tret els PIN de Booking de ' + tocades
       + (tocades === 1 ? ' reserva' : ' reserves') + ' que ja tenies desades.', 'ok');
   }
 }
+
+/* ═══════════════ IDEES ═══════════════
+   Una idea és el contrari d'una reserva: no té forma fixa. Per això
+   només té text, i tres camps opcionals al voltant. El text s'edita
+   allà mateix, com a qualsevol bloc de notes. */
+
+let idees = [];
+
+function fesGran(camp) {
+  camp.style.height = 'auto';
+  camp.style.height = (camp.scrollHeight + 2) + 'px';
+}
+
+/* Per a una idea el dia exacte no importa; només si és fresca o fa temps
+   que hi dorm. */
+function faTemps(iso) {
+  const t = tempsDe(iso);
+  if (!t) return '';
+  const dies = Math.floor((avui() - new Date(t).setHours(0, 0, 0, 0)) / 86400000);
+  if (dies <= 0) return 'avui';
+  if (dies === 1) return 'ahir';
+  if (dies < 7) return 'fa ' + dies + ' dies';
+  if (dies < 31) { const n = Math.floor(dies / 7); return 'fa ' + n + (n === 1 ? ' setmana' : ' setmanes'); }
+  if (dies < 365) { const n = Math.floor(dies / 30); return 'fa ' + n + (n === 1 ? ' mes' : ' mesos'); }
+  const n = Math.floor(dies / 365);
+  return 'fa ' + n + (n === 1 ? ' any' : ' anys');
+}
+
+/* Les zones se suggereixen a partir de les que ja has fet servir i de
+   les poblacions de les teves reserves: així «Lisboa» s'escriu igual a
+   tot arreu i la coincidència de baix pot funcionar. */
+function zonesConegudes() {
+  const zones = new Set();
+  for (const i of idees) if (i.zona) zones.add(i.zona.trim());
+  for (const r of reserves) { const p = poblacio(r.adreca); if (p) zones.add(p); }
+  return [...zones].sort((a, b) => a.localeCompare(b, 'ca'));
+}
+
+function etiquetesConegudes() {
+  const t = new Set();
+  for (const i of idees) for (const e of (i.etiquetes || [])) t.add(e);
+  return [...t].sort((a, b) => a.localeCompare(b, 'ca'));
+}
+
+function opcions(llista) {
+  return llista.map(v => `<option value="${esc(v)}"></option>`).join('');
+}
+
+/* Compara la zona de les idees amb la població de les reserves que
+   encara no han passat. És el moment que justifica tot l'invent. */
+function pintaCoincidencies() {
+  const caixa = $('coincidencies');
+  if (!caixa) return;
+  const ara = avui();
+  const perZona = new Map();
+
+  for (const r of reserves) {
+    const p = poblacio(r.adreca);
+    const d = aData(r.checkinISO);
+    if (!p || !d || d < ara) continue;
+    const clau = p.toLowerCase();
+    if (!perZona.has(clau) || d < perZona.get(clau).data) perZona.set(clau, { nom: p, data: d, r });
+  }
+
+  const trobades = [];
+  for (const [clau, info] of perZona) {
+    const quantes = idees.filter(i => (i.zona || '').trim().toLowerCase() === clau).length;
+    if (quantes) trobades.push({ ...info, quantes });
+  }
+  trobades.sort((a, b) => a.data - b.data);
+
+  caixa.innerHTML = trobades.map(t => {
+    const sortida = aData(t.r.checkoutISO);
+    const quan = sortida
+      ? 'hi vas del ' + dataLlarga(t.data) + ' al ' + dataLlarga(sortida)
+      : 'hi vas el ' + dataLlarga(t.data);
+    return `<div class="coincidencia">
+      Tens ${t.quantes} ${t.quantes === 1 ? 'idea' : 'idees'} a ${esc(t.nom)} i ${esc(quan)}
+    </div>`;
+  }).join('');
+}
+
+/* El valor que hauria de mostrar un camp segons el model */
+function valorModel(idea, quin) {
+  if (!idea) return null;
+  if (quin === 'etiquetes') return (idea.etiquetes || []).join(', ');
+  return idea[quin] || '';
+}
+
+function pintaIdees() {
+  const cos = $('llista-idees');
+
+  /* Repintar enmig d'una frase l'esborraria, i la sincronització en segon
+     pla pot arribar en qualsevol moment. Però bloquejar el repintat cada
+     cop que el cursor és dins la llista deixava la vista desactualitzada
+     en passar d'un camp a un altre. Així que només s'atura quan hi ha
+     text escrit de debò que encara no s'ha desat; en la resta de casos
+     es repinta i es torna el cursor on era. */
+  const focus = document.activeElement;
+  let recupera = null;
+  if (focus && focus.closest && focus.closest('#llista-idees')) {
+    const bloc = focus.closest('[data-idea]');
+    const quin = focus.dataset ? focus.dataset.camp : null;
+    const idea = bloc ? idees.find(x => x.id === bloc.dataset.idea) : null;
+    // Només protegim si el cursor és en un camp d'una idea que encara
+    // existeix. Si el focus és en un botó, o la idea acaba de marxar,
+    // es repinta amb normalitat.
+    if (bloc && quin && idea) {
+      if (focus.value !== valorModel(idea, quin)) return;   // s'està escrivint
+      recupera = { id: bloc.dataset.idea, quin, inici: focus.selectionStart, fi: focus.selectionEnd };
+    }
+  }
+
+  $('compta-idees').textContent = idees.length === 1 ? '1 idea' : idees.length + ' idees';
+  $('idees-buida').style.display = idees.length ? 'none' : 'block';
+  $('llista-idees').style.display = idees.length ? '' : 'none';
+  pintaCoincidencies();
+  if (!idees.length) { cos.innerHTML = ''; return; }
+
+  cos.innerHTML = idees.map(i => `
+    <div class="idea" data-idea="${esc(i.id)}">
+      <textarea class="idea-text" rows="1" data-camp="text"
+        placeholder="Escriu la idea…" spellcheck="false">${esc(i.text || '')}</textarea>
+      <div class="idea-peu">
+        <input class="fitxa-camp zona" data-camp="zona" list="zones-conegudes"
+          value="${esc(i.zona || '')}" placeholder="sense zona" size="12" autocomplete="off">
+        <input class="fitxa-camp etiquetes" data-camp="etiquetes" list="etiquetes-conegudes"
+          value="${esc((i.etiquetes || []).join(', '))}" placeholder="etiquetes" size="14" autocomplete="off">
+        ${i.enllac
+          ? `<a class="idea-enllac" href="${esc(i.enllac)}" target="_blank" rel="noopener noreferrer"><i class="ti"></i>${esc(nomEnllac(i.enllac))}</a>`
+          : ''}
+        <input class="fitxa-camp" data-camp="enllac" value="${esc(i.enllac || '')}"
+          placeholder="enllaç" size="8" autocomplete="off" inputmode="url">
+        <span class="idea-data">${esc(faTemps(i.creatA))}</span>
+        <button class="idea-fora" data-fora="${esc(i.id)}" aria-label="Esborra la idea">Esborra</button>
+      </div>
+    </div>`).join('')
+    + `<datalist id="zones-conegudes">${opcions(zonesConegudes())}</datalist>`
+    + `<datalist id="etiquetes-conegudes">${opcions(etiquetesConegudes())}</datalist>`;
+
+  cos.querySelectorAll('.idea-text').forEach(fesGran);
+
+  if (recupera) {
+    const tornar = cos.querySelector(`[data-idea="${recupera.id}"] [data-camp="${recupera.quin}"]`);
+    if (tornar) {
+      tornar.focus();
+      try { tornar.setSelectionRange(recupera.inici, recupera.fi); } catch (e) {}
+    }
+  }
+}
+
+function nomEnllac(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); }
+  catch (e) { return url.slice(0, 24); }
+}
+
+async function refrescaIdees() {
+  idees = await MagatzemIdees.llista();
+  idees.sort((a, b) => tempsDe(b.creatA) - tempsDe(a.creatA));
+  pintaIdees();
+}
+
+/* El text creix mentre escrius */
+$('llista-idees').addEventListener('input', e => {
+  if (e.target.classList.contains('idea-text')) fesGran(e.target);
+});
+
+/* Es desa en sortir del camp. Una idea que es queda sense text
+   desapareix: és el comportament de qualsevol bloc de notes. */
+$('llista-idees').addEventListener('focusout', async e => {
+  const camp = e.target.closest('[data-camp]');
+  if (!camp) return;
+  const bloc = camp.closest('[data-idea]');
+  const idea = idees.find(x => x.id === bloc.dataset.idea);
+  if (!idea) return;
+
+  const quin = camp.dataset.camp;
+  let valor = camp.value.trim();
+  if (quin === 'etiquetes') {
+    const noves = valor.split(',').map(t => t.trim()).filter(Boolean);
+    if (noves.join('|') === (idea.etiquetes || []).join('|')) { camp.value = noves.join(', '); return; }
+    await MagatzemIdees.actualitza(idea.id, { etiquetes: noves });
+    camp.value = noves.join(', ');
+    await refrescaIdees();
+    return;
+  }
+  // Primer de tot: una idea que es queda sense text desapareix, com a
+  // qualsevol bloc de notes. Ha d'anar abans de la comprovació de canvis,
+  // perquè una idea acabada de crear ja neix amb el text buit.
+  if (quin === 'text' && !valor) {
+    await MagatzemIdees.esborra(idea.id);
+    await refrescaIdees();
+    return;
+  }
+  if ((idea[quin] || '') === valor) return;
+
+  if (quin === 'enllac' && valor && !/^https?:\/\//i.test(valor)) valor = 'https://' + valor;
+  await MagatzemIdees.actualitza(idea.id, { [quin]: valor });
+  camp.value = valor;
+  await refrescaIdees();
+});
+
+$('llista-idees').addEventListener('click', async e => {
+  const btn = e.target.closest('[data-fora]');
+  if (!btn) return;
+  const idea = idees.find(x => x.id === btn.dataset.fora);
+  const resum = (idea && idea.text ? idea.text.slice(0, 40) : '');
+  if (!confirm('Vols esborrar aquesta idea?' + (resum ? '\n\n«' + resum + '…»' : ''))) return;
+  await MagatzemIdees.esborra(btn.dataset.fora);
+  await refrescaIdees();
+});
+
+/* Enter dins dels camps petits confirma; al text, fa salt de línia */
+$('llista-idees').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.classList.contains('fitxa-camp')) {
+    e.preventDefault();
+    e.target.blur();
+  }
+});
+
+/* Afegir no obre cap formulari: crea la idea buida i hi posa el cursor */
+$('btn-nova-idea').addEventListener('click', async () => {
+  const nova = await MagatzemIdees.afegeix({ text: '', zona: '', etiquetes: [], enllac: '' });
+  await refrescaIdees();
+  const camp = $('llista-idees').querySelector(`[data-idea="${nova.id}"] .idea-text`);
+  if (camp) camp.focus();
+});
+
+/* ── Pestanyes ── */
+const CLAU_PESTANYA = 'registre-reserves-pestanya';
+
+function mostraSeccio(quina) {
+  const idees = quina === 'idees';
+  $('vista-reserves').classList.toggle('ocult', idees);
+  $('vista-idees').classList.toggle('ocult', !idees);
+  $('tab-reserves').setAttribute('aria-current', idees ? 'false' : 'page');
+  $('tab-idees').setAttribute('aria-current', idees ? 'page' : 'false');
+  $('comptador').classList.toggle('ocult', idees);
+  try { localStorage.setItem(CLAU_PESTANYA, quina); } catch (e) {}
+}
+$('tab-reserves').addEventListener('click', () => mostraSeccio('reserves'));
+$('tab-idees').addEventListener('click', () => mostraSeccio('idees'));
 
 /* ═══════════════ ACCÉS ═══════════════ */
 
@@ -1968,6 +2446,11 @@ window.addEventListener('offline', () => mostraEstat('sense-connexio'));
   let vista = 'llista';
   try { vista = localStorage.getItem(CLAU_VISTA) || 'llista'; } catch (e) {}
   aplicaVista(vista);
+
+  let pestanya = 'reserves';
+  try { pestanya = localStorage.getItem(CLAU_PESTANYA) || 'reserves'; } catch (e) {}
+  mostraSeccio(pestanya);
+
   await refresca();
 
   if (MODE_DEMO) return;
