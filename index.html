@@ -1437,6 +1437,25 @@ function calPujar(r) {
   return tempsDe(r.modificatA) > tempsDe(r.sincronitzatA);
 }
 
+/* Els minuts des de mitjanit d'una hora escrita «09:40», «9.40», etc.
+   Torna un número gran si no hi ha hora, perquè les reserves sense hora
+   van al final del dia. */
+function minutsDia(hora) {
+  const m = String(hora || '').match(/(\d{1,2})[:.h](\d{2})/);
+  if (!m) return 99999;
+  return (+m[1]) * 60 + (+m[2]);
+}
+
+/* Ordena les reserves cronològicament: primer per data d'entrada i,
+   dins del mateix dia, per hora. Un vol a les 09:40 va abans que una
+   recollida de cotxe a les 12:00; el que no té hora, al final del dia. */
+function comparaCronologic(a, b) {
+  const da = a.checkinISO || '9999-99-99';
+  const db = b.checkinISO || '9999-99-99';
+  if (da !== db) return da < db ? -1 : 1;
+  return minutsDia(a.checkinHora) - minutsDia(b.checkinHora);
+}
+
 function creaMagatzem({ taula, clauLocal, demo, normalitza }) {
   let enMemoria = MODE_DEMO ? (demo ? demo() : []) : null;
 
@@ -1690,7 +1709,7 @@ $('btn-manual').addEventListener('click', () => {
 /* Rellegeix les dades i repinta les dues vistes. */
 async function refresca() {
   reserves = await Magatzem.llista();
-  reserves.sort((a, b) => (a.checkinISO || '9999') < (b.checkinISO || '9999') ? -1 : 1);
+  reserves.sort(comparaCronologic);
   $('comptador').textContent = reserves.length === 1 ? '1 reserva' : reserves.length + ' reserves';
   pintaLlista();
   pintaTaula();
@@ -2399,7 +2418,7 @@ const COLUMNES_EXCEL = [
 
 $('btn-excel').addEventListener('click', () => {
   if (!reserves.length) { avisa($('avis-peu'), 'El registre \u00e9s buit: no hi ha res a exportar.', 'mal'); return; }
-  const ordenades = [...reserves].sort((a, b) => (a.checkinISO || '9999') < (b.checkinISO || '9999') ? -1 : 1);
+  const ordenades = [...reserves].sort(comparaCronologic);
   const files = ordenades.map(r => COLUMNES_EXCEL.map(([, f]) => f(r) || ''));
   const capceleres = COLUMNES_EXCEL.map(([nom]) => nom);
   const dataAvui = new Date().toISOString().slice(0, 10);
