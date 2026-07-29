@@ -144,6 +144,37 @@
   #fitxa.visible { display: block; }
   .fitxa-cap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .fitxa-titol { font-size: 16px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .tria-tipus { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 18px; }
+  .pastilla-tipus {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 0.5px solid var(--vora);
+    background: var(--superficie);
+    color: var(--tinta-suau);
+    font-size: 13px;
+  }
+  .pastilla-tipus:hover { border-color: var(--vora-forta); background: var(--subtil); }
+  .pastilla-tipus .ico-tipus-tria { width: 15px; height: 15px; flex: none; }
+  .pastilla-tipus.activa {
+    background: var(--accent-fons);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  /* Una separació subtil entre els camps propis del tipus i els comuns.
+     El pseudo-element fa la línia sense ocupar cap cel·la de la graella. */
+  .camp.primer-comu { position: relative; margin-top: 14px; }
+  .camp.primer-comu::before {
+    content: '';
+    position: absolute;
+    top: -14px;
+    left: 0;
+    width: 100vw;
+    max-width: 640px;
+    border-top: 0.5px solid var(--vora);
+  }
   .segell {
     font-size: 12px;
     font-weight: 500;
@@ -230,6 +261,21 @@
   .cel-chev { grid-area: chev; text-align: right; color: var(--tinta-tenue); }
   .punt { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--verd); }
   .punt.revisar { background: var(--ambre); }
+  /* La icona del tipus substitueix el punt d'estat. Si cal revisar, hi
+     duu un petit senyal ambre a l'angle en comptes de canviar de color. */
+  .cel-punt { position: relative; display: inline-flex; }
+  .icona-tipus { position: relative; display: inline-flex; color: var(--tinta-suau); }
+  .icona-tipus svg { width: 19px; height: 19px; }
+  .icona-tipus.revisar { color: var(--ambre); }
+  .icona-tipus.revisar::after {
+    content: '';
+    position: absolute;
+    top: -1px; right: -2px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ambre);
+    border: 1.5px solid var(--superficie);
+  }
   .nom {
     display: block; font-weight: 500; font-size: 14px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -568,6 +614,8 @@
     <div class="accions">
       <button class="primari" id="btn-llegeix">Llegeix la reserva</button>
       <button class="subtil" id="btn-neteja">Buida la caixa</button>
+      <span class="separa"></span>
+      <button id="btn-manual">O entra-la a mà</button>
     </div>
     <div class="avis" id="avis-enganxa"></div>
   </section>
@@ -578,6 +626,7 @@
       <span class="segell" id="segell">Booking.com</span>
     </div>
     <p class="fitxa-sub" id="fitxa-sub">Revisa les dades i completa els camps marcats abans de desar.</p>
+    <div class="tria-tipus" id="tria-tipus" role="group" aria-label="Tipus de reserva"></div>
     <div class="graella" id="graella-camps"></div>
     <div class="fitxa-peu">
       <button class="primari" id="btn-desa">Afegeix al registre</button>
@@ -588,7 +637,7 @@
   <div class="llista" id="llista">
     <div class="graella-fila llista-capcalera">
       <span class="cel-punt"></span>
-      <span class="cel-nom">Allotjament</span>
+      <span class="cel-nom">Reserva</span>
       <span class="cel-dates">Dates</span>
       <span class="cel-cancel">Cancel·lació</span>
       <span class="cel-preu">Preu</span>
@@ -602,8 +651,8 @@
     <table id="taula">
       <thead>
         <tr>
-          <th>Entrada</th><th>Sortida</th><th>Allotjament</th><th>Client</th>
-          <th>Adreça</th><th>Hostes</th><th>Preu</th><th>Pagament</th>
+          <th>Tipus</th><th>Entrada</th><th>Sortida</th><th>Nom</th><th>Client</th>
+          <th>Lloc</th><th>Detall</th><th>Preu</th><th>Pagament</th>
           <th>Qui ho paga</th><th>Cancel·lació</th><th>Telèfon</th><th>Núm. reserva</th>
           <th>Plataforma</th><th>Notes</th><th></th>
         </tr>
@@ -1097,6 +1146,10 @@ function parseReserva(textOriginal) {
       PENDENT: buscador quan n'hi hagi moltes, i normalitzar les zones
       amb geocodificació (Barruera i Alta Ribagorça són el mateix lloc a
       escales diferents; Nominatim d'OpenStreetMap retorna la jerarquia).
+   FET · Tipus de reserva: allotjament, vol, cotxe, entrada, altres
+      (versió 18). Selector a la fitxa amb camps propis per tipus, icona
+      a la llista, i població per tipus per al creuament. El parser d'emails
+      de moment només entén allotjaments; els altres tipus s'entren a mà.
    FET · Camp «qui ho paga» (versió 16). Text lliure amb suggeriments dels
       noms ja fets servir, editable directament al desplegable. El parser
       no l'omple mai: a nom de qui va la reserva no vol dir qui la paga.
@@ -1172,28 +1225,146 @@ function reservesDemo() {
       checkoutISO: diesDesDavui(54), checkoutHora: '11:00',
       hostes: '2 adults · 2 nits', preu: '198,00 €', pagament: 'Garantit amb targeta',
       cancelacio: 'Gratis fins ' + aDdMmAaaa(diesDesDavui(-2)),
-      telefon: '+351 222 000 111', numReserva: '5510999', notes: '' }
+      telefon: '+351 222 000 111', numReserva: '5510999', notes: '' },
+
+    { id: 'demo-5', tipus: 'vol', plataforma: 'Vueling',
+      companyia: 'Vueling', numVol: 'VY8145',
+      origen: 'Barcelona (BCN)', desti: 'Lisboa',
+      checkinISO: diesDesDavui(22), checkinHora: '09:40',
+      checkoutISO: diesDesDavui(22), checkoutHora: '11:05',
+      seient: '14C', preu: '96,00 €', pagament: 'Pagat (96,00 €)',
+      numReserva: 'XKZ42Q', quiPaga: 'Pepita', notes: '' },
+
+    { id: 'demo-6', tipus: 'cotxe', plataforma: 'Europcar',
+      companyia: 'Europcar',
+      llocRecollida: 'Aeroport de Lisboa (LIS)', llocDevolucio: 'Aeroport de Lisboa (LIS)',
+      checkinISO: diesDesDavui(22), checkinHora: '12:00',
+      checkoutISO: diesDesDavui(26), checkoutHora: '10:00',
+      preu: '124,00 €', pagament: 'Es paga en recollir (124,00 €)',
+      numReserva: '7729301', notes: '' },
+
+    { id: 'demo-7', tipus: 'entrada', plataforma: '',
+      allotjament: 'Oceanari de Lisboa', recinte: 'Parc de les Nacions', poblacio: 'Lisboa',
+      checkinISO: diesDesDavui(23), checkinHora: '10:00',
+      preu: '38,00 €', pagament: 'Pagat (38,00 €)', numReserva: 'A72-5567', notes: '' }
   ];
 }
 
 
-const CAMPS = [
-  { id: 'allotjament', nom: 'Allotjament' },
-  { id: 'client',      nom: 'Nom del client' },
-  { id: 'adreca',      nom: 'Adreça', ample: true },
-  { id: 'checkinISO',  nom: 'Data d\u2019entrada (AAAA-MM-DD)' },
-  { id: 'checkinHora', nom: 'Hora d\u2019entrada' },
-  { id: 'checkoutISO', nom: 'Data de sortida (AAAA-MM-DD)' },
-  { id: 'checkoutHora',nom: 'Hora de sortida' },
-  { id: 'hostes',      nom: 'Hostes / habitacions' },
-  { id: 'preu',        nom: 'Preu total' },
-  { id: 'pagament',    nom: 'Estat del pagament' },
-  { id: 'quiPaga',     nom: 'Qui ho paga' },
-  { id: 'cancelacio',  nom: 'Cancel\u00b7laci\u00f3 gratu\u00efta' },
-  { id: 'telefon',     nom: 'Tel\u00e8fon' },
-  { id: 'numReserva',  nom: 'N\u00fam. de reserva' },
-  { id: 'notes',       nom: 'Notes', ample: true }
+/* ── TIPUS DE RESERVA ──────────────────────────────────────────────
+   Cada tipus té els seus camps propis; després tots comparteixen un
+   bloc de camps comuns. Com que a Supabase tot va dins d'un camp JSON,
+   afegir tipus o camps no obliga a tocar la base de dades.
+   El camp «ample: true» ocupa tota la fila del formulari. */
+
+const CAMPS_COMUNS = [
+  { id: 'preu',       nom: 'Preu total' },
+  { id: 'pagament',   nom: 'Estat del pagament' },
+  { id: 'quiPaga',    nom: 'Qui ho paga' },
+  { id: 'cancelacio', nom: 'Cancel\u00b7laci\u00f3 gratu\u00efta' },
+  { id: 'numReserva', nom: 'N\u00fam. de reserva' },
+  { id: 'notes',      nom: 'Notes', ample: true }
 ];
+
+/* Icones dels tipus, dibuixades a mà com a SVG per no dependre de cap
+   font externa ni de connexió (igual que el chevron i la xinxeta de Maps).
+   Totes en el mateix llenç 24×24 i amb currentColor, així hereten el color
+   del text i la mida es controla amb l'amplada de l'element. */
+const ICONES = {
+  llit: '<path d="M3 9v9M3 13.5h18v4.5M21 18v-2.5a2 2 0 0 0-2-2H10V10h7a2 2 0 0 1 2 2v1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="11" r="1.4" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  avio: '<path d="M21 15.5l-7-2V8a2 2 0 0 0-4 0v5.5l-7 2v2l7-1.5V19l-2 1.5V22l4-1 4 1v-1.5L15 19v-2l7 1.5v-2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
+  cotxe: '<path d="M4 16v-3.5L5.7 8A2 2 0 0 1 7.6 6.7h8.8A2 2 0 0 1 18.3 8L20 12.5V16M4 12.5h16M4 16v1.5M20 16v1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="14.2" r="0.7" fill="currentColor"/><circle cx="16.5" cy="14.2" r="0.7" fill="currentColor"/>',
+  tiquet: '<path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H6a2 2 0 0 1-2-2 2 2 0 0 0 0-4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 6.5v11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.5 2"/>',
+  paquet: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM4 7.5l8 4.5 8-4.5M12 12v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>'
+};
+
+function iconaSVG(clau, classe) {
+  return `<svg viewBox="0 0 24 24"${classe ? ' class="' + classe + '"' : ''} aria-hidden="true" focusable="false">${ICONES[clau] || ''}</svg>`;
+}
+
+const TIPUS = {
+  allotjament: {
+    nom: 'Allotjament', icona: 'llit',
+    camps: [
+      { id: 'allotjament', nom: 'Allotjament' },
+      { id: 'client',      nom: 'Nom del client' },
+      { id: 'adreca',      nom: 'Adreça', ample: true },
+      { id: 'checkinISO',  nom: 'Data d\u2019entrada (AAAA-MM-DD)' },
+      { id: 'checkinHora', nom: 'Hora d\u2019entrada' },
+      { id: 'checkoutISO', nom: 'Data de sortida (AAAA-MM-DD)' },
+      { id: 'checkoutHora',nom: 'Hora de sortida' },
+      { id: 'hostes',      nom: 'Hostes / habitacions' },
+      { id: 'telefon',     nom: 'Tel\u00e8fon' }
+    ]
+  },
+  vol: {
+    nom: 'Vol', icona: 'avio',
+    camps: [
+      { id: 'companyia',   nom: 'Companyia' },
+      { id: 'numVol',      nom: 'Número de vol' },
+      { id: 'origen',      nom: 'Origen' },
+      { id: 'desti',       nom: 'Destinació' },
+      { id: 'checkinISO',  nom: 'Data de sortida (AAAA-MM-DD)' },
+      { id: 'checkinHora', nom: 'Hora de sortida' },
+      { id: 'checkoutISO', nom: 'Data d\u2019arribada (AAAA-MM-DD)' },
+      { id: 'checkoutHora',nom: 'Hora d\u2019arribada' },
+      { id: 'seient',      nom: 'Seient' }
+    ]
+  },
+  cotxe: {
+    nom: 'Cotxe', icona: 'cotxe',
+    camps: [
+      { id: 'companyia',    nom: 'Companyia' },
+      { id: 'llocRecollida',nom: 'Lloc de recollida', ample: true },
+      { id: 'checkinISO',   nom: 'Data de recollida (AAAA-MM-DD)' },
+      { id: 'checkinHora',  nom: 'Hora de recollida' },
+      { id: 'llocDevolucio',nom: 'Lloc de devolució', ample: true },
+      { id: 'checkoutISO',  nom: 'Data de devolució (AAAA-MM-DD)' },
+      { id: 'checkoutHora', nom: 'Hora de devolució' }
+    ]
+  },
+  entrada: {
+    nom: 'Entrada', icona: 'tiquet',
+    camps: [
+      { id: 'allotjament', nom: 'Nom' },
+      { id: 'recinte',     nom: 'Recinte' },
+      { id: 'poblacio',    nom: 'Població' },
+      { id: 'checkinISO',  nom: 'Dia (AAAA-MM-DD)' },
+      { id: 'checkinHora', nom: 'Hora' }
+    ]
+  },
+  altres: {
+    nom: 'Altres', icona: 'paquet',
+    camps: [
+      { id: 'allotjament', nom: 'Títol' },
+      { id: 'llocRecollida', nom: 'Lloc', ample: true },
+      { id: 'checkinISO',  nom: 'Data (AAAA-MM-DD)' },
+      { id: 'checkinHora', nom: 'Hora' }
+    ]
+  }
+};
+
+const ORDRE_TIPUS = ['allotjament', 'vol', 'cotxe', 'entrada', 'altres'];
+
+/* Els camps d'un tipus, seguits dels comuns. */
+function campsDe(tipus) {
+  const t = TIPUS[tipus] || TIPUS.allotjament;
+  return [...t.camps, ...CAMPS_COMUNS];
+}
+
+/* Totes les claus de camp que existeixen, per netejar en desar. */
+const TOTES_CLAUS = (() => {
+  const claus = new Set();
+  for (const t of Object.values(TIPUS)) for (const c of t.camps) claus.add(c.id);
+  for (const c of CAMPS_COMUNS) claus.add(c.id);
+  return [...claus];
+})();
+
+/* El parser d'emails només entén allotjaments, així que tota reserva
+   sense tipus és, per definició, un allotjament. */
+function tipusDe(r) {
+  return (r && r.tipus && TIPUS[r.tipus]) ? r.tipus : 'allotjament';
+}
 
 let reserves = [];        // cau en memòria; qui la manté és el Magatzem
 // Repintar la llista la tornava a plegar sencera. Amb això, el que tenies
@@ -1499,10 +1670,21 @@ function obrePanell(obert) {
   $('panell-afegeix').classList.toggle('ocult', !obert);
   $('btn-afegeix').setAttribute('aria-expanded', obert ? 'true' : 'false');
   $('btn-afegeix').textContent = obert ? 'Tanca' : 'Afegeix una reserva';
+  // L'exportació no té res a veure amb afegir: es retira mentre el panell és obert
+  $('btn-excel').classList.toggle('ocult', obert);
   if (obert) $('entrada').focus();
 }
 $('btn-afegeix').addEventListener('click', () => {
   obrePanell($('panell-afegeix').classList.contains('ocult'));
+});
+
+/* Obre la fitxa buida per a les reserves que no vénen de cap correu:
+   vols, cotxes, entrades, etc. El panell ja és obert quan es prem, i el
+   tipus es tria a la mateixa fitxa. */
+$('btn-manual').addEventListener('click', () => {
+  editantId = null;
+  plataformaActual = '';
+  mostraFitxa({}, '', 'Nova reserva');
 });
 
 /* Rellegeix les dades i repinta les dues vistes. */
@@ -1538,42 +1720,109 @@ $('btn-llegeix').addEventListener('click', () => {
   editantId = null;
   plataformaActual = plataforma;
   mostraFitxa(camps, plataforma);
-  const trobats = CAMPS.filter(c => camps[c.id]).length;
+  const propis = campsDe('allotjament');
+  const trobats = propis.filter(c => camps[c.id]).length;
   if (plataforma === 'Desconeguda') {
     avisa($('avis-enganxa'), 'No he reconegut la plataforma: he omplert el que he pogut amb regles gen\u00e8riques. Revisa-ho b\u00e9.', 'mal');
   } else {
-    avisa($('avis-enganxa'), `Email de ${plataforma} reconegut: ${trobats} de ${CAMPS.length} camps omplerts. Revisa la fitxa.`, 'ok');
+    avisa($('avis-enganxa'), `Email de ${plataforma} reconegut: ${trobats} de ${propis.length} camps omplerts. Revisa la fitxa.`, 'ok');
   }
 });
 
 $('btn-neteja').addEventListener('click', () => { $('entrada').value = ''; $('entrada').focus(); });
 
-/* ── Fitxa de revisió ── */
+/* ── Fitxa de revisió ──
+   La fitxa recorda els valors del que s'ha escrit quan es canvia de
+   tipus, perquè triar «vol» després d'haver omplert coses no ho esborri. */
+let campsFitxa = {};
+let tipusFitxa = 'allotjament';
+
 function mostraFitxa(camps, plataforma, titol) {
+  campsFitxa = { ...camps };
+  tipusFitxa = tipusDe(camps);
   const seg = $('segell');
   seg.textContent = plataforma === 'Desconeguda' ? 'Plataforma?' : plataforma;
   seg.className = 'segell' + (plataforma === 'Desconeguda' ? ' desconeguda' : '');
+  seg.style.display = plataforma ? '' : 'none';
   $('fitxa-titol').textContent = titol || 'Fitxa de la reserva';
   $('btn-desa').textContent = editantId ? 'Desa els canvis' : 'Afegeix al registre';
 
+  pintaTriaTipus();
+  pintaCampsFitxa();
+  $('fitxa').classList.add('visible');
+  $('fitxa').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function pintaTriaTipus() {
+  const cont = $('tria-tipus');
+  cont.innerHTML = ORDRE_TIPUS.map(t => `
+    <button type="button" class="pastilla-tipus${t === tipusFitxa ? ' activa' : ''}"
+      data-tipus="${t}" aria-pressed="${t === tipusFitxa}">
+      ${iconaSVG(TIPUS[t].icona, 'ico-tipus-tria')}${esc(TIPUS[t].nom)}
+    </button>`).join('');
+}
+
+$('tria-tipus').addEventListener('click', e => {
+  const btn = e.target.closest('[data-tipus]');
+  if (!btn) return;
+  // Recollir el que hi ha escrit abans de canviar de camps
+  desaValorsFitxa();
+  tipusFitxa = btn.dataset.tipus;
+  pintaTriaTipus();
+  pintaCampsFitxa();
+});
+
+/* Recull els valors actuals del formulari cap a campsFitxa */
+function desaValorsFitxa() {
+  for (const c of campsDe(tipusFitxa)) {
+    const input = $('camp-' + c.id);
+    if (input) campsFitxa[c.id] = input.value.trim();
+  }
+}
+
+/* Opcions d'estat de pagament que se suggereixen segons el tipus.
+   «Es paga a l'allotjament» només té sentit per a un allotjament: per a
+   un vol o un cotxe seria absurd. Segueix sent text lliure per si cal
+   escriure-hi una altra cosa. */
+function opcionsPagament(tipus) {
+  const base = ['Pagat', 'Pendent'];
+  if (tipus === 'allotjament') return ['Pagat', 'Es paga a l’allotjament', 'Garantit amb targeta', 'Pendent'];
+  if (tipus === 'cotxe') return ['Pagat', 'Es paga en recollir', 'Garantit amb targeta', 'Pendent'];
+  return base;
+}
+
+function pintaCampsFitxa() {
   const g = $('graella-camps');
   g.innerHTML = '';
-  for (const c of CAMPS) {
-    const valor = camps[c.id] || '';
+  const propis = campsDe(tipusFitxa);
+  const idsPropis = new Set(TIPUS[tipusFitxa].camps.map(c => c.id));
+
+  for (const c of propis) {
+    const valor = campsFitxa[c.id] || '';
     const div = document.createElement('div');
     div.className = 'camp' + (valor ? '' : ' buit') + (c.ample ? ' ample' : '');
+    // Una línia separadora abans del primer camp comú
+    if (c.id === CAMPS_COMUNS[0].id) div.classList.add('primer-comu');
     const label = document.createElement('label');
     label.textContent = c.nom;
     label.htmlFor = 'camp-' + c.id;
     const input = document.createElement('input');
     input.id = 'camp-' + c.id;
     input.value = valor;
+    // El pagament suggereix opcions segons el tipus, sense deixar de ser lliure
+    if (c.id === 'pagament') {
+      input.setAttribute('list', 'opcions-pagament');
+      input.setAttribute('autocomplete', 'off');
+    }
     input.addEventListener('input', () => { div.classList.toggle('buit', !input.value.trim()); });
     div.append(label, input);
     g.append(div);
   }
-  $('fitxa').classList.add('visible');
-  $('fitxa').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const datalist = document.createElement('datalist');
+  datalist.id = 'opcions-pagament';
+  datalist.innerHTML = opcionsPagament(tipusFitxa).map(o => `<option value="${esc(o)}"></option>`).join('');
+  g.append(datalist);
 }
 
 $('btn-descarta').addEventListener('click', () => {
@@ -1582,12 +1831,22 @@ $('btn-descarta').addEventListener('click', () => {
 });
 
 $('btn-desa').addEventListener('click', async () => {
-  const dades = {};
-  for (const c of CAMPS) dades[c.id] = $('camp-' + c.id).value.trim();
-  if (!dades.allotjament && !dades.checkinISO) {
-    avisa($('avis-enganxa'), 'Com a m\u00ednim cal l\u2019allotjament o la data d\u2019entrada per desar la reserva.', 'mal');
+  desaValorsFitxa();
+  // Es desa el tipus i, dels camps, només els que pertanyen a aquest tipus
+  // o són comuns. Així canviar de tipus no arrossega camps orfes.
+  const permesos = new Set(campsDe(tipusFitxa).map(c => c.id));
+  const dades = { tipus: tipusFitxa };
+  for (const clau of TOTES_CLAUS) {
+    dades[clau] = permesos.has(clau) ? (campsFitxa[clau] || '') : '';
+  }
+
+  const etiqueta = TIPUS[tipusFitxa].nom.toLowerCase();
+  const teNom = dades.allotjament || dades.companyia;
+  if (!teNom && !dades.checkinISO) {
+    avisa($('avis-enganxa'), `Per desar ${etiqueta === 'altres' ? 'aquesta reserva' : 'un ' + etiqueta} cal com a mínim un nom o una data.`, 'mal');
     return;
   }
+
   if (editantId) {
     await Magatzem.actualitza(editantId, dades);
   } else {
@@ -1678,7 +1937,8 @@ function dataLlarga(d) {
 function dataCobrament(r) {
   const pag = r.pagament || '';
   if (/^pagat/i.test(pag)) return null;                  // ja resolt
-  if (/allotjament/i.test(pag)) return aData(r.checkinISO);  // es cobra en arribar
+  // Es paga in situ (a l'allotjament o en recollir): el càrrec és quan hi arribes
+  if (/allotjament|en recollir|^es paga/i.test(pag)) return aData(r.checkinISO);
   const m = (r.cancelacio || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if (m) return new Date(+m[3], +m[2] - 1, +m[1]);       // fi del termini gratuït
   return aData(r.checkinISO);                            // sense més pistes
@@ -1716,14 +1976,25 @@ function infoPagament(r) {
   if (!s) return { text: 'sense dades', classe: 'preu-desconegut' };
   if (/^pendent de cobrament/i.test(s)) return { text: 'no cobrat', classe: 'preu-pendent' };
   if (/^programat/i.test(s)) return { text: 'programat', classe: 'preu-pendent' };
+  // «Es paga a l'allotjament» / «Es paga en recollir» → es paga in situ
   if (/allotjament/i.test(s)) return { text: 'a l’allotjament', classe: 'preu-pendent' };
+  if (/en recollir/i.test(s)) return { text: 'en recollir', classe: 'preu-pendent' };
+  if (/^es paga/i.test(s)) return { text: 'in situ', classe: 'preu-pendent' };
   return { text: 'pendent', classe: 'preu-pendent' };
 }
 
 /* El punt de l'esquerra diu una sola cosa: si la fitxa està completa o no */
-const CAMPS_CLAU = ['allotjament', 'checkinISO', 'checkoutISO', 'preu', 'adreca'];
+/* Els camps sense els quals una reserva es considera incompleta,
+   segons el tipus. El punt ambre de la llista surt si en falta cap. */
+const CLAUS_CLAU = {
+  allotjament: ['allotjament', 'checkinISO', 'checkoutISO', 'adreca', 'preu'],
+  vol:         ['origen', 'desti', 'checkinISO', 'checkinHora'],
+  cotxe:       ['companyia', 'llocRecollida', 'checkinISO', 'checkoutISO'],
+  entrada:     ['allotjament', 'checkinISO'],
+  altres:      ['allotjament', 'checkinISO']
+};
 function calRevisar(r) {
-  return CAMPS_CLAU.some(k => !r[k]);
+  return (CLAUS_CLAU[tipusDe(r)] || CLAUS_CLAU.allotjament).some(k => !r[k]);
 }
 
 function agrupaPerMes(llista) {
@@ -1787,7 +2058,12 @@ const ICONA_MAPA = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden=
   + '<circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>';
 
 function enllacMaps(r) {
-  const cerca = [r.allotjament, r.adreca].filter(Boolean).join(', ').trim();
+  const t = tipusDe(r);
+  let parts;
+  if (t === 'entrada') parts = [r.allotjament, r.recinte, r.poblacio];
+  else if (t === 'altres') parts = [r.allotjament, r.llocRecollida];
+  else parts = [r.allotjament, r.adreca];
+  const cerca = parts.filter(Boolean).join(', ').trim();
   if (!cerca) return '';
   const url = 'https://www.google.com/maps/search/?api=1&amp;query=' + encodeURIComponent(cerca);
   // L'espai dur manté la icona enganxada a l'última paraula quan l'adreça salta de línia
@@ -1822,6 +2098,75 @@ function campDetall(etiqueta, valor, ample, extra) {
   </div>`;
 }
 
+/* ── El que la llista mostra de cada reserva, segons el tipus ── */
+
+function nomReserva(r) {
+  const t = tipusDe(r);
+  if (t === 'vol') {
+    if (r.origen && r.desti) return `${r.origen} → ${r.desti}`;
+    return r.desti || r.origen || r.companyia || 'Vol sense detalls';
+  }
+  if (t === 'cotxe') return r.companyia || 'Cotxe de lloguer';
+  return r.allotjament || (t === 'altres' ? 'Reserva' : 'Reserva sense nom');
+}
+
+/* La línia de sota el nom: cada tipus hi posa el que té més sentit. */
+function subtitolReserva(r) {
+  const t = tipusDe(r);
+  if (t === 'vol') return [r.companyia, r.numVol].filter(Boolean).join(' ');
+  if (t === 'cotxe') return r.llocRecollida || '';
+  if (t === 'entrada') return [r.recinte, r.poblacio].filter(Boolean).join(' · ');
+  if (t === 'altres') return r.llocRecollida || '';
+  return poblacio(r.adreca);
+}
+
+/* La població per al creuament amb idees i viatges. */
+function poblacioReserva(r) {
+  const t = tipusDe(r);
+  if (t === 'vol') return r.desti || '';
+  if (t === 'cotxe') return poblacio(r.llocRecollida);
+  if (t === 'entrada') return r.poblacio || '';
+  if (t === 'altres') return poblacio(r.llocRecollida);
+  return poblacio(r.adreca);
+}
+
+/* Els camps que mostra el desplegable, en parells [etiqueta, valor]. */
+function detallReserva(r) {
+  const t = tipusDe(r);
+  const entrada = [dataBonica(r.checkinISO), r.checkinHora].filter(Boolean).join(' · ');
+  const sortida = [dataBonica(r.checkoutISO), r.checkoutHora].filter(Boolean).join(' · ');
+  let propis;
+  if (t === 'vol') {
+    propis = [
+      ['Companyia', r.companyia], ['Número de vol', r.numVol],
+      ['Origen', r.origen], ['Destinació', r.desti],
+      ['Sortida', entrada], ['Arribada', sortida], ['Seient', r.seient]
+    ];
+  } else if (t === 'cotxe') {
+    propis = [
+      ['Companyia', r.companyia],
+      ['Lloc de recollida', r.llocRecollida, true], ['Recollida', entrada],
+      ['Lloc de devolució', r.llocDevolucio, true], ['Devolució', sortida]
+    ];
+  } else if (t === 'entrada') {
+    propis = [
+      ['Nom', r.allotjament], ['Recinte', r.recinte], ['Població', r.poblacio],
+      ['Dia', entrada]
+    ];
+  } else if (t === 'altres') {
+    propis = [
+      ['Títol', r.allotjament], ['Lloc', r.llocRecollida, true], ['Data', entrada]
+    ];
+  } else {
+    propis = [
+      ['Adreça', r.adreca, true], ['Telèfon', r.telefon],
+      ['Nom del client', r.client], ['Hostes / habitacions', r.hostes],
+      ['Entrada', entrada], ['Sortida', sortida]
+    ];
+  }
+  return propis;
+}
+
 function pintaLlista() {
   const cos = $('cos-llista');
   // Si s'està escrivint dins de la llista, repintar esborraria el que
@@ -1844,20 +2189,23 @@ function pintaLlista() {
       const canc = infoCancel(r);
       const pag = infoPagament(r);
       const revisar = calRevisar(r);
-      const nom = r.allotjament || 'Reserva sense nom';
-      const sota = poblacio(r.adreca) || (revisar ? 'falten dades per completar' : '');
+      const nom = nomReserva(r);
+      const sota = subtitolReserva(r) || (revisar ? 'falten dades per completar' : '');
       const preuTxt = r.preu ? esc(r.preu) : '—';
+      const icona = TIPUS[tipusDe(r)].icona;
 
       const pregunta = preguntaCobrament(r);
       const obert = filesObertes.has(r.id);
 
       html += `<div class="fila${pregunta ? ' te-pregunta' : ''}${obert ? ' oberta' : ''}" data-id="${esc(r.id)}">
         <button class="fila-cap graella-fila" aria-expanded="${obert ? 'true' : 'false'}" aria-controls="detall-${esc(r.id)}">
-          <span class="cel-punt"><span class="punt${revisar ? ' revisar' : ''}" role="img"
-            aria-label="${revisar ? 'Cal revisar aquesta reserva' : 'Fitxa completa'}"></span></span>
+          <span class="cel-punt">
+            <span class="icona-tipus${revisar ? ' revisar' : ''}"
+              role="img" aria-label="${esc(TIPUS[tipusDe(r)].nom)}${revisar ? ', cal revisar' : ''}">${iconaSVG(icona)}</span>
+          </span>
           <span class="cel-nom">
             <span class="nom">${esc(nom)}</span>
-            <span class="sotanom${revisar && !r.adreca ? ' alerta' : ''}">${esc(sota)}</span>
+            <span class="sotanom${revisar ? ' alerta' : ''}">${esc(sota)}</span>
           </span>
           <span class="cel-dates">
             <span class="xifra">${esc(dates.principal)}</span>
@@ -1873,17 +2221,18 @@ function pintaLlista() {
         ${pregunta}
         <div class="fila-detall${obert ? '' : ' ocult'}" id="detall-${esc(r.id)}">
           <div class="detall-graella">
-            ${campDetall('Adreça', r.adreca, true, enllacMaps(r))}
-            ${campDetall('Telèfon', r.telefon)}
-            ${campDetall('Núm. de reserva', r.numReserva)}
-            ${campDetall('Nom del client', r.client)}
-            ${campDetall('Hostes / habitacions', r.hostes)}
-            ${campDetall('Entrada', [dataBonica(r.checkinISO), r.checkinHora].filter(Boolean).join(' · '))}
-            ${campDetall('Sortida', [dataBonica(r.checkoutISO), r.checkoutHora].filter(Boolean).join(' · '))}
-            ${campDetall('Plataforma', r.plataforma)}
+            ${(() => {
+              // L'enllaç de Maps s'enganxa al camp geogràfic de cada tipus
+              const geo = { allotjament: 'Adreça', entrada: 'Població', cotxe: 'Lloc de recollida', altres: 'Lloc' }[tipusDe(r)];
+              return detallReserva(r).map(([et, val, ample]) =>
+                (et === geo && val) ? campDetall(et, val, ample, enllacMaps(r)) : campDetall(et, val, ample)
+              ).join('');
+            })()}
+            ${r.plataforma ? campDetall('Plataforma', r.plataforma) : ''}
             ${campDetall('Estat del pagament', r.pagament)}
             ${campQuiPaga(r)}
             ${campDetall('Cancel·lació', r.cancelacio, true)}
+            ${campDetall('Núm. de reserva', r.numReserva)}
             ${campDetall('Notes', r.notes, true)}
           </div>
           <div class="detall-accions">
@@ -1936,12 +2285,13 @@ function pintaTaula() {
     const cancelClasse = /^No reemborsable/i.test(r.cancelacio || '') ? 'cancel-no'
                        : /^Gratis/i.test(r.cancelacio || '') ? 'cancel-lliure' : '';
     tr.innerHTML = `
+      <td>${esc(TIPUS[tipusDe(r)].nom)}</td>
       <td class="dada">${esc(dataBonica(r.checkinISO))}${r.checkinHora ? `<span class="hora">${esc(r.checkinHora)}</span>` : ''}</td>
       <td class="dada">${esc(dataBonica(r.checkoutISO))}${r.checkoutHora ? `<span class="hora">${esc(r.checkoutHora)}</span>` : ''}</td>
-      <td><strong>${esc(r.allotjament)}</strong></td>
+      <td><strong>${esc(nomReserva(r))}</strong></td>
       <td>${esc(r.client)}</td>
-      <td>${esc(r.adreca)}</td>
-      <td>${esc(r.hostes)}</td>
+      <td>${esc(poblacioReserva(r) || r.adreca || r.llocRecollida)}</td>
+      <td>${esc(r.hostes || [r.companyia, r.numVol, r.recinte].filter(Boolean).join(' '))}</td>
       <td class="dada">${esc(r.preu)}</td>
       <td>${esc(r.pagament)}</td>
       <td>${esc(r.quiPaga)}</td>
@@ -2019,13 +2369,23 @@ $('cos-llista').addEventListener('keydown', e => {
 
 /* ── Exportació a Excel ── */
 const COLUMNES_EXCEL = [
-  ['Entrada', r => dataBonica(r.checkinISO)],
+  ['Tipus', r => TIPUS[tipusDe(r)].nom],
+  ['Nom', r => nomReserva(r)],
+  ['Entrada / sortida', r => dataBonica(r.checkinISO)],
   ['Hora entrada', r => r.checkinHora],
-  ['Sortida', r => dataBonica(r.checkoutISO)],
+  ['Sortida / arribada', r => dataBonica(r.checkoutISO)],
   ['Hora sortida', r => r.checkoutHora],
-  ['Allotjament', r => r.allotjament],
+  ['Lloc', r => poblacioReserva(r) || r.adreca || r.llocRecollida],
   ['Client', r => r.client],
   ['Adre\u00e7a', r => r.adreca],
+  ['Origen', r => r.origen],
+  ['Destinaci\u00f3', r => r.desti],
+  ['Companyia', r => r.companyia],
+  ['N\u00fam. de vol', r => r.numVol],
+  ['Seient', r => r.seient],
+  ['Lloc de recollida', r => r.llocRecollida],
+  ['Lloc de devoluci\u00f3', r => r.llocDevolucio],
+  ['Recinte', r => r.recinte],
   ['Hostes / habitacions', r => r.hostes],
   ['Preu total', r => r.preu],
   ['Pagament', r => r.pagament],
@@ -2158,7 +2518,7 @@ function faTemps(iso) {
 function zonesConegudes() {
   const zones = new Set();
   for (const i of idees) if (i.zona) zones.add(i.zona.trim());
-  for (const r of reserves) { const p = poblacio(r.adreca); if (p) zones.add(p); }
+  for (const r of reserves) { const p = poblacioReserva(r); if (p) zones.add(p); }
   return [...zones].sort((a, b) => a.localeCompare(b, 'ca'));
 }
 
@@ -2181,7 +2541,7 @@ function pintaCoincidencies() {
   const perZona = new Map();
 
   for (const r of reserves) {
-    const p = poblacio(r.adreca);
+    const p = poblacioReserva(r);
     const d = aData(r.checkinISO);
     if (!p || !d || d < ara) continue;
     const clau = p.toLowerCase();
@@ -2253,7 +2613,7 @@ function pintaIdees() {
         <input class="fitxa-camp etiquetes" data-camp="etiquetes" list="etiquetes-conegudes"
           value="${esc((i.etiquetes || []).join(', '))}" placeholder="etiquetes" size="14" autocomplete="off">
         ${i.enllac
-          ? `<a class="idea-enllac" href="${esc(i.enllac)}" target="_blank" rel="noopener noreferrer"><i class="ti"></i>${esc(nomEnllac(i.enllac))}</a>`
+          ? `<a class="idea-enllac" href="${esc(i.enllac)}" target="_blank" rel="noopener noreferrer">${esc(nomEnllac(i.enllac))}</a>`
           : ''}
         <input class="fitxa-camp" data-camp="enllac" value="${esc(i.enllac || '')}"
           placeholder="enllaç" size="8" autocomplete="off" inputmode="url">
