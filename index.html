@@ -379,21 +379,26 @@
     margin-bottom: 18px;
     font-size: 13.5px;
   }
+  /* Cada idea és una targeta pròpia (opció A): vora fina, cantonades
+     rodones i separació entre elles. El contenidor només les apila. */
   .idees {
-    background: var(--superficie);
-    border: 1px solid var(--vora);
-    border-radius: var(--radi);
-    padding: 4px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
-  .idea { padding: 16px 0; border-bottom: 1px solid var(--vora); }
-  .idea:last-child { border-bottom: none; }
+  .idea {
+    background: var(--superficie);
+    border: 0.5px solid var(--vora);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
   .idea-text {
-    width: 100%;
+    width: calc(100% + 16px);
     border: 1px solid transparent;
     border-radius: 6px;
     background: none;
     padding: 6px 8px;
-    margin: 0 0 6px -8px;
+    margin: 0 -8px 6px -8px;
     font-family: inherit;
     font-size: 14.5px;
     line-height: 1.6;
@@ -401,6 +406,7 @@
     resize: none;
     overflow: hidden;
     display: block;
+    box-sizing: border-box;
   }
   .idea-text:hover { border-color: var(--vora); }
   .idea-text:focus { border-color: var(--accent); background: var(--superficie); }
@@ -773,7 +779,12 @@ function fragment(flat, iniciRe, finalRe, maxLen = 200) {
 
 function extreuHores(seg) {
   const hores = seg.match(/\d{1,2}:\d{2}/g) || [];
-  if (hores.length >= 2) return `${hores[0]}–${hores[1]}`;
+  // Booking dona una franja d'entrada, «de 14:00 a 00:00». El que interessa
+  // és l'hora a partir de la qual pots entrar (la primera); la segona sol
+  // ser 00:00 i és soroll. Si la segona no és mitjanit, es manté.
+  if (hores.length >= 2) {
+    return hores[1] === '00:00' ? hores[0] : `${hores[0]}–${hores[1]}`;
+  }
   if (hores.length === 1) return hores[0];
   return '';
 }
@@ -1138,14 +1149,26 @@ function parseReserva(textOriginal) {
 
 /* ── PENDENT PER A LA PROPERA TANDA ──────────────────────────────────
    1. Viatges. Agrupar les reserves per viatge i no per mes. És el pas
-      que desbloqueja tota la resta.
+      que desbloqueja tota la resta. Aquí es resol també el vincle
+      anada-tornada dels vols: el preu passa al pressupost del viatge.
    2. Pressupost del viatge. Relacionar-hi els preus de les reserves.
       importNum() i formataImport() ja hi són, preparades.
+   3. Vincle anada-tornada dels vols. De moment a mà (preu només a
+      l'anada, mateix localitzador). Es resol bé dins dels viatges.
+   4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
+   5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
+   6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Normalitzar zones amb geocodificació (Nominatim), versió 25.
+      Es consulta 1 cop per zona en segon pla, es desa la jerarquia i el
+      creuament compara jerarquies amb recaiguda a text. User-Agent =
+      NOMINATIM_APP. Si algun dia l'app creix, veure el document
+      d'anotacions (afegir-hi un correu de contacte, sobretot).
+   FET · Dates en formats lliures a l'entrada manual: interpretaData()
+      accepta 15/3/2026, 15-3-26, 15.03.26, 15/3... i desa en ISO (v23).
+   FET · Hora d'entrada de Booking: «de 14:00 a 00:00» → 14:00. La franja
+      fins a mitjanit era soroll; una franja real (15:00–22:00) es manté.
    FET · Idees: segona col·lecció amb taula pròpia a Supabase, pestanyes
       i creuament de zona amb la població de les reserves (versió 17).
-      PENDENT: buscador quan n'hi hagi moltes, i normalitzar les zones
-      amb geocodificació (Barruera i Alta Ribagorça són el mateix lloc a
-      escales diferents; Nominatim d'OpenStreetMap retorna la jerarquia).
    FET · Tipus de reserva: allotjament, vol, cotxe, entrada, altres
       (versió 18). Selector a la fitxa amb camps propis per tipus, icona
       a la llista, i població per tipus per al creuament. El parser d'emails
@@ -1289,9 +1312,9 @@ const TIPUS = {
       { id: 'allotjament', nom: 'Allotjament' },
       { id: 'client',      nom: 'Nom del client' },
       { id: 'adreca',      nom: 'Adreça', ample: true },
-      { id: 'checkinISO',  nom: 'Data d\u2019entrada (AAAA-MM-DD)' },
+      { id: 'checkinISO',  nom: 'Data d\u2019entrada' },
       { id: 'checkinHora', nom: 'Hora d\u2019entrada' },
-      { id: 'checkoutISO', nom: 'Data de sortida (AAAA-MM-DD)' },
+      { id: 'checkoutISO', nom: 'Data de sortida' },
       { id: 'checkoutHora',nom: 'Hora de sortida' },
       { id: 'hostes',      nom: 'Hostes / habitacions' },
       { id: 'telefon',     nom: 'Tel\u00e8fon' }
@@ -1304,9 +1327,9 @@ const TIPUS = {
       { id: 'numVol',      nom: 'Número de vol' },
       { id: 'origen',      nom: 'Origen' },
       { id: 'desti',       nom: 'Destinació' },
-      { id: 'checkinISO',  nom: 'Data de sortida (AAAA-MM-DD)' },
+      { id: 'checkinISO',  nom: 'Data de sortida' },
       { id: 'checkinHora', nom: 'Hora de sortida' },
-      { id: 'checkoutISO', nom: 'Data d\u2019arribada (AAAA-MM-DD)' },
+      { id: 'checkoutISO', nom: 'Data d\u2019arribada' },
       { id: 'checkoutHora',nom: 'Hora d\u2019arribada' },
       { id: 'seient',      nom: 'Seient' }
     ]
@@ -1316,10 +1339,10 @@ const TIPUS = {
     camps: [
       { id: 'companyia',    nom: 'Companyia' },
       { id: 'llocRecollida',nom: 'Lloc de recollida', ample: true },
-      { id: 'checkinISO',   nom: 'Data de recollida (AAAA-MM-DD)' },
+      { id: 'checkinISO',   nom: 'Data de recollida' },
       { id: 'checkinHora',  nom: 'Hora de recollida' },
       { id: 'llocDevolucio',nom: 'Lloc de devolució', ample: true },
-      { id: 'checkoutISO',  nom: 'Data de devolució (AAAA-MM-DD)' },
+      { id: 'checkoutISO',  nom: 'Data de devolució' },
       { id: 'checkoutHora', nom: 'Hora de devolució' }
     ]
   },
@@ -1329,7 +1352,7 @@ const TIPUS = {
       { id: 'allotjament', nom: 'Nom' },
       { id: 'recinte',     nom: 'Recinte' },
       { id: 'poblacio',    nom: 'Població' },
-      { id: 'checkinISO',  nom: 'Dia (AAAA-MM-DD)' },
+      { id: 'checkinISO',  nom: 'Dia' },
       { id: 'checkinHora', nom: 'Hora' }
     ]
   },
@@ -1338,7 +1361,7 @@ const TIPUS = {
     camps: [
       { id: 'allotjament', nom: 'Títol' },
       { id: 'llocRecollida', nom: 'Lloc', ample: true },
-      { id: 'checkinISO',  nom: 'Data (AAAA-MM-DD)' },
+      { id: 'checkinISO',  nom: 'Data' },
       { id: 'checkinHora', nom: 'Hora' }
     ]
   }
@@ -1795,7 +1818,14 @@ $('tria-tipus').addEventListener('click', e => {
 function desaValorsFitxa() {
   for (const c of campsDe(tipusFitxa)) {
     const input = $('camp-' + c.id);
-    if (input) campsFitxa[c.id] = input.value.trim();
+    if (!input) continue;
+    let valor = input.value.trim();
+    // Els camps de data (acaben en ISO) accepten qualsevol format raonable
+    // i es desen normalitzats en AAAA-MM-DD
+    if (/ISO$/.test(c.id)) valor = interpretaData(valor);
+    campsFitxa[c.id] = valor;
+    // Que el camp mostri la data ja normalitzada, com a confirmació visual
+    if (/ISO$/.test(c.id) && input.value.trim() !== valor) input.value = valor;
   }
 }
 
@@ -1888,6 +1918,31 @@ function aData(iso) {
   if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
   const [a, m, d] = iso.split('-').map(Number);
   return new Date(a, m - 1, d);
+}
+
+/* Accepta dates escrites de moltes maneres i les torna en AAAA-MM-DD, que
+   és el format amb què es desen (l'únic que ordena i compara bé). Entén:
+   2026-03-15 · 15/3/2026 · 15-3-26 · 15.03.26 · 15/3 (any actual).
+   Un any de dos dígits és 20AA. Si no ho entén, torna el text tal qual
+   perquè l'usuari el pugui corregir, en comptes de menjar-s'ho. */
+function interpretaData(text) {
+  const t = String(text || '').trim();
+  if (!t) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;              // ja és ISO
+  // ISO amb mes/dia d'un sol dígit: 2026-3-5
+  let m = t.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if (m) return `${m[1]}-${String(+m[2]).padStart(2,'0')}-${String(+m[3]).padStart(2,'0')}`;
+  // Dia primer: 15/3/2026, 15-3-26, 15.03.26, i sense any: 15/3
+  m = t.match(/^(\d{1,2})[-/.](\d{1,2})(?:[-/.](\d{2}|\d{4}))?$/);
+  if (m) {
+    const dia = +m[1], mes = +m[2];
+    let any = m[3] ? +m[3] : new Date().getFullYear();
+    if (any < 100) any += 2000;
+    if (dia >= 1 && dia <= 31 && mes >= 1 && mes <= 12) {
+      return `${any}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+    }
+  }
+  return t;   // no s'ha entès: es deixa perquè es vegi i es pugui corregir
 }
 
 /* «342,50 €» → 342.5 · «1.234,50 €» → 1234.5
@@ -2553,24 +2608,152 @@ function opcions(llista) {
 
 /* Compara la zona de les idees amb la població de les reserves que
    encara no han passat. És el moment que justifica tot l'invent. */
+/* ═══════════════ GEOCODIFICACIÓ (OpenStreetMap / Nominatim) ═══════════════
+   Serveix perquè el creuament entengui que «Barruera» és a l'«Alta
+   Ribagorça», o que «Los Cristianos» és a «Tenerife». Quan escrius una
+   zona, es consulta UN cop a Nominatim la seva jerarquia administrativa
+   (poble → comarca → província → illa → país) i es desa dins de
+   l'element. A partir d'aleshores el creuament funciona sense tornar a
+   consultar, també sense connexió.
+
+   Es respecta escrupolosament la política d'ús de Nominatim:
+   · Màxim 1 consulta per segon (una cua ho garanteix).
+   · Mai autocompletat: es consulta en sortir del camp, no mentre escrius.
+   · Mai llistes sistemàtiques: es pregunta per la zona que has escrit,
+     no «totes les zones de Tenerife».
+   · User-Agent propi que identifica l'app.
+   Si Nominatim no respon o no hi ha connexió, el creuament recau en la
+   comparació de text: mai empitjora el que ja hi havia. */
+
+const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
+const NOMINATIM_APP = 'RegistreDeReserves';   // identificació (User-Agent)
+const CLAU_JER = 'registre-jerarquies-v1';    // memòria cau al navegador
+
+/* Memòria cau de zones ja resoltes, perquè no es repeteixi la consulta
+   ni entre sessions. Clau: la zona en minúscules. Valor: llista de llocs
+   de la jerarquia, també en minúscules. */
+let cauJerarquies = (() => {
+  try { return JSON.parse(localStorage.getItem(CLAU_JER) || '{}'); }
+  catch (e) { return {}; }
+})();
+
+function desaCauJerarquies() {
+  try { localStorage.setItem(CLAU_JER, JSON.stringify(cauJerarquies)); } catch (e) {}
+}
+
+/* Cua d'una consulta per segon: la política de Nominatim és estricta. */
+const cuaGeo = { pendents: [], treballant: false };
+
+function encuaGeo(feina) {
+  return new Promise(resol => {
+    cuaGeo.pendents.push({ feina, resol });
+    if (!cuaGeo.treballant) mouCuaGeo();
+  });
+}
+
+async function mouCuaGeo() {
+  cuaGeo.treballant = true;
+  while (cuaGeo.pendents.length) {
+    const { feina, resol } = cuaGeo.pendents.shift();
+    try { resol(await feina()); } catch (e) { resol(null); }
+    await new Promise(r => setTimeout(r, 1100));   // > 1s entre consultes
+  }
+  cuaGeo.treballant = false;
+}
+
+/* Torna la jerarquia (llista de noms en minúscules) d'una zona, o null si
+   no es pot. Consulta Nominatim només si no la té ja a la memòria cau. */
+async function jerarquiaDe(zona) {
+  const clau = (zona || '').trim().toLowerCase();
+  if (!clau) return null;
+  if (cauJerarquies[clau]) return cauJerarquies[clau];
+  if (MODE_DEMO) return null;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return null;
+
+  const jer = await encuaGeo(async () => {
+    const url = NOMINATIM_URL + '?format=jsonv2&addressdetails=1&limit=1&accept-language=ca&q=' + encodeURIComponent(zona);
+    const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!resp.ok) return null;
+    const dades = await resp.json();
+    if (!Array.isArray(dades) || !dades.length) return null;
+    const adr = dades[0].address || {};
+    // Ens quedem els nivells territorials, del més petit al més gran
+    const nivells = ['city', 'town', 'village', 'municipality', 'county',
+                     'state_district', 'state', 'region', 'island',
+                     'archipelago', 'country'];
+    const llocs = [];
+    if (dades[0].name) llocs.push(dades[0].name.toLowerCase());
+    for (const n of nivells) if (adr[n]) llocs.push(String(adr[n]).toLowerCase());
+    return [...new Set(llocs)];
+  });
+
+  if (jer && jer.length) { cauJerarquies[clau] = jer; desaCauJerarquies(); }
+  return jer;
+}
+
+/* Diu si dues zones coincideixen. Primer prova per text (ràpid i sempre
+   disponible); si no, mira si una jerarquia conté l'altra o la zona de
+   l'altra. Aquesta versió és SÍNCRONA: fa servir el que ja hi ha desat,
+   no dispara consultes (d'això se n'encarrega geocodificaPendents). */
+function zonesCoincideixen(zonaA, zonaB) {
+  const a = (zonaA || '').trim().toLowerCase();
+  const b = (zonaB || '').trim().toLowerCase();
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const ja = cauJerarquies[a], jb = cauJerarquies[b];
+  if (ja && ja.includes(b)) return true;   // b és un nivell de a (Tenerife dins de Los Cristianos)
+  if (jb && jb.includes(a)) return true;   // a és un nivell de b
+  if (ja && jb && ja.some(x => jb.includes(x))) return true;   // comparteixen algun nivell
+  return false;
+}
+
+/* Consulta en segon pla les zones que encara no tenen jerarquia. Quan
+   n'obté alguna de nova, repinta les coincidències. No bloqueja res. */
+let geocodificant = false;
+async function geocodificaPendents() {
+  if (MODE_DEMO || geocodificant) return;
+  geocodificant = true;
+  try {
+    const zones = new Set();
+    for (const i of idees) if (i.zona) zones.add(i.zona.trim());
+    for (const r of reserves) { const p = poblacioReserva(r); if (p) zones.add(p); }
+
+    let noves = 0;
+    for (const z of zones) {
+      const clau = z.toLowerCase();
+      if (cauJerarquies[clau]) continue;
+      const jer = await jerarquiaDe(z);
+      if (jer && jer.length) noves++;
+    }
+    if (noves) pintaCoincidencies();
+  } finally {
+    geocodificant = false;
+  }
+}
+
 function pintaCoincidencies() {
   const caixa = $('coincidencies');
   if (!caixa) return;
   const ara = avui();
-  const perZona = new Map();
 
+  // Reserves futures amb població, agrupades per zona (l'entrada més propera)
+  const futures = [];
   for (const r of reserves) {
     const p = poblacioReserva(r);
     const d = aData(r.checkinISO);
     if (!p || !d || d < ara) continue;
-    const clau = p.toLowerCase();
-    if (!perZona.has(clau) || d < perZona.get(clau).data) perZona.set(clau, { nom: p, data: d, r });
+    futures.push({ nom: p, data: d, r });
   }
 
   const trobades = [];
-  for (const [clau, info] of perZona) {
-    const quantes = idees.filter(i => (i.zona || '').trim().toLowerCase() === clau).length;
-    if (quantes) trobades.push({ ...info, quantes });
+  const vistes = new Set();
+  for (const f of futures) {
+    const clau = f.nom.toLowerCase();
+    if (vistes.has(clau)) continue;
+    vistes.add(clau);
+    // Idees que coincideixen amb aquesta zona, per text o per jerarquia
+    const quantes = idees.filter(i => zonesCoincideixen(i.zona, f.nom)).length;
+    if (quantes) trobades.push({ ...f, quantes });
   }
   trobades.sort((a, b) => a.data - b.data);
 
@@ -2583,6 +2766,9 @@ function pintaCoincidencies() {
       Tens ${t.quantes} ${t.quantes === 1 ? 'idea' : 'idees'} a ${esc(t.nom)} i ${esc(quan)}
     </div>`;
   }).join('');
+
+  // En segon pla, resol les zones que encara no tinguin jerarquia
+  geocodificaPendents();
 }
 
 /* El valor que hauria de mostrar un camp segons el model */
@@ -2803,10 +2989,32 @@ for (const id of ['acces-correu', 'acces-clau']) {
 }
 
 $('btn-surt').addEventListener('click', async () => {
-  if (!confirm('Vols tancar la sessió? Les reserves es queden desades al núvol.')) return;
+  const pendents = totPendent();
+  const avis = pendents
+    ? 'Tens ' + pendents + (pendents === 1 ? ' canvi' : ' canvis') + ' sense sincronitzar. '
+      + 'Si surts sense connexió es podrien perdre. Vols sortir igualment?'
+    : 'Vols tancar la sessió? S\u2019esborraran les dades d\u2019aquest dispositiu, '
+      + 'però es queden desades al núvol i tornaran quan hi tornis a entrar.';
+  if (!confirm(avis)) return;
+
+  // Últim intent de pujar el que quedi, si hi ha connexió
+  if (pendents && !(typeof navigator !== 'undefined' && navigator.onLine === false)) {
+    try { await Nuvol.sincronitza(); } catch (e) {}
+  }
+
   await Nuvol.surt();
+  esborraDadesLocals();
   location.reload();
 });
+
+/* Buida tot el que l'app ha desat en aquest navegador. Es fa en tancar la
+   sessió perquè, en un ordinador compartit, no en quedi rastre. Al núvol
+   les dades hi són intactes i tornen en tornar a entrar. */
+function esborraDadesLocals() {
+  for (const clau of [CLAU, CLAU_IDEES, CLAU_SINC, CLAU_JER, CLAU_VISTA, CLAU_PESTANYA]) {
+    try { localStorage.removeItem(clau); } catch (e) {}
+  }
+}
 
 // En recuperar la connexió, el que hi hagi pendent puja tot sol
 window.addEventListener('online', () => Nuvol.demanaSincronitzar());
