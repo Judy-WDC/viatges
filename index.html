@@ -2565,6 +2565,9 @@ function netejaPinsAntics() {
    allà mateix, com a qualsevol bloc de notes. */
 
 let idees = [];
+// Id de la idea acabada de crear i encara sense escriure: no s'ha
+// d'esborrar per sincronització mentre l'estàs omplint.
+let esborranyIdea = null;
 
 function fesGran(camp) {
   camp.style.height = 'auto';
@@ -2853,7 +2856,12 @@ async function refrescaIdees() {
 
 /* El text creix mentre escrius */
 $('llista-idees').addEventListener('input', e => {
-  if (e.target.classList.contains('idea-text')) fesGran(e.target);
+  if (!e.target.classList.contains('idea-text')) return;
+  fesGran(e.target);
+  // En començar a escriure, la idea deixa de ser un esborrany protegit:
+  // a partir d'aquí, deixar-la buida sí que la descarta.
+  const bloc = e.target.closest('[data-idea]');
+  if (bloc && esborranyIdea === bloc.dataset.idea && e.target.value.trim()) esborranyIdea = null;
 });
 
 /* Es desa en sortir del camp. Una idea que es queda sense text
@@ -2879,10 +2887,17 @@ $('llista-idees').addEventListener('focusout', async e => {
   // qualsevol bloc de notes. Ha d'anar abans de la comprovació de canvis,
   // perquè una idea acabada de crear ja neix amb el text buit.
   if (quin === 'text' && !valor) {
+    // Excepció: una idea acabada de crear i encara sense escriure no
+    // s'esborra si el focus s'ha perdut per un repintat de fons (una
+    // sincronització). Només desapareix si surts tu havent-la deixat
+    // buida DESPRÉS d'haver-hi tocat, cosa que treu la marca d'esborrany.
+    if (esborranyIdea === idea.id) return;
     await MagatzemIdees.esborra(idea.id);
     await refrescaIdees();
     return;
   }
+  // Si s'hi escriu res, deixa de ser un esborrany intocable
+  if (esborranyIdea === idea.id) esborranyIdea = null;
   if ((idea[quin] || '') === valor) return;
 
   if (quin === 'enllac' && valor && !/^https?:\/\//i.test(valor)) valor = 'https://' + valor;
@@ -2912,6 +2927,11 @@ $('llista-idees').addEventListener('keydown', e => {
 /* Afegir no obre cap formulari: crea la idea buida i hi posa el cursor */
 $('btn-nova-idea').addEventListener('click', async () => {
   const nova = await MagatzemIdees.afegeix({ text: '', zona: '', etiquetes: [], enllac: '' });
+  // Una idea acabada de crear és buida, i el repintat en segon pla (per
+  // una sincronització, per exemple) l'esborraria com si fos una idea
+  // buidada expressament. Es marca com a esborrany fins que s'hi escriu:
+  // mentrestant, ni s'esborra sola ni desapareix en repintar.
+  esborranyIdea = nova.id;
   await refrescaIdees();
   const camp = $('llista-idees').querySelector(`[data-idea="${nova.id}"] .idea-text`);
   if (camp) camp.focus();
