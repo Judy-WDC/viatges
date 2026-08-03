@@ -11,26 +11,35 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    /* Superfícies i vores */
-    --fons: #FBFBFA;
-    --superficie: #FFFFFF;
-    --subtil: #F4F4F2;
-    --vora: #E8E8E5;
-    --vora-forta: #D7D7D3;
+    /* Superfícies i vores — crema càlid */
+    --fons: #F1ECE6;
+    --superficie: #FAF7F2;
+    --superficie-clara: #FBF9F5;
+    --subtil: #EDE7DF;
+    --vora: #E4DBD0;
+    --vora-forta: #D8CFC4;
     /* Text */
-    --tinta: #17181C;
-    --tinta-suau: #5D6169;
-    --tinta-tenue: #8B8F96;
-    /* Accent, usat amb comptagotes */
-    --accent: #4E5490;
-    --accent-fons: #EEEFF7;
+    --tinta: #33272E;
+    --tinta-suau: #6E5D52;
+    --tinta-tenue: #9C9088;
+    /* Identitat: albergínia (estructura) i mostassa (accions) */
+    --accent: #5E3352;
+    --accent-fort: #4E2A44;
+    --accent-clar: #764466;
+    --accent-fons: #EBE0EA;
+    --accent-suau: #C7A9C0;
+    --accent-tenue: #C2A6B8;
+    --accio: #D9A521;
+    --accio-tinta: #3A2E10;
+    --mostassa: #9A7B1F;
+    --mostassa-actiu: #E8C877;
     /* Estats */
-    --verd: #2E7351;
-    --verd-fons: #EAF2ED;
-    --ambre: #8E6412;
-    --ambre-fons: #F9F1DE;
+    --verd: #4E7A5C;
+    --verd-fons: #E3EDE4;
+    --ambre: #9A7B1F;
+    --ambre-fons: #F3EAD4;
     --vermell: #A4402F;
-    --vermell-fons: #F8EDEA;
+    --vermell-fons: #F5E4DF;
     --radi: 12px;
     --radi-petit: 7px;
     --mono: 'IBM Plex Mono', ui-monospace, monospace;
@@ -51,8 +60,8 @@
   }
 
   header {
-    border-bottom: 1px solid var(--vora);
-    padding: 18px 28px;
+    background: var(--accent);
+    padding: 18px 28px 16px;
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -64,8 +73,11 @@
     font-weight: 600;
     letter-spacing: -0.015em;
     margin: 0;
+    color: #F6EFE9;
   }
-  header .compta { font-size: 13px; color: var(--tinta-tenue); font-variant-numeric: tabular-nums; }
+  header .compta { font-size: 13px; color: var(--accent-tenue); font-variant-numeric: tabular-nums; }
+  header #btn-surt { color: #E8D8E4; }
+  header #btn-surt:hover { background: var(--accent-clar); color: #F6EFE9; }
 
   main { max-width: 1120px; margin: 0 auto; padding: 24px 28px 40px; }
   .pista { color: var(--tinta-suau); font-size: 13.5px; margin: 0 0 12px; }
@@ -87,8 +99,8 @@
     transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
   }
   button:hover { background: var(--subtil); }
-  button.primari { background: var(--tinta); border-color: var(--tinta); color: #fff; }
-  button.primari:hover { background: #000; border-color: #000; }
+  button.primari { background: var(--accio); border-color: var(--accio); color: var(--accio-tinta); font-weight: 500; }
+  button.primari:hover { background: #C89518; border-color: #C89518; }
   button.subtil { border-color: transparent; background: none; color: var(--tinta-suau); }
   button.subtil:hover { background: var(--subtil); color: var(--tinta); }
   button.perill { border-color: transparent; background: none; color: var(--vermell); }
@@ -204,16 +216,239 @@
   .camp.ample { grid-column: 1 / -1; }
   .fitxa-peu { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
 
+  /* ── Viatges ── */
+  .fitxa-viatge {
+    display: none;
+    background: var(--superficie);
+    border: 1px solid var(--vora-forta);
+    border-radius: var(--radi);
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+  .fitxa-viatge.visible { display: block; }
+  .graella-viatge { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin-top: 12px; }
+  .graella-viatge + .camp.ample { margin-top: 14px; }
+  .camp-ajuda { font-size: 12px; color: var(--tinta-tenue); margin: 6px 0 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .chips:empty { display: none; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--accent-fons); color: var(--accent);
+    border: 0.5px solid var(--accent-tenue); border-radius: 999px;
+    padding: 4px 6px 4px 12px; font-size: 13px; font-weight: 500;
+  }
+  .chip-treu {
+    border: none; background: none; color: var(--accent-clar);
+    font-size: 16px; line-height: 1; padding: 0 3px; cursor: pointer; border-radius: 999px;
+  }
+  .chip-treu:hover { background: var(--accent-suau); color: var(--superficie); }
+  .viatges { display: flex; flex-direction: column; gap: 9px; }
+  .viatge {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    background: var(--superficie);
+    border: 0.5px solid var(--vora);
+    border-left: 3px solid var(--accent-suau);
+    border-radius: 11px;
+    overflow: hidden;
+  }
+  .viatge:hover { border-left-color: var(--accent); }
+  .viatge-cap {
+    flex: 1;
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 15px 16px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .viatge-cap:hover { background: var(--superficie-clara); }
+  .viatge-nom { font-size: 15px; font-weight: 500; color: var(--tinta); }
+  .viatge-cap:hover .viatge-nom { color: var(--accent); }
+  .viatge-dates { font-size: 12.5px; color: var(--tinta-suau); }
+  .viatge-edita { align-self: center; margin-right: 10px; flex: none; }
+
+  .detall-viatge {
+    margin-top: 16px;
+    padding: 9px 13px;
+    background: var(--accent-fons);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .detall-viatge strong { font-weight: 600; }
+  .menu-assigna {
+    position: relative;
+    margin-top: 8px;
+    background: var(--superficie);
+    border: 1px solid var(--vora-forta);
+    border-radius: 9px;
+    padding: 5px;
+    box-shadow: 0 4px 16px rgba(51, 39, 46, 0.1);
+    max-width: 320px;
+  }
+  .menu-assigna-opcio {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13.5px;
+    color: var(--tinta);
+    cursor: pointer;
+  }
+  .menu-assigna-opcio:hover { background: var(--subtil); }
+  .menu-assigna-opcio.actiu { background: var(--accent-fons); color: var(--accent); font-weight: 500; }
+  .menu-assigna-dates { font-size: 12px; color: var(--tinta-tenue); font-weight: 400; }
+  .menu-assigna-opcio.treure { color: var(--vermell); border-top: 1px solid var(--vora); border-radius: 0; margin-top: 3px; }
+  .menu-assigna-buit { margin: 0; padding: 8px 10px; font-size: 13px; color: var(--tinta-suau); }
+
+  /* ── Detall d'un viatge ── */
+  .tornar {
+    border: none; background: none; color: var(--accent);
+    font-size: 13px; padding: 4px 0; margin-bottom: 14px; cursor: pointer;
+  }
+  .tornar:hover { background: none; text-decoration: underline; }
+  .detall-cap {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; margin-bottom: 6px;
+  }
+  .detall-nom { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.02em; color: var(--accent); }
+  .detall-rang { font-size: 13.5px; color: var(--tinta-suau); margin: 3px 0 0; }
+  .detall-total { font-size: 13.5px; color: var(--tinta); margin: 12px 0 18px; }
+
+  /* Subpestanyes dins del viatge (Agenda / Pressupost) */
+  .subpestanyes { display: flex; gap: 4px; margin: 16px 0 16px; border-bottom: 1px solid var(--vora); }
+  .subpestanya {
+    border: none; background: none; border-radius: 0;
+    color: var(--tinta-suau); font-size: 14px; padding: 8px 2px; margin-right: 18px;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer;
+  }
+  .subpestanya:hover { background: none; color: var(--tinta); }
+  .subpestanya.activa { color: var(--accent); font-weight: 500; border-bottom-color: var(--accent); }
+
+  /* Desglossament del pressupost */
+  .pressupost-desglos { display: flex; flex-direction: column; }
+  .pressupost-linia {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 11px 2px; border-bottom: 1px solid var(--vora);
+  }
+  .pressupost-tipus { font-size: 14px; color: var(--tinta); }
+  .pressupost-import { font-size: 14px; color: var(--tinta); font-variant-numeric: tabular-nums; }
+  .pressupost-total {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 14px 2px 2px; margin-top: 4px;
+    font-size: 15px; font-weight: 600; color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .pressupost-previst { margin-top: 22px; }
+  .pressupost-previst.nomes-previst { margin-top: 16px; }
+  .previst-cap { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--tinta-suau); margin-bottom: 7px; font-variant-numeric: tabular-nums; }
+  .previst-barra { height: 8px; background: var(--subtil); border-radius: 999px; overflow: hidden; }
+  .previst-ompliment { height: 100%; background: var(--verd); border-radius: 999px; transition: width 0.3s ease; }
+  .previst-ompliment.passat { background: var(--vermell); }
+  .previst-peu { font-size: 13px; color: var(--verd); margin-top: 7px; }
+  .previst-peu.passat { color: var(--vermell); }
+  .pressupost-previst.nomes-previst .previst-peu { color: var(--tinta-suau); }
+
+  /* Repartiment: qui deu a qui, sota el pressupost */
+  .repartiment { margin-top: 26px; }
+  .repart-nota { font-size: 12.5px; color: var(--tinta-suau); margin: 0 0 12px; }
+  .repart-nota strong { font-weight: 600; color: var(--tinta); }
+  .repart-saldos { display: flex; flex-direction: column; margin-bottom: 16px; }
+  .repart-persona {
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    padding: 9px 2px; border-bottom: 1px solid var(--vora);
+  }
+  .repart-nom { font-size: 14px; font-weight: 500; color: var(--tinta); }
+  .repart-detall { font-size: 12.5px; color: var(--tinta-suau); font-variant-numeric: tabular-nums; }
+  .repart-saldo { margin-left: auto; font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .repart-saldo.positiu { color: var(--verd); }
+  .repart-saldo.negatiu { color: var(--vermell); }
+  .repart-saldo.neutre { color: var(--tinta-tenue); }
+  .repart-moviments { display: flex; flex-direction: column; gap: 8px; }
+  .repart-moviment {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--accent-fons); border: 0.5px solid var(--accent-tenue);
+    border-radius: 10px; padding: 10px 14px;
+  }
+  .repart-de, .repart-a { font-weight: 600; color: var(--accent); }
+  .repart-fletxa { color: var(--accent-clar); }
+  .repart-import { margin-left: auto; font-weight: 600; color: var(--accent-fort); font-variant-numeric: tabular-nums; }
+
+  /* Agenda del viatge: blocs d'itinerari, per encaixar i idees */
+  .agenda-bloc { margin-bottom: 22px; }
+  .agenda-titol { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tinta-tenue); margin: 0 0 4px; }
+  .agenda-nota { font-size: 12.5px; color: var(--tinta-suau); margin: 0 0 10px; }
+  .agenda-bloc .fila { margin-bottom: 9px; }
+
+  /* Visita: icona i to propis, per distingir-la d'una reserva */
+  .fila.visita { border-left-color: var(--mostassa-actiu); }
+  .fila.visita.oberta { border-left-color: var(--accio); }
+  .visita-icona { background: var(--accent-fons); color: var(--accent); }
+  .visita-edita { display: flex; flex-direction: column; gap: 12px; }
+  .visita-graella { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .visita-camp { display: flex; flex-direction: column; gap: 4px; }
+  .visita-camp.ample { grid-column: 1 / -1; }
+  .visita-camp span { font-size: 12px; font-weight: 500; color: var(--tinta-tenue); }
+  .visita-camp input, .visita-camp textarea {
+    border: 1px solid var(--vora); border-radius: 7px; padding: 7px 9px;
+    font-family: inherit; font-size: 13.5px; color: var(--tinta);
+    background: var(--superficie); resize: vertical;
+  }
+  .visita-camp input:focus, .visita-camp textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+
+  /* Idea suggerida dins del viatge */
+  .idea-suggerida {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--superficie); border: 0.5px solid var(--vora);
+    border-radius: 10px; padding: 11px 14px; margin-bottom: 8px;
+  }
+  .suggerida-cos { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .suggerida-text { font-size: 14px; color: var(--tinta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .suggerida-meta { font-size: 12px; color: var(--tinta-suau); }
+  .idea-suggerida .primari.mini { flex: none; }
+  .detall-total strong { font-weight: 600; }
+  .viatge-reserves { display: flex; flex-direction: column; gap: 8px; }
+  .viatge-reserva {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto auto 24px;
+    gap: 12px; align-items: center;
+    background: var(--superficie);
+    border: 0.5px solid var(--vora);
+    border-left: 3px solid var(--accent-suau);
+    border-radius: 10px;
+    padding: 11px 14px;
+  }
+  .viatge-reserva-nom { min-width: 0; }
+  .viatge-reserva-nom .nom { display: block; font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .viatge-reserva-nom .sotanom { display: block; font-size: 12px; color: var(--tinta-suau); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .viatge-reserva-dates { font-size: 12.5px; color: var(--tinta-suau); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .viatge-reserva-preu { font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .viatge-reserva-treu {
+    border: none; background: none; color: var(--tinta-tenue);
+    font-size: 18px; line-height: 1; padding: 2px 4px; cursor: pointer; border-radius: 5px;
+  }
+  .viatge-reserva-treu:hover { background: var(--vermell-fons); color: var(--vermell); }
+  .detall-buit { font-size: 13.5px; color: var(--tinta-suau); padding: 8px 0; }
+
   /* ── Vista de llista ── */
   .llista {
-    background: var(--superficie);
-    border: 1px solid var(--vora);
-    border-radius: var(--radi);
-    padding: 0 20px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
   }
   .graella-fila {
     display: grid;
-    grid-template-columns: 12px minmax(0, 1fr) 116px 128px 112px 16px;
+    grid-template-columns: 32px minmax(0, 1fr) 116px 128px 112px 16px;
     grid-template-areas: "punt nom dates cancel preu chev";
     gap: 14px;
     align-items: center;
@@ -238,21 +473,37 @@
     color: var(--tinta-tenue);
   }
   .grup span:last-child { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+  .fila {
+    background: var(--superficie);
+    border: 0.5px solid var(--vora);
+    border-left: 3px solid var(--accent-suau);
+    border-radius: 11px;
+    overflow: hidden;
+  }
+  .fila.oberta { border-left-color: var(--accent); }
   .fila-cap {
     width: 100%;
-    padding: 12px 0;
+    padding: 13px 16px;
     font: inherit;
     color: inherit;
     text-align: left;
     background: none;
     border: none;
-    border-bottom: 1px solid var(--vora);
     border-radius: 0;
     cursor: pointer;
   }
-  .fila-cap:hover { background: none; }
+  .fila-cap:hover { background: var(--superficie-clara); }
   .fila-cap:hover .nom { color: var(--accent); }
-  .fila.oberta .fila-cap { border-bottom-color: transparent; }
+  .fila.oberta .fila-cap {
+    background: var(--accent);
+    padding: 15px 16px;
+  }
+  .fila.oberta .fila-cap .nom { color: #F6EFE9; }
+  .fila.oberta .fila-cap .sotanom { color: var(--accent-tenue); }
+  .fila.oberta .fila-cap .icona-tipus { background: var(--accent-clar); color: #F6EFE9; }
+  .fila.oberta .fila-cap .xifra,
+  .fila.oberta .fila-cap .menuda { color: #F6EFE9; }
+  .fila.oberta .chev { color: var(--accent-tenue); }
   .cel-punt { grid-area: punt; }
   .cel-nom { grid-area: nom; min-width: 0; }
   .cel-dates { grid-area: dates; }
@@ -264,9 +515,19 @@
   /* La icona del tipus substitueix el punt d'estat. Si cal revisar, hi
      duu un petit senyal ambre a l'angle en comptes de canviar de color. */
   .cel-punt { position: relative; display: inline-flex; }
-  .icona-tipus { position: relative; display: inline-flex; color: var(--tinta-suau); }
-  .icona-tipus svg { width: 19px; height: 19px; }
-  .icona-tipus.revisar { color: var(--ambre); }
+  .icona-tipus {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--accent-fons);
+    color: var(--accent);
+  }
+  .icona-requadre { background: var(--accent-fons); }
+  .icona-tipus svg { width: 18px; height: 18px; }
+  .icona-tipus.revisar { color: var(--accent); }
   .icona-tipus.revisar::after {
     content: '';
     position: absolute;
@@ -311,7 +572,7 @@
      com a resposta. */
   .pregunta-botons { display: flex; gap: 6px; }
   .fila.te-pregunta .fila-cap { border-bottom-color: transparent; padding-bottom: 6px; }
-  .fila-detall { padding: 6px 0 20px 26px; border-bottom: 1px solid var(--vora); }
+  .fila-detall { padding: 16px; background: var(--superficie-clara); }
   .detall-graella { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px 24px; }
   .detall-camp span { display: block; font-size: 12px; font-weight: 500; color: var(--tinta-tenue); }
   .detall-camp p { margin: 2px 0 0; font-size: 13.5px; font-variant-numeric: tabular-nums; }
@@ -347,27 +608,24 @@
   .pestanyes {
     display: flex;
     gap: 4px;
-    max-width: 1120px;
-    margin: 0 auto;
     padding: 0 28px;
-    border-bottom: 1px solid var(--vora);
+    background: var(--accent);
   }
   .pestanyes button {
     border: none;
     border-radius: 0;
     background: none;
-    color: var(--tinta-tenue);
+    color: var(--accent-tenue);
     font-size: 14.5px;
-    padding: 12px 4px;
+    padding: 10px 4px;
     margin-right: 14px;
     border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
   }
-  .pestanyes button:hover { background: none; color: var(--tinta); }
+  .pestanyes button:hover { background: none; color: #F6EFE9; }
   .pestanyes button[aria-current="page"] {
-    color: var(--tinta);
+    color: #F6EFE9;
     font-weight: 500;
-    border-bottom-color: var(--tinta);
+    border-bottom-color: var(--mostassa-actiu);
   }
 
   /* ── Idees ── */
@@ -437,9 +695,9 @@
 
   /* ── Capçalera i estat de la sincronització ── */
   .cap-dreta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .estat-sinc { font-size: 12.5px; color: var(--tinta-tenue); }
-  .estat-sinc.treballant { color: var(--accent); }
-  .estat-sinc.avis { color: var(--ambre); }
+  .estat-sinc { font-size: 12.5px; color: var(--accent-tenue); }
+  .estat-sinc.treballant { color: #E8D8E4; }
+  .estat-sinc.avis { color: var(--mostassa-actiu); }
 
   /* ── Pantalla d'accés ── */
   .acces {
@@ -598,6 +856,7 @@
 <nav class="pestanyes" aria-label="Seccions">
   <button id="tab-reserves" aria-current="page">Reserves</button>
   <button id="tab-idees">Idees</button>
+  <button id="tab-viatges">Viatges</button>
 </nav>
 
 <main>
@@ -650,7 +909,7 @@
       <span class="cel-chev"></span>
     </div>
     <div id="cos-llista"></div>
-    <div class="llista-buida" id="llista-buida">Encara no hi ha cap reserva. Enganxa un email de confirmació a la caixa de dalt per començar.</div>
+    <div class="llista-buida" id="llista-buida">Encara no hi ha cap reserva. Prem «Afegeix una reserva» per enganxar un email de confirmació o entrar-la a mà.</div>
   </div>
 
   <div class="embolcall-taula ocult" id="embolcall-taula">
@@ -685,11 +944,61 @@
       Encara no hi ha cap idea. Apunta-hi el que et vagin recomanant, encara que no sàpigues quan hi aniràs.
     </div>
   </section>
+
+  <section id="vista-viatges" class="ocult">
+    <h2 class="sr-only">Els teus viatges</h2>
+
+    <div class="barra-accions">
+      <span class="compta" id="compta-viatges"></span>
+      <span class="separa"></span>
+      <button class="primari" id="btn-nou-viatge">Crea un viatge</button>
+    </div>
+
+    <div class="fitxa-viatge" id="fitxa-viatge">
+      <p class="fitxa-titol" id="fitxa-viatge-titol">Nou viatge</p>
+      <div class="camp ample">
+        <label for="camp-viatge-nom">Nom del viatge</label>
+        <input id="camp-viatge-nom" placeholder="Portugal, cap de setmana a Girona…">
+      </div>
+      <div class="graella-viatge">
+        <div class="camp">
+          <label for="camp-viatge-inici">Data d'inici</label>
+          <input id="camp-viatge-inici" placeholder="12/5/2026">
+        </div>
+        <div class="camp">
+          <label for="camp-viatge-fi">Data de fi</label>
+          <input id="camp-viatge-fi" placeholder="19/5/2026">
+        </div>
+        <div class="camp">
+          <label for="camp-viatge-pressupost">Pressupost previst (opcional)</label>
+          <input id="camp-viatge-pressupost" placeholder="800 €" inputmode="decimal">
+        </div>
+      </div>
+      <div class="camp ample">
+        <label for="camp-viatge-persones-input">Entre qui es reparteixen les despeses (opcional)</label>
+        <div class="chips" id="viatge-persones-chips"></div>
+        <input id="camp-viatge-persones-input" placeholder="Escriu un nom i prem Enter…" list="persones-conegudes" autocomplete="off" spellcheck="false">
+        <datalist id="persones-conegudes"></datalist>
+        <p class="camp-ajuda">Si ho deixes buit, es reparteix entre qui hagi pagat alguna cosa.</p>
+      </div>
+      <div class="fitxa-peu">
+        <button class="primari" id="btn-desa-viatge">Crea el viatge</button>
+        <button class="subtil" id="btn-cancela-viatge">Cancel·la</button>
+      </div>
+      <div class="avis" id="avis-viatge"></div>
+    </div>
+
+    <div class="viatges" id="llista-viatges"></div>
+    <div class="llista-buida" id="viatges-buida">
+      Encara no has creat cap viatge. Un viatge agrupa les reserves i les idees d'una escapada: crea'n un i comença a penjar-hi coses.
+    </div>
+
+    <div class="detall-viatge-vista ocult" id="detall-viatge-vista"></div>
+  </section>
 </main>
 
 <footer>
   <div class="interior">
-    Les dades es desen en aquest navegador. Si canvies d'ordinador o esborres les dades de navegació, es perdran: exporta còpies de tant en tant.
     <div class="accions">
       <button class="subtil" id="btn-backup">Desa una còpia de seguretat</button>
       <button class="subtil" id="btn-restaura">Recupera una còpia</button>
@@ -719,7 +1028,11 @@ function mesANum(nom) {
   return null;
 }
 
-const MES_RE = '(?:gener|febrer|març|abril|maig|juny|juliol|agost|setembre|octubre|novembre|desembre|enero|febrero|marzo|mayo|junio|julio|septiembre|octubre|noviembre|diciembre|january|february|march|april|may|june|july|august|september|october|november|december)';
+// Nota: quan un mes és prefix d'un altre («agost» ⊂ «agosto»), el més
+// llarg ha d'anar PRIMER a l'alternança; si no, el curt s'endú la
+// coincidència («agost» dins de «agosto») i es perd l'any que ve al darrere.
+// Per això «agosto» va abans que «agost».
+const MES_RE = '(?:gener|febrer|març|abril|maig|juny|juliol|agosto|agost|setembre|octubre|novembre|desembre|enero|febrero|marzo|mayo|junio|julio|septiembre|octubre|noviembre|diciembre|january|february|march|april|may|june|july|august|september|october|november|december)';
 
 // «3 de setembre de 2025», «19 d'agost de 2025», «2 de septiembre de 2024», «2 September 2024»
 const DATA_RE = new RegExp(`(\\d{1,2})(?:r|n|t|è|a)?\\s+(?:de\\s+|d['’]\\s?)?(${MES_RE})(?:\\s+(?:de(?:l)?\\s+)?(\\d{4}))?`, 'i');
@@ -730,12 +1043,12 @@ function trobaData(text) {
   let m = text.match(DATA_RE);
   if (m) {
     const mes = mesANum(m[2]);
-    if (mes) return { dia: +m[1], mes, any: m[3] ? +m[3] : null, index: m.index };
+    if (mes) return { dia: +m[1], mes, any: m[3] ? +m[3] : null, index: m.index, fi: m.index + m[0].length };
   }
   m = text.match(DATA_EN_RE);
   if (m) {
     const mes = mesANum(m[1]);
-    if (mes) return { dia: +m[2], mes, any: +m[3], index: m.index };
+    if (mes) return { dia: +m[2], mes, any: +m[3], index: m.index, fi: m.index + m[0].length };
   }
   return null;
 }
@@ -952,8 +1265,13 @@ function menysDies(iso, dies) {
 function importAmbMoneda(num, moneda) {
   let t = String(num).trim();
   const simbols = { EUR: '€', USD: '$', GBP: '£' };
-  const simbol = simbols[(moneda || '').toUpperCase()]
-    || (/[€$£]/.test(moneda || '') ? moneda.trim() : '€');
+  const codi = (moneda || '').toUpperCase().trim();
+  // Si en tenim el símbol, l'usem; si ja ve un símbol, es respecta; si és
+  // un codi de moneda que no coneixem (CHF, SEK…), es mostra el codi tal
+  // qual en comptes de posar-hi «€» per defecte i mentir sobre la moneda.
+  const simbol = simbols[codi]
+    || (/[€$£]/.test(moneda || '') ? moneda.trim()
+    : (/^[A-Z]{3}$/.test(codi) ? codi : '€'));
   if (/,\d{1,2}$/.test(t)) {                 // 1.234,56 → decimals amb coma
     t = t.replace(/\./g, '');
   } else if (/\.\d{1,2}$/.test(t)) {         // 99.90 o 1,234.56 → decimals amb punt
@@ -1115,7 +1433,9 @@ function parseGeneric(flat) {
   const d1 = trobaData(flat);
   if (d1) {
     r.checkinISO = dataISO(d1);
-    const resta = flat.slice(d1.index + 8);
+    // Saltem just després de la primera data (la seva llargada real, no un
+    // desplaçament fix) per buscar la segona sense reenganxar la mateixa.
+    const resta = flat.slice(d1.fi);
     const d2 = trobaData(resta);
     if (d2) r.checkoutISO = dataISO(d2);
   }
@@ -1158,6 +1478,45 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Panell «afegeix una reserva»: ja no s'obre sol en carregar l'app
+      (abans la primera càrrega amb el registre buit l'obria i es quedava
+      obert fins i tot amb reserves). Es plega sempre; l'estat buit assenyala
+      el botó (v40).
+   FET · Tanda de retocs (v40): (6) Nominatim ara cacheja el «no trobat» com
+      a llista buida i no el reconsulta, distingint-lo dels errors de xarxa
+      (que sí es reproven); (7) monedes sense símbol conegut (CHF…) es
+      mostren amb el codi, no forçant «€»; (8) el confirm d'esborrar diu el
+      nom real de qualsevol tipus (nomReserva), no «sense nom»; (9) el parser
+      genèric salta la primera data per la seva llargada real (trobaData.fi),
+      no per un +8 fix; (10) comparador d'ordenació de viatges estable (0 en
+      empat).
+   FET · «Entre qui» va cada viatge: editor de participants amb chips al
+      formulari del viatge (desat a v.participants, sense migració). El
+      repartiment divideix entre la unió de participants explícits i
+      pagadors, així un participant que no ha pagat res també deu la seva
+      part («ho pago tot jo però som dos»). Sense participants, recau en els
+      pagadors com fins ara. Inclòs a l'exportació d'Excel (v39).
+   FET · Tret del peu l'avís «les dades es desen en aquest navegador… es
+      perdran»: ja no és cert des que hi ha sincronització al núvol (v38).
+   FET · Repartiment «qui deu a qui» al pressupost del viatge: a partir del
+      «qui ho paga» de cada reserva, reparteix el cost a parts iguals entre
+      els pagadors i calcula les transferències mínimes per quedar en paus.
+      En cèntims perquè quadri; les reserves sense pagador queden fora i
+      s'avisa (v37).
+   FET · Dates en castellà del mes d'agost: «agosto» faltava a MES_RE i les
+      dates d'agost es perdien. Afegit abans que «agost» (el més llarg va
+      primer a l'alternança, o el curt s'endú la coincidència) (v36).
+   FET · El detall d'un viatge ara té la mateixa protecció de focus que la
+      llista i les idees: una sincronització en segon pla ja no esborra el
+      que s'està escrivint en un camp d'una visita (només protegeix
+      input/textarea, no els botons) (v36).
+   FET · «Qui ho paga» ara es desa també dins del detall d'un viatge; abans
+      els listeners de data-paga només penjaven de #cos-llista, i el que
+      s'hi escrivia dins d'un viatge es perdia (v35).
+   FET · Còpia de seguretat completa: la còpia JSON i l'exportació a Excel
+      cobreixen reserves, idees i viatges (abans, només reserves). La
+      restauració entén el format nou (objecte amb les tres col·leccions) i
+      l'antic (array de només reserves), sense sobreescriure res (v35).
    FET · Normalitzar zones amb geocodificació (Nominatim), versió 25.
       Es consulta 1 cop per zona en segon pla, es desa la jerarquia i el
       creuament compara jerarquies amb recaiguda a text. User-Agent =
@@ -1298,7 +1657,8 @@ const ICONES = {
   avio: '<path d="M21 15.5l-7-2V8a2 2 0 0 0-4 0v5.5l-7 2v2l7-1.5V19l-2 1.5V22l4-1 4 1v-1.5L15 19v-2l7 1.5v-2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
   cotxe: '<path d="M4 16v-3.5L5.7 8A2 2 0 0 1 7.6 6.7h8.8A2 2 0 0 1 18.3 8L20 12.5V16M4 12.5h16M4 16v1.5M20 16v1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="14.2" r="0.7" fill="currentColor"/><circle cx="16.5" cy="14.2" r="0.7" fill="currentColor"/>',
   tiquet: '<path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H6a2 2 0 0 1-2-2 2 2 0 0 0 0-4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 6.5v11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.5 2"/>',
-  paquet: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM4 7.5l8 4.5 8-4.5M12 12v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>'
+  paquet: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM4 7.5l8 4.5 8-4.5M12 12v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  estrella: '<path d="M12 4.5l2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7-3.4-3.3 4.7-.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>'
 };
 
 function iconaSVG(clau, classe) {
@@ -1307,7 +1667,7 @@ function iconaSVG(clau, classe) {
 
 const TIPUS = {
   allotjament: {
-    nom: 'Allotjament', icona: 'llit',
+    nom: 'Allotjament', plural: 'Allotjaments', icona: 'llit',
     camps: [
       { id: 'allotjament', nom: 'Allotjament' },
       { id: 'client',      nom: 'Nom del client' },
@@ -1321,7 +1681,7 @@ const TIPUS = {
     ]
   },
   vol: {
-    nom: 'Vol', icona: 'avio',
+    nom: 'Vol', plural: 'Vols', icona: 'avio',
     camps: [
       { id: 'companyia',   nom: 'Companyia' },
       { id: 'numVol',      nom: 'Número de vol' },
@@ -1335,7 +1695,7 @@ const TIPUS = {
     ]
   },
   cotxe: {
-    nom: 'Cotxe', icona: 'cotxe',
+    nom: 'Cotxe', plural: 'Cotxes', icona: 'cotxe',
     camps: [
       { id: 'companyia',    nom: 'Companyia' },
       { id: 'llocRecollida',nom: 'Lloc de recollida', ample: true },
@@ -1347,7 +1707,7 @@ const TIPUS = {
     ]
   },
   entrada: {
-    nom: 'Entrada', icona: 'tiquet',
+    nom: 'Entrada', plural: 'Entrades', icona: 'tiquet',
     camps: [
       { id: 'allotjament', nom: 'Nom' },
       { id: 'recinte',     nom: 'Recinte' },
@@ -1357,7 +1717,7 @@ const TIPUS = {
     ]
   },
   altres: {
-    nom: 'Altres', icona: 'paquet',
+    nom: 'Altres', plural: 'Altres', icona: 'paquet',
     camps: [
       { id: 'allotjament', nom: 'Títol' },
       { id: 'llocRecollida', nom: 'Lloc', ample: true },
@@ -1417,6 +1777,7 @@ const SUPABASE_URL  = 'https://njfwnrjlkybemuygxkah.supabase.co';
 const SUPABASE_CLAU = 'sb_publishable_MXTkH7Mkb24Ad2iE3ZThgg_I6twsL41';
 const CLAU_SINC = 'registre-reserves-sincronitzat';
 const CLAU_IDEES = 'registre-idees-v1';
+const CLAU_VIATGES = 'registre-viatges-v1';
 
 /* Les idees d'exemple cobreixen els casos que han de quedar bé: una de
    curta amb zona, una de llarga amb enllaç, i una sense zona. */
@@ -1436,6 +1797,14 @@ function ideesDemo() {
       text: 'Fer un curs de ceràmica de cap de setmana, en algun lloc.',
       zona: '', etiquetes: ['algun dia'], enllac: '',
       creatA: diesDesDavui(-62) + 'T10:00:00.000Z', modificatA: diesDesDavui(-62) + 'T10:00:00.000Z' }
+  ];
+}
+
+function viatgesDemo() {
+  return [
+    { id: 'viatge-1', nom: 'Lisboa i el Douro',
+      dataInici: diesDesDavui(21), dataFi: diesDesDavui(25),
+      creatA: diesDesDavui(-10) + 'T10:00:00.000Z', modificatA: diesDesDavui(-10) + 'T10:00:00.000Z' }
   ];
 }
 
@@ -1558,7 +1927,13 @@ const MagatzemIdees = creaMagatzem({
   demo: ideesDemo
 });
 
-const MAGATZEMS = [Magatzem, MagatzemIdees];
+const MagatzemViatges = creaMagatzem({
+  taula: 'viatges',
+  clauLocal: CLAU_VIATGES,
+  demo: viatgesDemo
+});
+
+const MAGATZEMS = [Magatzem, MagatzemIdees, MagatzemViatges];
 
 function totPendent() {
   return MAGATZEMS.reduce((n, m) => n + m.llegeixCru().filter(calPujar).length, 0);
@@ -1737,8 +2112,7 @@ async function refresca() {
   pintaLlista();
   pintaTaula();
   await refrescaIdees();
-  // Sense res al registre, l'única cosa a fer és enganxar: obrim la caixa.
-  if (!reserves.length) obrePanell(true);
+  await refrescaViatges();
 }
 
 function dataBonica(iso) {
@@ -1960,6 +2334,13 @@ function importNum(preu) {
 
 function formataImport(n) {
   return n.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+
+/* El preu d'una reserva en cèntims (enter). El repartiment treballa en
+   cèntims perquè els saldos quadrin exactes i no arrosseguin decimals. */
+function centsDe(preu) {
+  const n = importNum(preu);
+  return n ? Math.round(n * 100) : 0;
 }
 
 function rangDates(r) {
@@ -2241,37 +2622,23 @@ function detallReserva(r) {
   return propis;
 }
 
-function pintaLlista() {
-  const cos = $('cos-llista');
-  // Si s'està escrivint dins de la llista, repintar esborraria el que
-  // s'està teclejant. La sincronització en segon pla pot arribar en
-  // qualsevol moment, així que cal aquesta protecció.
-  const focus = document.activeElement;
-  if (focus && focus.closest && focus.closest('#cos-llista')) return;
-  cos.innerHTML = '';
-  $('llista-buida').style.display = reserves.length ? 'none' : 'block';
-  $('llista').querySelector('.llista-capcalera').style.display = reserves.length ? '' : 'none';
-  if (!reserves.length) return;
+/* El HTML d'una fila de reserva (capçalera plegable + detall). És el
+   mateix component tant a la llista principal com dins d'un viatge, així
+   no hi ha dues maneres de veure una reserva. Només depèn de la reserva
+   i de si està oberta (filesObertes). */
+function filaReservaHTML(r) {
+  const dates = rangDates(r);
+  const canc = infoCancel(r);
+  const pag = infoPagament(r);
+  const revisar = calRevisar(r);
+  const nom = nomReserva(r);
+  const sota = subtitolReserva(r) || (revisar ? 'falten dades per completar' : '');
+  const preuTxt = r.preu ? esc(r.preu) : '—';
+  const icona = TIPUS[tipusDe(r)].icona;
+  const pregunta = preguntaCobrament(r);
+  const obert = filesObertes.has(r.id);
 
-  let html = '';
-  for (const [clau, grup] of agrupaPerMes(reserves)) {
-    html += `<div class="grup"><span>${esc(titolGrup(clau))}</span>`
-          + `<span>${grup.length === 1 ? '1 reserva' : grup.length + ' reserves'}</span></div>`;
-
-    for (const r of grup) {
-      const dates = rangDates(r);
-      const canc = infoCancel(r);
-      const pag = infoPagament(r);
-      const revisar = calRevisar(r);
-      const nom = nomReserva(r);
-      const sota = subtitolReserva(r) || (revisar ? 'falten dades per completar' : '');
-      const preuTxt = r.preu ? esc(r.preu) : '—';
-      const icona = TIPUS[tipusDe(r)].icona;
-
-      const pregunta = preguntaCobrament(r);
-      const obert = filesObertes.has(r.id);
-
-      html += `<div class="fila${pregunta ? ' te-pregunta' : ''}${obert ? ' oberta' : ''}" data-id="${esc(r.id)}">
+  return `<div class="fila${pregunta ? ' te-pregunta' : ''}${obert ? ' oberta' : ''}" data-id="${esc(r.id)}">
         <button class="fila-cap graella-fila" aria-expanded="${obert ? 'true' : 'false'}" aria-controls="detall-${esc(r.id)}">
           <span class="cel-punt">
             <span class="icona-tipus${revisar ? ' revisar' : ''}"
@@ -2309,13 +2676,35 @@ function pintaLlista() {
             ${campDetall('Núm. de reserva', r.numReserva)}
             ${campDetall('Notes', r.notes, true)}
           </div>
+          ${viatgeDeReserva(r) ? `<div class="detall-viatge">
+            Dins del viatge <strong>${esc(viatgeDeReserva(r).nom || 'sense nom')}</strong>
+          </div>` : ''}
           <div class="detall-accions">
-            <button class="subtil" data-edita="${esc(r.id)}">Edita</button>
+            <button class="primari" data-edita="${esc(r.id)}">Edita</button>
+            <button class="subtil" data-assigna="${esc(r.id)}">${viatgeDeReserva(r) ? 'Canvia de viatge' : 'Assigna a un viatge'}</button>
             <button class="perill" data-esborra="${esc(r.id)}">Esborra</button>
           </div>
         </div>
       </div>`;
-    }
+}
+
+function pintaLlista() {
+  const cos = $('cos-llista');
+  // Si s'està escrivint dins de la llista, repintar esborraria el que
+  // s'està teclejant. La sincronització en segon pla pot arribar en
+  // qualsevol moment, així que cal aquesta protecció.
+  const focus = document.activeElement;
+  if (focus && focus.closest && focus.closest('#cos-llista')) return;
+  cos.innerHTML = '';
+  $('llista-buida').style.display = reserves.length ? 'none' : 'block';
+  $('llista').querySelector('.llista-capcalera').style.display = reserves.length ? '' : 'none';
+  if (!reserves.length) return;
+
+  let html = '';
+  for (const [clau, grup] of agrupaPerMes(reserves)) {
+    html += `<div class="grup"><span>${esc(titolGrup(clau))}</span>`
+          + `<span>${grup.length === 1 ? '1 reserva' : grup.length + ' reserves'}</span></div>`;
+    for (const r of grup) html += filaReservaHTML(r);
   }
 
   cos.innerHTML = html + `<datalist id="noms-pagadors">${llistaPagadors()}</datalist>`;
@@ -2324,7 +2713,9 @@ function pintaLlista() {
 }
 
 /* Desplegar i plegar una fila */
-$('cos-llista').addEventListener('click', e => {
+/* Desplegar/plegar una fila. Funciona a la llista principal i també dins
+   del detall d'un viatge, perquè és el mateix component. */
+function gestionaToggleFila(e) {
   const cap = e.target.closest('.fila-cap');
   if (!cap) return;
   const fila = cap.closest('.fila');
@@ -2333,7 +2724,9 @@ $('cos-llista').addEventListener('click', e => {
   detall.classList.toggle('ocult', !obert);
   cap.setAttribute('aria-expanded', obert ? 'true' : 'false');
   if (obert) filesObertes.add(fila.dataset.id); else filesObertes.delete(fila.dataset.id);
-});
+}
+$('cos-llista').addEventListener('click', gestionaToggleFila);
+$('detall-viatge-vista').addEventListener('click', gestionaToggleFila);
 
 /* ── Commutador de vista ── */
 const CLAU_VISTA = 'registre-reserves-vista';
@@ -2411,11 +2804,18 @@ async function gestionaAccions(e) {
     if (!r) return;
     editantId = r.id;
     plataformaActual = r.plataforma || 'Desconeguda';
+    // Si s'edita des del detall d'un viatge, la fitxa viu a Reserves:
+    // portem l'usuària allà perquè la vegi.
+    if (viatgeObert) mostraSeccio('reserves');
     mostraFitxa(r, r.plataforma || 'Desconeguda', 'Edita la reserva');
+  }
+  if (btn.dataset.assigna) {
+    obreAssignacio(btn.dataset.assigna, btn);
+    return;
   }
   if (btn.dataset.esborra) {
     const r = reserves.find(x => x.id === btn.dataset.esborra);
-    if (r && confirm(`Segur que vols esborrar la reserva de «${r.allotjament || 'sense nom'}»?`)) {
+    if (r && confirm(`Segur que vols esborrar la reserva de «${nomReserva(r)}»?`)) {
       await Magatzem.esborra(btn.dataset.esborra);
       await refresca();
     }
@@ -2423,10 +2823,14 @@ async function gestionaAccions(e) {
 }
 $('cos-taula').addEventListener('click', gestionaAccions);
 $('cos-llista').addEventListener('click', gestionaAccions);
+$('detall-viatge-vista').addEventListener('click', gestionaAccions);
 
 /* El camp de «qui ho paga» es desa en sortir-ne, no cal cap botó.
-   S'usa «focusout» perquè «blur» no puja fins al contenidor. */
-$('cos-llista').addEventListener('focusout', async e => {
+   S'usa «focusout» perquè «blur» no puja fins al contenidor. La fila de
+   reserva és el mateix component a la llista principal i dins del detall
+   d'un viatge, així que tots dos contenidors necessiten aquests listeners
+   (altrament, editar «qui ho paga» dins d'un viatge no desava res). */
+async function desaQuiPaga(e) {
   const camp = e.target.closest('[data-paga]');
   if (!camp) return;
   const r = reserves.find(x => x.id === camp.dataset.paga);
@@ -2434,12 +2838,17 @@ $('cos-llista').addEventListener('focusout', async e => {
   if (!r || (r.quiPaga || '') === nou) return;
   await Magatzem.actualitza(r.id, { quiPaga: nou });
   await refresca();
-});
+}
 
 // Enter confirma i surt del camp
-$('cos-llista').addEventListener('keydown', e => {
+function quiPagaEnter(e) {
   if (e.key === 'Enter' && e.target.closest('[data-paga]')) { e.preventDefault(); e.target.blur(); }
-});
+}
+
+for (const contId of ['cos-llista', 'detall-viatge-vista']) {
+  $(contId).addEventListener('focusout', desaQuiPaga);
+  $(contId).addEventListener('keydown', quiPagaEnter);
+}
 
 /* ── Exportació a Excel ── */
 const COLUMNES_EXCEL = [
@@ -2471,37 +2880,120 @@ const COLUMNES_EXCEL = [
   ['Notes', r => r.notes]
 ];
 
-$('btn-excel').addEventListener('click', () => {
-  if (!reserves.length) { avisa($('avis-peu'), 'El registre \u00e9s buit: no hi ha res a exportar.', 'mal'); return; }
+/* Les idees (incloses les visites de viatges) i els viatges també
+   s'exporten, cadascun al seu full. Per a una visita, la columna «Viatge»
+   resol el nom a partir del viatgeId. */
+const COLUMNES_IDEES = [
+  ['Text', i => (i.text || '').replace(/\n+/g, ' \u23ce ')],
+  ['Zona', i => i.zona],
+  ['Etiquetes', i => (i.etiquetes || []).join(', ')],
+  ['Enlla\u00e7', i => i.enllac],
+  ['Viatge', i => i.viatgeId ? ((viatges.find(v => v.id === i.viatgeId) || {}).nom || '(viatge esborrat)') : ''],
+  ['Dia visita', i => i.dataVisita ? dataBonica(i.dataVisita) : ''],
+  ['Hora visita', i => i.horaVisita]
+];
+const COLUMNES_VIATGES = [
+  ['Nom', v => v.nom],
+  ['Inici', v => dataBonica(v.dataInici)],
+  ['Fi', v => dataBonica(v.dataFi)],
+  ['Pressupost previst', v => v.pressupost],
+  ['Entre qui', v => (v.participants || []).join(', ')]
+];
+
+/* Afegeix un full al llibre amb les amplades de columna calculades. */
+function afegeixFullExcel(llibre, nom, capceleres, files) {
+  const full = XLSX.utils.aoa_to_sheet([capceleres, ...files]);
+  full['!cols'] = capceleres.map((c, i) => ({ wch: Math.max(c.length, ...files.map(f => String(f[i]).length), 8) + 2 }));
+  XLSX.utils.book_append_sheet(llibre, full, nom);
+}
+
+$('btn-excel').addEventListener('click', async () => {
+  if (!reserves.length && !idees.length && !visites.length && !viatges.length) {
+    avisa($('avis-peu'), 'El registre \u00e9s buit: no hi ha res a exportar.', 'mal'); return;
+  }
   const ordenades = [...reserves].sort(comparaCronologic);
-  const files = ordenades.map(r => COLUMNES_EXCEL.map(([, f]) => f(r) || ''));
-  const capceleres = COLUMNES_EXCEL.map(([nom]) => nom);
+  const filesR = ordenades.map(r => COLUMNES_EXCEL.map(([, f]) => f(r) || ''));
+  const capR = COLUMNES_EXCEL.map(([nom]) => nom);
   const dataAvui = new Date().toISOString().slice(0, 10);
 
   if (typeof XLSX !== 'undefined') {
-    const full = XLSX.utils.aoa_to_sheet([capceleres, ...files]);
-    full['!cols'] = capceleres.map((c, i) => ({ wch: Math.max(c.length, ...files.map(f => String(f[i]).length), 8) + 2 }));
     const llibre = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(llibre, full, 'Reserves');
-    XLSX.writeFile(llibre, `reserves-${dataAvui}.xlsx`);
+    if (filesR.length) afegeixFullExcel(llibre, 'Reserves', capR, filesR);
+
+    // Idees (inclou les visites de viatges) i viatges, cadascun al seu full
+    const totesIdees = await MagatzemIdees.llista();
+    if (totesIdees.length) {
+      afegeixFullExcel(llibre, 'Idees',
+        COLUMNES_IDEES.map(([n]) => n),
+        totesIdees.map(i => COLUMNES_IDEES.map(([, f]) => f(i) || '')));
+    }
+    const totsViatges = await MagatzemViatges.llista();
+    if (totsViatges.length) {
+      afegeixFullExcel(llibre, 'Viatges',
+        COLUMNES_VIATGES.map(([n]) => n),
+        totsViatges.map(v => COLUMNES_VIATGES.map(([, f]) => f(v) || '')));
+    }
+    XLSX.writeFile(llibre, `registre-${dataAvui}.xlsx`);
   } else {
-    // Sense connexió al CDN: exportem CSV compatible amb Excel (BOM + punt i coma)
-    const csv = '\uFEFF' + [capceleres, ...files]
+    // Sense connexió al CDN: exportem CSV compatible amb Excel (BOM + punt i
+    // coma). El CSV només admet un full, així que hi van les reserves; per a
+    // la còpia completa (idees i viatges inclosos) hi ha el botó de còpia JSON.
+    const csv = '\uFEFF' + [capR, ...filesR]
       .map(f => f.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\r\n');
     baixa(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `reserves-${dataAvui}.csv`);
-    avisa($('avis-peu'), 'No s\u2019ha pogut carregar el m\u00f2dul d\u2019Excel (cal internet); he exportat un CSV equivalent que Excel obre igualment.', 'mal');
+    avisa($('avis-peu'), 'No s\u2019ha pogut carregar el m\u00f2dul d\u2019Excel (cal internet); he exportat un CSV de les reserves. Per a la c\u00f2pia completa (idees i viatges), fes servir la c\u00f2pia JSON.', 'mal');
   }
 });
 
-/* ── Còpia de seguretat JSON ── */
-$('btn-backup').addEventListener('click', () => {
-  if (!reserves.length) { avisa($('avis-peu'), 'El registre \u00e9s buit: no hi ha res a copiar.', 'mal'); return; }
-  baixa(new Blob([JSON.stringify(reserves, null, 2)], { type: 'application/json' }),
-        `reserves-copia-${new Date().toISOString().slice(0, 10)}.json`);
-  avisa($('avis-peu'), 'C\u00f2pia desada. Guarda-la en lloc segur (Drive, USB\u2026).', 'ok');
+/* ── Còpia de seguretat JSON ──
+   La còpia inclou les TRES col·leccions (reserves, idees i viatges), no
+   només les reserves: és la xarxa de seguretat de tot el registre. El
+   format és un objecte amb versió; la restauració també entén el format
+   antic (un array de només reserves) per no deixar orfes les còpies velles.
+   MagatzemIdees.llista() ja retorna idees i visites juntes. */
+async function copiaCompleta() {
+  return {
+    tipus: 'registre-de-reserves-backup',
+    versio: 1,
+    exportatA: new Date().toISOString(),
+    reserves: await Magatzem.llista(),
+    idees: await MagatzemIdees.llista(),
+    viatges: await MagatzemViatges.llista()
+  };
+}
+
+$('btn-backup').addEventListener('click', async () => {
+  const dades = await copiaCompleta();
+  if (!dades.reserves.length && !dades.idees.length && !dades.viatges.length) {
+    avisa($('avis-peu'), 'El registre \u00e9s buit: no hi ha res a copiar.', 'mal'); return;
+  }
+  baixa(new Blob([JSON.stringify(dades, null, 2)], { type: 'application/json' }),
+        `registre-copia-${new Date().toISOString().slice(0, 10)}.json`);
+  avisa($('avis-peu'), 'C\u00f2pia desada (reserves, idees i viatges). Guarda-la en lloc segur (Drive, USB\u2026).', 'ok');
 });
 
 $('btn-restaura').addEventListener('click', () => $('fitxer-importa').click());
+
+/* Afegeix a un magatzem els elements que encara no hi són (per id; i, en
+   les reserves, també pel número de reserva, per si la còpia ve d'abans que
+   hi hagués ids). No sobreescriu res que ja existeixi. Torna quants n'afegeix. */
+async function restauraCol(magatzem, llista, existents) {
+  if (!Array.isArray(llista)) return 0;
+  const ids = new Set(existents.map(r => r.id).filter(Boolean));
+  const nums = new Set(existents.map(r => r.numReserva).filter(Boolean));
+  let afegits = 0;
+  for (const r of llista) {
+    if (!r || typeof r !== 'object') continue;
+    if (r.id && ids.has(r.id)) continue;
+    if (r.numReserva && nums.has(r.numReserva)) continue;
+    await magatzem.afegeix(r);
+    if (r.id) ids.add(r.id);
+    if (r.numReserva) nums.add(r.numReserva);
+    afegits++;
+  }
+  return afegits;
+}
+
 $('fitxer-importa').addEventListener('change', e => {
   const fitxer = e.target.files[0];
   if (!fitxer) return;
@@ -2509,18 +3001,32 @@ $('fitxer-importa').addEventListener('change', e => {
   lector.onload = async () => {
     try {
       const dades = JSON.parse(lector.result);
-      if (!Array.isArray(dades)) throw new Error();
-      const existents = new Set(reserves.map(r => r.numReserva).filter(Boolean));
-      const ids = new Set(reserves.map(r => r.id));
-      let afegides = 0;
-      for (const r of dades) {
-        if (r.numReserva && existents.has(r.numReserva)) continue;
-        if (r.id && ids.has(r.id)) continue;
-        await Magatzem.afegeix(r);
-        afegides++;
-      }
+
+      // Format nou: un objecte amb les tres col·leccions. Format antic: un
+      // array de només reserves. S'accepten tots dos. (Un array buit és
+      // truthy, així que una còpia nova sense res es reconeix igualment.)
+      const esNou = dades && !Array.isArray(dades) && (dades.reserves || dades.idees || dades.viatges);
+      const esAntic = Array.isArray(dades);
+      if (!esNou && !esAntic) throw new Error('format');
+
+      // Comparem contra el que ja hi ha desat (viu, sense esborrats)
+      const reservesCru = Magatzem.llegeixCru().filter(r => r && !r.esborrat);
+      const ideesCru = MagatzemIdees.llegeixCru().filter(r => r && !r.esborrat);
+      const viatgesCru = MagatzemViatges.llegeixCru().filter(r => r && !r.esborrat);
+
+      const nR = await restauraCol(Magatzem, esAntic ? dades : (dades.reserves || []), reservesCru);
+      const nI = esNou ? await restauraCol(MagatzemIdees, dades.idees || [], ideesCru) : 0;
+      const nV = esNou ? await restauraCol(MagatzemViatges, dades.viatges || [], viatgesCru) : 0;
+
       await refresca();
-      avisa($('avis-peu'), `C\u00f2pia recuperada: ${afegides} reserves afegides` + (dades.length - afegides ? ` (${dades.length - afegides} ja hi eren i s\u2019han omès)` : '') + '.', 'ok');
+
+      const parts = [];
+      if (nR) parts.push(nR + (nR === 1 ? ' reserva' : ' reserves'));
+      if (nI) parts.push(nI + (nI === 1 ? ' idea' : ' idees'));
+      if (nV) parts.push(nV + (nV === 1 ? ' viatge' : ' viatges'));
+      avisa($('avis-peu'), parts.length
+        ? 'C\u00f2pia recuperada. S\u2019ha afegit: ' + parts.join(', ') + '.'
+        : 'C\u00f2pia recuperada: no hi havia res nou, ja ho tenies tot.', 'ok');
     } catch (err) {
       avisa($('avis-peu'), 'Aquest fitxer no sembla una c\u00f2pia de seguretat del registre.', 'mal');
     }
@@ -2565,6 +3071,7 @@ function netejaPinsAntics() {
    allà mateix, com a qualsevol bloc de notes. */
 
 let idees = [];
+let visites = [];   // idees convertides en visita d'un viatge (tenen viatgeId)
 // Id de la idea acabada de crear i encara sense escriure: no s'ha
 // d'esborrar per sincronització mentre l'estàs omplint.
 let esborranyIdea = null;
@@ -2673,12 +3180,17 @@ async function jerarquiaDe(zona) {
   if (MODE_DEMO) return null;
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return null;
 
-  const jer = await encuaGeo(async () => {
+  // La feina torna { jer: [...] } si troba la zona, { buit: true } si la
+  // consulta va bé però no dona cap resultat, i llança si no s'ha pogut
+  // consultar (xarxa o HTTP). Així distingim «no existeix» de «no s'ha
+  // pogut mirar»: el primer es cacheja perquè no es repeteixi; el segon no,
+  // per poder reprovar-lo més tard.
+  const res = await encuaGeo(async () => {
     const url = NOMINATIM_URL + '?format=jsonv2&addressdetails=1&limit=1&accept-language=ca&q=' + encodeURIComponent(zona);
     const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
-    if (!resp.ok) return null;
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const dades = await resp.json();
-    if (!Array.isArray(dades) || !dades.length) return null;
+    if (!Array.isArray(dades) || !dades.length) return { buit: true };
     const adr = dades[0].address || {};
     // Ens quedem els nivells territorials, del més petit al més gran
     const nivells = ['city', 'town', 'village', 'municipality', 'county',
@@ -2687,11 +3199,14 @@ async function jerarquiaDe(zona) {
     const llocs = [];
     if (dades[0].name) llocs.push(dades[0].name.toLowerCase());
     for (const n of nivells) if (adr[n]) llocs.push(String(adr[n]).toLowerCase());
-    return [...new Set(llocs)];
+    return { jer: [...new Set(llocs)] };
   });
 
-  if (jer && jer.length) { cauJerarquies[clau] = jer; desaCauJerarquies(); }
-  return jer;
+  if (res && res.jer && res.jer.length) { cauJerarquies[clau] = res.jer; desaCauJerarquies(); return res.jer; }
+  // «No trobat» es cacheja com a llista buida: no es torna a consultar mai,
+  // ni entre sessions, i el creuament recau en la comparació de text.
+  if (res && res.buit) { cauJerarquies[clau] = []; desaCauJerarquies(); return []; }
+  return null;   // error transitori (xarxa/HTTP): no es cacheja, es reprovarà
 }
 
 /* Diu si dues zones coincideixen. Primer prova per text (ràpid i sempre
@@ -2849,7 +3364,12 @@ function nomEnllac(url) {
 }
 
 async function refrescaIdees() {
-  idees = await MagatzemIdees.llista();
+  const totes = await MagatzemIdees.llista();
+  // Una idea amb viatgeId és una VISITA d'un viatge: surt de la wishlist
+  // i del creuament, i es mostra dins del viatge. La resta són idees
+  // lliures, que és el que es veu a la pestanya d'Idees.
+  visites = totes.filter(i => i.viatgeId);
+  idees = totes.filter(i => !i.viatgeId);
   idees.sort((a, b) => tempsDe(b.creatA) - tempsDe(a.creatA));
   pintaIdees();
 }
@@ -2941,16 +3461,672 @@ $('btn-nova-idea').addEventListener('click', async () => {
 const CLAU_PESTANYA = 'registre-reserves-pestanya';
 
 function mostraSeccio(quina) {
-  const idees = quina === 'idees';
-  $('vista-reserves').classList.toggle('ocult', idees);
-  $('vista-idees').classList.toggle('ocult', !idees);
-  $('tab-reserves').setAttribute('aria-current', idees ? 'false' : 'page');
-  $('tab-idees').setAttribute('aria-current', idees ? 'page' : 'false');
-  $('comptador').classList.toggle('ocult', idees);
+  const seccions = ['reserves', 'idees', 'viatges'];
+  if (!seccions.includes(quina)) quina = 'reserves';
+  for (const s of seccions) {
+    $('vista-' + s).classList.toggle('ocult', s !== quina);
+    $('tab-' + s).setAttribute('aria-current', s === quina ? 'page' : 'false');
+  }
+  // El comptador de la capçalera només parla de reserves
+  $('comptador').classList.toggle('ocult', quina !== 'reserves');
+  if (quina === 'viatges') refrescaViatges();
   try { localStorage.setItem(CLAU_PESTANYA, quina); } catch (e) {}
 }
 $('tab-reserves').addEventListener('click', () => mostraSeccio('reserves'));
 $('tab-idees').addEventListener('click', () => mostraSeccio('idees'));
+$('tab-viatges').addEventListener('click', () => mostraSeccio('viatges'));
+
+/* ═══════════════ VIATGES ═══════════════
+   Un viatge és un contenidor amb nom i dates que, més endavant, agruparà
+   reserves i visites. De moment (capa 1) és el contenidor: crear-lo,
+   editar-lo, llistar-lo. Igual que reserves i idees, viu en un magatzem
+   propi amb la seva taula a Supabase. */
+
+let viatges = [];
+let editantViatge = null;   // id del viatge que s'està editant, o null si és nou
+let viatgeObert = null;     // id del viatge que s'està veient al detall
+
+/* El viatge al qual pertany una reserva, o null si no en té cap. */
+function viatgeDeReserva(r) {
+  if (!r || !r.viatgeId) return null;
+  return viatges.find(v => v.id === r.viatgeId) || null;
+}
+
+/* Menú per assignar una reserva a un viatge (o treure-la). S'obre just
+   sota el botó que s'ha premut, com un petit desplegable. */
+function obreAssignacio(reservaId, boto) {
+  tancaAssignacio();
+  const r = reserves.find(x => x.id === reservaId);
+  if (!r) return;
+
+  const menu = document.createElement('div');
+  menu.className = 'menu-assigna';
+  menu.id = 'menu-assigna';
+
+  if (!viatges.length) {
+    menu.innerHTML = `<p class="menu-assigna-buit">Encara no tens cap viatge. Crea'n un a la pestanya Viatges.</p>`;
+  } else {
+    const opcions = viatges.map(v => {
+      const actiu = r.viatgeId === v.id;
+      return `<button class="menu-assigna-opcio${actiu ? ' actiu' : ''}" data-posa="${esc(v.id)}" data-reserva="${esc(r.id)}">
+        ${esc(v.nom || 'Viatge sense nom')}<span class="menu-assigna-dates">${esc(rangViatge(v))}</span>
+      </button>`;
+    }).join('');
+    const treure = r.viatgeId
+      ? `<button class="menu-assigna-opcio treure" data-posa="" data-reserva="${esc(r.id)}">Treure del viatge</button>` : '';
+    menu.innerHTML = opcions + treure;
+  }
+
+  boto.parentNode.insertBefore(menu, boto.nextSibling);
+  // Tancar si es clica fora
+  setTimeout(() => document.addEventListener('click', tancaAssignacioSiFora), 0);
+}
+
+function tancaAssignacio() {
+  const m = $('menu-assigna');
+  if (m) m.remove();
+  document.removeEventListener('click', tancaAssignacioSiFora);
+}
+
+function tancaAssignacioSiFora(e) {
+  if (!e.target.closest('#menu-assigna') && !e.target.closest('[data-assigna]')) tancaAssignacio();
+}
+
+/* Clic sobre una opció del menú d'assignació */
+document.addEventListener('click', async e => {
+  const opcio = e.target.closest('[data-posa]');
+  if (!opcio) return;
+  const reservaId = opcio.dataset.reserva;
+  const viatgeId = opcio.dataset.posa || '';   // buit = treure
+  tancaAssignacio();
+  await Magatzem.actualitza(reservaId, { viatgeId });
+  await refresca();
+});
+
+async function refrescaViatges() {
+  viatges = await MagatzemViatges.llista();
+  // Els més imminents primer; els que no tenen data, al final
+  viatges.sort((a, b) => {
+    const da = a.dataInici || '9999', db = b.dataInici || '9999';
+    return da < db ? -1 : da > db ? 1 : 0;
+  });
+  if (viatgeObert && viatges.some(v => v.id === viatgeObert)) {
+    pintaDetallViatge();
+  } else {
+    if (viatgeObert) viatgeObert = null;
+    pintaViatges();
+  }
+}
+
+/* El rang de dates d'un viatge, escrit de manera natural:
+   «12 → 19 de maig», o «del 28 d'abril al 3 de maig» si canvia el mes. */
+function rangViatge(v) {
+  const d1 = aData(v.dataInici), d2 = aData(v.dataFi);
+  if (!d1 && !d2) return 'sense dates';
+  if (d1 && !d2) return 'des del ' + dataLlarga(d1);
+  if (!d1 && d2) return 'fins al ' + dataLlarga(d2);
+  const mateixMes = d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear();
+  if (mateixMes) return d1.getDate() + ' → ' + dataLlarga(d2);
+  return 'del ' + dataLlarga(d1) + ' al ' + dataLlarga(d2);
+}
+
+function pintaViatges() {
+  const cont = $('llista-viatges');
+  const buida = $('viatges-buida');
+  $('compta-viatges').textContent = viatges.length
+    ? viatges.length + (viatges.length === 1 ? ' viatge' : ' viatges') : '';
+  buida.classList.toggle('ocult', viatges.length > 0);
+  cont.innerHTML = viatges.map(v => {
+    const info = resumViatge(v);
+    return `
+    <div class="viatge" data-viatge="${esc(v.id)}">
+      <button class="viatge-cap" data-obre="${esc(v.id)}">
+        <span class="viatge-nom">${esc(v.nom || 'Viatge sense nom')}</span>
+        <span class="viatge-dates">${esc(rangViatge(v))}</span>
+        ${info ? `<span class="viatge-resum">${esc(info)}</span>` : ''}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+/* Un resum curt del contingut del viatge: quantes reserves i el total. */
+function resumViatge(v) {
+  const seves = reserves.filter(r => r.viatgeId === v.id);
+  if (!seves.length) return '';
+  const total = seves.reduce((s, r) => s + (importNum(r.preu) || 0), 0);
+  const nRes = seves.length + (seves.length === 1 ? ' reserva' : ' reserves');
+  return total ? `${nRes} · ${formataImport(total)}` : nRes;
+}
+
+/* ── Formulari de crear / editar viatge ── */
+/* ── Participants del viatge (chips) ──
+   L'editor de «entre qui es reparteix» treballa sobre aquesta llista
+   temporal mentre el formulari és obert; es desa amb el viatge. */
+let participantsFitxa = [];
+
+/* Noms coneguts per suggerir: els de «qui ho paga» de les reserves i els
+   participants dels altres viatges. */
+function nomsConeguts() {
+  const noms = new Set();
+  for (const r of reserves) if (r.quiPaga) noms.add(r.quiPaga.trim());
+  for (const vi of viatges) for (const p of (vi.participants || [])) if (p) noms.add(p.trim());
+  return [...noms].filter(Boolean).sort((a, b) => a.localeCompare(b, 'ca'));
+}
+
+function pintaChipsParticipants() {
+  $('viatge-persones-chips').innerHTML = participantsFitxa.map((nom, i) =>
+    `<span class="chip">${esc(nom)}<button type="button" class="chip-treu" data-treu-persona="${i}" aria-label="Treu ${esc(nom)}">×</button></span>`
+  ).join('');
+}
+
+/* Afegeix un o més noms (accepta text amb comes), sense duplicar i sense
+   distingir majúscules de minúscules. */
+function afegeixParticipants(text) {
+  for (const tros of String(text || '').split(',')) {
+    const net = tros.trim();
+    if (!net) continue;
+    if (participantsFitxa.some(p => p.toLowerCase() === net.toLowerCase())) continue;
+    participantsFitxa.push(net);
+  }
+  pintaChipsParticipants();
+}
+
+// Enter o coma confirmen el nom; retrocés amb el camp buit treu l'últim chip
+$('camp-viatge-persones-input').addEventListener('keydown', e => {
+  const camp = e.target;
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    afegeixParticipants(camp.value);
+    camp.value = '';
+  } else if (e.key === 'Backspace' && !camp.value && participantsFitxa.length) {
+    participantsFitxa.pop();
+    pintaChipsParticipants();
+  }
+});
+
+// Treure un participant amb la seva «×»
+$('viatge-persones-chips').addEventListener('click', e => {
+  const btn = e.target.closest('[data-treu-persona]');
+  if (!btn) return;
+  participantsFitxa.splice(+btn.dataset.treuPersona, 1);
+  pintaChipsParticipants();
+});
+
+function obreFitxaViatge(v) {
+  editantViatge = v ? v.id : null;
+  $('fitxa-viatge-titol').textContent = v ? 'Edita el viatge' : 'Nou viatge';
+  $('camp-viatge-nom').value = v ? (v.nom || '') : '';
+  $('camp-viatge-inici').value = v ? (v.dataInici || '') : '';
+  $('camp-viatge-fi').value = v ? (v.dataFi || '') : '';
+  $('camp-viatge-pressupost').value = v ? (v.pressupost || '') : '';
+  participantsFitxa = v && Array.isArray(v.participants) ? [...v.participants] : [];
+  pintaChipsParticipants();
+  $('camp-viatge-persones-input').value = '';
+  $('persones-conegudes').innerHTML = nomsConeguts().map(n => `<option value="${esc(n)}"></option>`).join('');
+  $('btn-desa-viatge').textContent = v ? 'Desa els canvis' : 'Crea el viatge';
+  $('fitxa-viatge').classList.add('visible');
+  $('camp-viatge-nom').focus();
+}
+
+function tancaFitxaViatge() {
+  $('fitxa-viatge').classList.remove('visible');
+  editantViatge = null;
+}
+
+$('btn-nou-viatge').addEventListener('click', () => obreFitxaViatge(null));
+
+/* ── Detall d'un viatge: les seves reserves i el resum ── */
+
+function obreDetallViatge(id) {
+  viatgeObert = id;
+  subvistaViatge = 'agenda';
+  $('llista-viatges').classList.add('ocult');
+  $('viatges-buida').classList.add('ocult');
+  $('fitxa-viatge').classList.remove('visible');
+  document.querySelector('#vista-viatges .barra-accions').classList.add('ocult');
+  $('detall-viatge-vista').classList.remove('ocult');
+  pintaDetallViatge();
+}
+
+function tancaDetallViatge() {
+  viatgeObert = null;
+  $('detall-viatge-vista').classList.add('ocult');
+  $('llista-viatges').classList.remove('ocult');
+  document.querySelector('#vista-viatges .barra-accions').classList.remove('ocult');
+  refrescaViatges();
+}
+
+let subvistaViatge = 'agenda';   // 'agenda' o 'pressupost'
+
+function pintaDetallViatge() {
+  const v = viatges.find(x => x.id === viatgeObert);
+  const cont = $('detall-viatge-vista');
+  if (!v) { tancaDetallViatge(); return; }
+
+  // Igual que la llista i les idees: si s'està escrivint en un camp del
+  // detall (nota d'una visita, dia, hora, «qui ho paga»…), una
+  // sincronització en segon pla no ha de repintar-lo i endur-se el que
+  // s'està teclejant. Es protegeixen només els camps (input/textarea); els
+  // botons no, perquè just després de clicar-los sí que volem el refresc
+  // (canviar de subpestanya, convertir una idea, treure una visita…).
+  const focus = document.activeElement;
+  if (focus && /^(INPUT|TEXTAREA)$/.test(focus.tagName) &&
+      focus.closest && focus.closest('#detall-viatge-vista')) return;
+
+  const seves = reserves.filter(r => r.viatgeId === v.id).sort(comparaCronologic);
+
+  const cos = subvistaViatge === 'pressupost'
+    ? pressupostHTML(v, seves)
+    : agendaHTML(seves);
+
+  cont.innerHTML = `
+    <button class="tornar" id="btn-tornar-viatges">← Tots els viatges</button>
+    <div class="detall-cap">
+      <div>
+        <h3 class="detall-nom">${esc(v.nom || 'Viatge sense nom')}</h3>
+        <p class="detall-rang">${esc(rangViatge(v))}</p>
+      </div>
+      <button class="subtil mini" id="btn-edita-viatge-detall">Edita</button>
+    </div>
+    <div class="subpestanyes" role="tablist">
+      <button class="subpestanya${subvistaViatge === 'agenda' ? ' activa' : ''}" data-subvista="agenda">Agenda</button>
+      <button class="subpestanya${subvistaViatge === 'pressupost' ? ' activa' : ''}" data-subvista="pressupost">Pressupost</button>
+    </div>
+    <div class="subvista">${cos}</div>`;
+}
+
+/* Una idea suggerida dins del viatge: text i un botó per convertir-la
+   en visita. En convertir-la, va a «per encaixar» (sense data). */
+function ideaSuggeridaHTML(i) {
+  const etiquetes = (i.etiquetes || []).length ? `<span class="suggerida-etiq">${esc(i.etiquetes.join(' · '))}</span>` : '';
+  return `<div class="idea-suggerida">
+    <div class="suggerida-cos">
+      <span class="suggerida-text">${esc(i.text || 'Idea sense text')}</span>
+      <span class="suggerida-meta">${esc(i.zona || '')}${etiquetes ? ' · ' : ''}${etiquetes}</span>
+    </div>
+    <button class="primari mini" data-converteix="${esc(i.id)}">Afegeix al viatge</button>
+  </div>`;
+}
+
+/* Una visita (idea marcada com a visita d'un viatge), com a fila
+   desplegable coherent amb les reserves. En obrir-la: text, zona,
+   etiquetes, enllaç, data i hora editables, i treure del viatge. */
+function filaVisitaHTML(vi) {
+  const obert = filesObertes.has(vi.id);
+  const primeraLinia = (vi.text || 'Visita').split('\n')[0];
+  const etiq = (vi.etiquetes || []).join(', ');
+
+  return `<div class="fila visita${obert ? ' oberta' : ''}" data-id="${esc(vi.id)}">
+    <button class="fila-cap graella-fila" aria-expanded="${obert ? 'true' : 'false'}" aria-controls="visita-${esc(vi.id)}">
+      <span class="cel-punt">
+        <span class="icona-tipus visita-icona" role="img" aria-label="Visita">${iconaSVG('estrella')}</span>
+      </span>
+      <span class="cel-nom">
+        <span class="nom">${esc(primeraLinia)}</span>
+        <span class="sotanom">${esc(vi.zona || '')}</span>
+      </span>
+      <span class="cel-dates"><span class="xifra">${esc(vi.dataVisita ? dataBonica(vi.dataVisita) : '')}</span><span class="menuda">${esc(vi.horaVisita || (vi.dataVisita ? '' : 'sense dia'))}</span></span>
+      <span class="cel-cancel"></span>
+      <span class="cel-preu"></span>
+      <span class="cel-chev">${CHEVRON}</span>
+    </button>
+    <div class="fila-detall${obert ? '' : ' ocult'}" id="visita-${esc(vi.id)}">
+      <div class="visita-edita">
+        <label class="visita-camp ample">
+          <span>Nota</span>
+          <textarea data-visita-camp="text" data-vid="${esc(vi.id)}" rows="2">${esc(vi.text || '')}</textarea>
+        </label>
+        <div class="visita-graella">
+          <label class="visita-camp"><span>Dia</span>
+            <input data-visita-camp="dataVisita" data-vid="${esc(vi.id)}" value="${esc(vi.dataVisita || '')}" placeholder="13/5/2026"></label>
+          <label class="visita-camp"><span>Hora</span>
+            <input data-visita-camp="horaVisita" data-vid="${esc(vi.id)}" value="${esc(vi.horaVisita || '')}" placeholder="10:00"></label>
+          <label class="visita-camp"><span>Zona</span>
+            <input data-visita-camp="zona" data-vid="${esc(vi.id)}" value="${esc(vi.zona || '')}"></label>
+          <label class="visita-camp"><span>Etiquetes</span>
+            <input data-visita-camp="etiquetes" data-vid="${esc(vi.id)}" value="${esc(etiq)}"></label>
+        </div>
+        ${vi.enllac ? `<a class="idea-enllac" href="${esc(vi.enllac)}" target="_blank" rel="noopener noreferrer">${esc(nomEnllac(vi.enllac))}</a>` : ''}
+      </div>
+      <div class="detall-accions">
+        <button class="subtil" data-treu-visita="${esc(vi.id)}">Treure del viatge</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* Les zones d'un viatge, per creuar amb les idees: les poblacions de les
+   seves reserves i el nom del viatge (que sol ser el lloc). */
+function zonesDelViatge(v, seves) {
+  const zones = new Set();
+  for (const r of seves) { const p = poblacioReserva(r); if (p) zones.add(p); }
+  if (v.nom) zones.add(v.nom.trim());
+  return [...zones];
+}
+
+/* Les idees lliures que encaixen amb la zona del viatge i que encara no
+   són visites de cap viatge. */
+function ideesSuggerides(v, seves) {
+  const zones = zonesDelViatge(v, seves);
+  if (!zones.length) return [];
+  return idees.filter(i => i.zona && zones.some(z => zonesCoincideixen(i.zona, z)));
+}
+
+/* L'agenda: itinerari (reserves i visites amb data, cronològic), després
+   les visites sense data ("per encaixar"), i les idees de la zona que es
+   poden convertir en visita. */
+function agendaHTML(seves) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  const sevesVisites = visites.filter(vi => vi.viatgeId === viatgeObert);
+  const ambData = sevesVisites.filter(vi => vi.dataVisita);
+  const senseData = sevesVisites.filter(vi => !vi.dataVisita);
+
+  // Itinerari: reserves + visites amb data, tot ordenat pel temps
+  const itinerari = [
+    ...seves.map(r => ({ tipus: 'reserva', obj: r, quan: r.checkinISO || '', hora: r.checkinHora || '' })),
+    ...ambData.map(vi => ({ tipus: 'visita', obj: vi, quan: vi.dataVisita || '', hora: vi.horaVisita || '' }))
+  ].sort((a, b) => {
+    if (a.quan !== b.quan) return (a.quan || '9999') < (b.quan || '9999') ? -1 : 1;
+    return minutsDia(a.hora) - minutsDia(b.hora);
+  });
+
+  let html = '';
+
+  if (!seves.length && !sevesVisites.length) {
+    html += `<p class="detall-buit">Aquest viatge encara no té res. Assigna-hi reserves des de Reserves, o converteix en visites les idees de la zona que et surtin aquí sota.</p>`;
+  }
+
+  if (itinerari.length) {
+    html += `<div class="agenda-bloc"><h4 class="agenda-titol">Itinerari</h4>`
+      + itinerari.map(x => x.tipus === 'reserva' ? filaReservaHTML(x.obj) : filaVisitaHTML(x.obj)).join('')
+      + `</div>`;
+  }
+
+  if (senseData.length) {
+    html += `<div class="agenda-bloc"><h4 class="agenda-titol">Per encaixar</h4>`
+      + `<p class="agenda-nota">Visites sense dia fixat. Obre-les per posar-los data quan la sàpigues.</p>`
+      + senseData.map(filaVisitaHTML).join('')
+      + `</div>`;
+  }
+
+  // Idees de la zona encara no convertides
+  const suggerides = v ? ideesSuggerides(v, seves) : [];
+  if (suggerides.length) {
+    html += `<div class="agenda-bloc"><h4 class="agenda-titol">Idees per a aquest viatge</h4>`
+      + `<p class="agenda-nota">Tens aquestes idees a la zona. Converteix-les en visites del viatge.</p>`
+      + suggerides.map(ideaSuggeridaHTML).join('')
+      + `</div>`;
+  }
+
+  return html;
+}
+
+/* El pressupost: de moment, el desglossament per tipus de les reserves,
+   amb el seu subtotal, i el total. Les despeses soltes i el sostre
+   previst arribaran en passos següents (l'estructura ja els espera). */
+function pressupostHTML(v, seves) {
+  const ambPreu = seves.filter(r => importNum(r.preu));
+  const previst = importNum(v.pressupost);
+
+  if (!ambPreu.length) {
+    const nota = previst
+      ? `<div class="pressupost-previst nomes-previst">
+           <div class="previst-cap"><span>Pressupost previst</span><span>${esc(formataImport(previst))}</span></div>
+           <div class="previst-peu">Encara no has assignat cap despesa.</div>
+         </div>`
+      : '';
+    return `<p class="detall-buit">Encara no hi ha despeses en aquest viatge. Els preus de les reserves que hi assignis apareixeran aquí.</p>${nota}`;
+  }
+
+  // Subtotal per tipus, en l'ordre habitual dels tipus
+  const perTipus = {};
+  for (const r of ambPreu) {
+    const t = tipusDe(r);
+    perTipus[t] = (perTipus[t] || 0) + importNum(r.preu);
+  }
+  const files = ORDRE_TIPUS
+    .filter(t => perTipus[t])
+    .map(t => `<div class="pressupost-linia">
+      <span class="pressupost-tipus">${esc(TIPUS[t].plural || TIPUS[t].nom)}</span>
+      <span class="pressupost-import">${esc(formataImport(perTipus[t]))}</span>
+    </div>`).join('');
+
+  const total = ambPreu.reduce((s, r) => s + importNum(r.preu), 0);
+
+  // Pressupost previst (el sostre), si el viatge en té
+  let barra = '';
+  if (previst) {
+    const percent = Math.min(100, Math.round(total / previst * 100));
+    const passat = total > previst;
+    const diferencia = Math.abs(previst - total);
+    const missatge = passat
+      ? `Te n'has passat de ${formataImport(diferencia)}`
+      : `Et queden ${formataImport(diferencia)}`;
+    barra = `
+      <div class="pressupost-previst">
+        <div class="previst-cap">
+          <span>Pressupost previst</span>
+          <span>${esc(formataImport(previst))}</span>
+        </div>
+        <div class="previst-barra"><div class="previst-ompliment${passat ? ' passat' : ''}" style="width:${percent}%"></div></div>
+        <div class="previst-peu${passat ? ' passat' : ''}">${esc(missatge)}</div>
+      </div>`;
+  }
+
+  return `
+    <div class="pressupost-desglos">${files}</div>
+    <div class="pressupost-total">
+      <span>Total</span>
+      <span>${esc(formataImport(total))}</span>
+    </div>
+    ${barra}
+    ${repartimentHTML(ambPreu, v.participants)}`;
+}
+
+/* ── Repartiment: qui deu a qui ──
+   A partir del «qui ho paga» de cada reserva, reparteix el cost del viatge
+   a parts iguals entre els participants i calcula les transferències
+   mínimes per quedar en paus (com un Tricount).
+
+   Qui són els participants:
+   · Els que el viatge tingui definits a «entre qui es reparteix» (els
+     chips), MÉS qualsevol que hagi pagat alguna cosa (ningú que posi
+     diners pot quedar fora). La unió és el conjunt entre qui es divideix.
+   · Si el viatge no en té cap de definit, es recau en els pagadors: així
+     els viatges d'abans segueixen igual sense tocar-los.
+   Un participant que no ha pagat res hi surt amb 0 i, per tant, deu la
+   seva part: és el que resol «ho pago tot jo però som dos».
+
+   Altres decisions i límits, a la vista:
+   · Les reserves amb preu però sense pagador no es poden atribuir: queden
+     fora del repartiment i s'avisa del total que representen.
+   · Es treballa en cèntims (enters) perquè els saldos quadrin exactes.
+   · Com a la resta del pressupost, se suposa una sola moneda (euros). */
+function repartimentHTML(ambPreu, participants) {
+  const explicits = Array.isArray(participants) ? participants : [];
+  const ambPagador = ambPreu.filter(r => (r.quiPaga || '').trim());
+  const senseP = ambPreu.filter(r => !(r.quiPaga || '').trim());
+  const centsSenseP = senseP.reduce((s, r) => s + centsDe(r.preu), 0);
+
+  const notaSense = centsSenseP > 0
+    ? `<p class="repart-nota">Hi ha ${esc(formataImport(centsSenseP / 100))} en reserves amb preu però sense pagador: no entren al repartiment. Assigna'ls «qui ho paga» perquè hi comptin.</p>`
+    : '';
+
+  // Pagat per persona (clau en minúscules per agrupar «Pepita»/«pepita»;
+  // es mostra el nom tal com es va escriure la primera vegada).
+  const pagatPer = new Map();
+  for (const r of ambPagador) {
+    const nom = r.quiPaga.trim();
+    const clau = nom.toLowerCase();
+    const ent = pagatPer.get(clau) || { nom, cents: 0 };
+    ent.cents += centsDe(r.preu);
+    pagatPer.set(clau, ent);
+  }
+  // Sumar-hi els participants explícits del viatge que encara no hi siguin, amb 0
+  for (const nom of explicits) {
+    const net = (nom || '').trim();
+    if (!net) continue;
+    const clau = net.toLowerCase();
+    if (!pagatPer.has(clau)) pagatPer.set(clau, { nom: net, cents: 0 });
+  }
+  const persones = [...pagatPer.values()].sort((a, b) => a.nom.localeCompare(b.nom, 'ca'));
+  const totalPagat = persones.reduce((s, p) => s + p.cents, 0);
+
+  const embolcall = cos => `<div class="repartiment"><h4 class="agenda-titol">Qui deu a qui</h4>${cos}</div>`;
+
+  if (!persones.length) {
+    return embolcall(`<p class="repart-nota">Assigna «qui ho paga» a les reserves amb preu, o digues «entre qui» va el viatge (editant-lo), i aquí veuràs qui deu a qui.</p>`);
+  }
+  if (totalPagat === 0) {
+    return embolcall(`<p class="repart-nota">Encara no hi ha cap pagament assignat: posa el preu i el «qui ho paga» a les reserves per veure el repartiment.</p>${notaSense}`);
+  }
+  if (persones.length === 1) {
+    return embolcall(
+      `<p class="repart-nota">De moment tot ho ha pagat <strong>${esc(persones[0].nom)}</strong>. Si éreu més d'una persona, digues «entre qui» va el viatge (editant-lo) o assigna «qui ho paga» a la resta de reserves.</p>${notaSense}`);
+  }
+
+  // Repartiment a parts iguals, en cèntims. El sobrant de la divisió es
+  // reparteix un cèntim a cadascú dels primers, perquè la suma quadri.
+  const N = persones.length;
+  const total = persones.reduce((s, p) => s + p.cents, 0);
+  const base = Math.floor(total / N);
+  const sobrant = total - base * N;
+  const saldos = persones.map((p, i) => {
+    const part = base + (i < sobrant ? 1 : 0);
+    return { nom: p.nom, pagat: p.cents, part, saldo: p.cents - part };
+  });
+
+  // Liquidació: qui deu més paga a qui li'n deuen més, fins que tot quadra.
+  const deutors = saldos.filter(s => s.saldo < 0).map(s => ({ nom: s.nom, q: -s.saldo })).sort((a, b) => b.q - a.q);
+  const creditors = saldos.filter(s => s.saldo > 0).map(s => ({ nom: s.nom, q: s.saldo })).sort((a, b) => b.q - a.q);
+  const moviments = [];
+  let di = 0, ci = 0;
+  while (di < deutors.length && ci < creditors.length) {
+    const q = Math.min(deutors[di].q, creditors[ci].q);
+    if (q > 0) moviments.push({ de: deutors[di].nom, a: creditors[ci].nom, cents: q });
+    deutors[di].q -= q; creditors[ci].q -= q;
+    if (deutors[di].q === 0) di++;
+    if (creditors[ci].q === 0) ci++;
+  }
+
+  const filesSaldo = saldos.map(s => {
+    const signe = s.saldo > 0 ? 'positiu' : s.saldo < 0 ? 'negatiu' : 'neutre';
+    const nota = s.saldo > 0 ? `li'n deuen ${formataImport(s.saldo / 100)}`
+              : s.saldo < 0 ? `deu ${formataImport(-s.saldo / 100)}`
+              : 'en paus';
+    return `<div class="repart-persona">
+      <span class="repart-nom">${esc(s.nom)}</span>
+      <span class="repart-detall">ha pagat ${esc(formataImport(s.pagat / 100))} · li'n toquen ${esc(formataImport(s.part / 100))}</span>
+      <span class="repart-saldo ${signe}">${esc(nota)}</span>
+    </div>`;
+  }).join('');
+
+  const filesMov = moviments.length
+    ? moviments.map(m => `<div class="repart-moviment">
+        <span class="repart-de">${esc(m.de)}</span>
+        <span class="repart-fletxa" aria-hidden="true">→</span>
+        <span class="repart-a">${esc(m.a)}</span>
+        <span class="repart-import">${esc(formataImport(m.cents / 100))}</span>
+      </div>`).join('')
+    : `<p class="repart-nota">Ja esteu en paus: ningú deu res a ningú.</p>`;
+
+  const capText = explicits.length
+    ? `A parts iguals entre ${N} persones del viatge: ${esc(persones.map(p => p.nom).join(', '))}.`
+    : `A parts iguals entre ${N} persones (les que han pagat alguna cosa): ${esc(persones.map(p => p.nom).join(', '))}.`;
+  return embolcall(
+    `<p class="repart-nota">${capText}</p>
+     <div class="repart-saldos">${filesSaldo}</div>
+     <div class="repart-moviments">${filesMov}</div>
+     ${notaSense}`);
+}
+
+$('detall-viatge-vista').addEventListener('click', async e => {
+  if (e.target.closest('#btn-tornar-viatges')) { tancaDetallViatge(); return; }
+  if (e.target.closest('#btn-edita-viatge-detall')) {
+    const v = viatges.find(x => x.id === viatgeObert);
+    if (v) obreFitxaViatgeDesDeDetall(v);
+    return;
+  }
+  const sub = e.target.closest('[data-subvista]');
+  if (sub) {
+    subvistaViatge = sub.dataset.subvista;
+    pintaDetallViatge();
+    return;
+  }
+  // Convertir una idea de la zona en visita del viatge (va a "per encaixar")
+  const conv = e.target.closest('[data-converteix]');
+  if (conv) {
+    await MagatzemIdees.actualitza(conv.dataset.converteix, { viatgeId: viatgeObert });
+    await refresca();
+    return;
+  }
+  // Treure una visita del viatge: torna a ser idea lliure de la wishlist
+  const treu = e.target.closest('[data-treu-visita]');
+  if (treu) {
+    await MagatzemIdees.actualitza(treu.dataset.treuVisita, { viatgeId: '', dataVisita: '', horaVisita: '' });
+    await refresca();
+    return;
+  }
+});
+
+/* Editar en línia els camps d'una visita (dia, hora, zona, etiquetes, nota) */
+$('detall-viatge-vista').addEventListener('change', async e => {
+  const camp = e.target.closest('[data-visita-camp]');
+  if (!camp) return;
+  const vid = camp.dataset.vid;
+  const quin = camp.dataset.visitaCamp;
+  let valor = camp.value.trim();
+  if (quin === 'dataVisita') valor = interpretaData(valor);
+  if (quin === 'etiquetes') {
+    const llista = valor.split(',').map(s => s.trim()).filter(Boolean);
+    await MagatzemIdees.actualitza(vid, { etiquetes: llista });
+  } else {
+    await MagatzemIdees.actualitza(vid, { [quin]: valor });
+  }
+  await refresca();
+});
+
+/* Editar el viatge des del detall: obre la fitxa a sobre del detall */
+function obreFitxaViatgeDesDeDetall(v) {
+  obreFitxaViatge(v);
+  $('fitxa-viatge').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+$('llista-viatges').addEventListener('click', e => {
+  const obre = e.target.closest('[data-obre]');
+  if (obre) {
+    const v = viatges.find(x => x.id === obre.dataset.obre);
+    if (v) obreDetallViatge(v.id);
+  }
+});
+
+$('btn-desa-viatge').addEventListener('click', async () => {
+  const nom = $('camp-viatge-nom').value.trim();
+  const inici = interpretaData($('camp-viatge-inici').value.trim());
+  const fi = interpretaData($('camp-viatge-fi').value.trim());
+  const pressupost = $('camp-viatge-pressupost').value.trim();
+  // Recollir també qualsevol nom escrit i encara sense confirmar com a chip
+  afegeixParticipants($('camp-viatge-persones-input').value);
+  $('camp-viatge-persones-input').value = '';
+  const participants = [...participantsFitxa];
+  if (!nom) {
+    avisa($('avis-viatge'), 'Posa-li un nom al viatge (sol ser el lloc).', 'mal');
+    return;
+  }
+  // Reflectir les dates normalitzades
+  $('camp-viatge-inici').value = inici;
+  $('camp-viatge-fi').value = fi;
+
+  if (editantViatge) {
+    await MagatzemViatges.actualitza(editantViatge, { nom, dataInici: inici, dataFi: fi, pressupost, participants });
+  } else {
+    await MagatzemViatges.afegeix({ nom, dataInici: inici, dataFi: fi, pressupost, participants });
+  }
+  tancaFitxaViatge();
+  await refrescaViatges();
+});
+
+$('btn-cancela-viatge').addEventListener('click', tancaFitxaViatge);
 
 /* ═══════════════ ACCÉS ═══════════════ */
 
@@ -3031,7 +4207,7 @@ $('btn-surt').addEventListener('click', async () => {
    sessió perquè, en un ordinador compartit, no en quedi rastre. Al núvol
    les dades hi són intactes i tornen en tornar a entrar. */
 function esborraDadesLocals() {
-  for (const clau of [CLAU, CLAU_IDEES, CLAU_SINC, CLAU_JER, CLAU_VISTA, CLAU_PESTANYA]) {
+  for (const clau of [CLAU, CLAU_IDEES, CLAU_VIATGES, CLAU_SINC, CLAU_JER, CLAU_VISTA, CLAU_PESTANYA]) {
     try { localStorage.removeItem(clau); } catch (e) {}
   }
 }
