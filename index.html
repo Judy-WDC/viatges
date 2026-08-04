@@ -375,6 +375,22 @@
   .subpestanya.activa { color: var(--accent); font-weight: 500; border-bottom-color: var(--accent); }
 
   /* Desglossament del pressupost */
+  /* El pressupost es disposa en dues columnes a l'ordinador: a l'esquerra el
+     que es mira (resum + qui deu a qui), a la dreta el que s'edita (despeses).
+     Es limita l'amplada perquè les línies etiqueta↔import no quedin separades
+     d'extrem a extrem; al mòbil les columnes s'apilen. */
+  .subvista-pressupost { max-width: 760px; }
+  .pressupost-columnes {
+    display: grid;
+    grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+  }
+  .pressupost-col > :first-child { margin-top: 0; }
+  @media (max-width: 620px) {
+    .pressupost-columnes { grid-template-columns: 1fr; gap: 20px; }
+  }
+
   .pressupost-desglos { display: flex; flex-direction: column; }
   .pressupost-linia {
     display: flex; justify-content: space-between; align-items: baseline;
@@ -406,7 +422,7 @@
     padding: 15px 18px 18px;
   }
   .pressupost-resum-titol { font-size: 15px; font-weight: 600; color: var(--tinta); margin-bottom: 6px; }
-  .pressupost-avall { color: var(--tinta-tenue); font-size: 11px; margin-left: 2px; }
+  .pressupost-fletxa { color: var(--tinta-tenue); font-size: 11px; margin-left: 2px; }
 
   /* Despeses soltes (apuntades a mà dins del pressupost) */
   .despeses-soltes { margin-top: 26px; }
@@ -425,15 +441,18 @@
     font-size: 17px; line-height: 1; padding: 0 4px; cursor: pointer; border-radius: 6px; flex: none;
   }
   .despesa-treu:hover { background: var(--subtil); color: var(--vermell); }
-  .despesa-nova { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .despesa-nova { display: flex; flex-direction: column; gap: 8px; }
+  .despesa-fila { display: flex; gap: 8px; }
+  .despesa-accio { display: flex; justify-content: flex-end; }
   .despesa-camp {
     padding: 8px 10px; border: 1px solid var(--vora); border-radius: 8px;
     font-family: inherit; font-size: 13.5px; color: var(--tinta); background: var(--superficie);
   }
   .despesa-camp:focus { border-color: var(--accent); outline: none; }
-  .despesa-camp.concepte { flex: 1 1 160px; min-width: 120px; }
-  .despesa-camp.import { flex: 0 1 96px; width: 96px; font-variant-numeric: tabular-nums; }
-  .despesa-camp.paga { flex: 1 1 150px; min-width: 120px; }
+  .despesa-camp.concepte { flex: 1 1 auto; min-width: 0; }
+  .despesa-camp.import { flex: 0 0 96px; width: 96px; font-variant-numeric: tabular-nums; }
+  .despesa-camp.categoria { flex: 1 1 0; min-width: 0; }
+  .despesa-camp.paga { flex: 1 1 0; min-width: 0; }
 
   /* Repartiment: qui deu a qui, sota el pressupost */
   .repartiment { margin-top: 26px; }
@@ -462,7 +481,7 @@
 
   /* Agenda del viatge: blocs d'itinerari, per encaixar i idees */
   .agenda-bloc { margin-bottom: 22px; }
-  .agenda-titol { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tinta-tenue); margin: 0 0 4px; }
+  .agenda-titol { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin: 0 0 4px; }
   .agenda-nota { font-size: 12.5px; color: var(--tinta-suau); margin: 0 0 10px; }
   .agenda-bloc .fila { margin-bottom: 9px; }
 
@@ -1557,6 +1576,29 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Els ítems del mateix dia (un vol Barcelona–Lisboa, una activitat…)
+      mostren una sola data en lloc d'un rang repetit («3 set» en comptes de
+      «3 → 3 set»); només si duren més d'un dia surt «entrada → sortida».
+      Val a la llista i a l'agenda (rangDates, compartit) (v51).
+   FET · La demo ja mostra el pressupost complet: el vol, el cotxe i
+      l'entrada de Lisboa queden assignats al viatge «Lisboa i el Douro»
+      (amb qui paga), i el viatge té pressupost previst (500 €), participants
+      (Pepita, Joan) i despeses soltes d'exemple amb les categories noves
+      (menjar, transport, activitats, souvenirs) (v50).
+   FET · Categories de despeses soltes adaptades a l'entorn viatge: Menjar,
+      Transport, Activitats, Souvenirs, Altres (abans oci/compres) (v49).
+   FET · Pressupost en dues columnes a l'ordinador: a l'esquerra el resum
+      «Cost del viatge» i «Qui deu a qui» (el que es mira), a la dreta les
+      despeses soltes (el que s'edita). El formulari d'afegir passa a tres
+      fileres (concepte+import / categoria+qui paga / botó a la dreta), la
+      fletxa del resum apunta a la dreta (›), i el límit d'amplada puja a
+      760px. Al mòbil les columnes s'apilen (v48).
+   FET · A l'ordinador, el contingut del pressupost es limita a una columna
+      de 480px (classe .subvista-pressupost) perquè les línies etiqueta↔import
+      no quedin separades d'un extrem a l'altre. Al mòbil no afecta (v47).
+   FET · Els títols de secció del viatge (Itinerari, Per encaixar, Despeses
+      soltes · el detall, Qui deu a qui…) passen del gris tènue a l'accent
+      pruna (--accent), perquè es llegeixin clarament com a títols (v46).
    FET · Jerarquia visual del pressupost: el resum global (desglòs + total +
       barra) passa a una targeta amb títol «Cost del viatge», i les despeses
       soltes hi surten com UNA línia agregada (amb ▾) en comptes de per
@@ -1720,7 +1762,7 @@ function reservesDemo() {
       checkinISO: diesDesDavui(22), checkinHora: '09:40',
       checkoutISO: diesDesDavui(22), checkoutHora: '11:05',
       seient: '14C', preu: '96,00 €', pagament: 'Pagat (96,00 €)',
-      numReserva: 'XKZ42Q', quiPaga: 'Pepita', notes: '' },
+      numReserva: 'XKZ42Q', quiPaga: 'Pepita', viatgeId: 'viatge-1', notes: '' },
 
     { id: 'demo-6', tipus: 'cotxe', plataforma: 'Europcar',
       companyia: 'Europcar',
@@ -1728,12 +1770,12 @@ function reservesDemo() {
       checkinISO: diesDesDavui(22), checkinHora: '12:00',
       checkoutISO: diesDesDavui(26), checkoutHora: '10:00',
       preu: '124,00 €', pagament: 'Es paga en recollir (124,00 €)',
-      numReserva: '7729301', notes: '' },
+      numReserva: '7729301', quiPaga: 'Joan', viatgeId: 'viatge-1', notes: '' },
 
     { id: 'demo-7', tipus: 'entrada', plataforma: '',
       allotjament: 'Oceanari de Lisboa', recinte: 'Parc de les Nacions', poblacio: 'Lisboa',
       checkinISO: diesDesDavui(23), checkinHora: '10:00',
-      preu: '38,00 €', pagament: 'Pagat (38,00 €)', numReserva: 'A72-5567', notes: '' }
+      preu: '38,00 €', pagament: 'Pagat (38,00 €)', numReserva: 'A72-5567', quiPaga: 'Pepita', viatgeId: 'viatge-1', notes: '' }
   ];
 }
 
@@ -1839,8 +1881,8 @@ const ORDRE_TIPUS = ['allotjament', 'vol', 'cotxe', 'entrada', 'altres'];
 const CATEGORIES_DESPESA = [
   ['menjar', 'Menjar'],
   ['transport', 'Transport'],
-  ['oci', 'Oci'],
-  ['compres', 'Compres'],
+  ['activitats', 'Activitats'],
+  ['souvenirs', 'Souvenirs'],
   ['altres', 'Altres']
 ];
 
@@ -1919,6 +1961,13 @@ function viatgesDemo() {
   return [
     { id: 'viatge-1', nom: 'Lisboa i el Douro',
       dataInici: diesDesDavui(21), dataFi: diesDesDavui(25),
+      pressupost: '500 €', participants: ['Pepita', 'Joan'],
+      despeses: [
+        { id: 'desp-1', concepte: 'Sopar al Time Out Market', import: '52,00 €', categoria: 'menjar', quiPaga: 'Joan' },
+        { id: 'desp-2', concepte: 'Metro i elèctric 28', import: '18,00 €', categoria: 'transport', quiPaga: 'Pepita' },
+        { id: 'desp-3', concepte: 'Entrades Torre de Belém', import: '30,00 €', categoria: 'activitats', quiPaga: 'Joan' },
+        { id: 'desp-4', concepte: 'Rajoles i souvenirs', import: '24,00 €', categoria: 'souvenirs', quiPaga: 'Pepita' }
+      ],
       creatA: diesDesDavui(-10) + 'T10:00:00.000Z', modificatA: diesDesDavui(-10) + 'T10:00:00.000Z' }
   ];
 }
@@ -2465,6 +2514,10 @@ function rangDates(r) {
   if (!a && !b) return { principal: 'sense dates', secundari: '' };
   if (!a) return { principal: 'fins ' + b.getDate() + ' ' + MESOS_CURT[b.getMonth()], secundari: '' };
   if (!b) return { principal: a.getDate() + ' ' + MESOS_CURT[a.getMonth()], secundari: '' };
+  // Mateix dia (un vol, una activitat…): una sola data, no un rang repetit.
+  // Només si dura més d'un dia es mostra «entrada → sortida».
+  const mateixDia = a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  if (mateixDia) return { principal: a.getDate() + ' ' + MESOS_CURT[a.getMonth()], secundari: '' };
   const principal = a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()
     ? `${a.getDate()} → ${b.getDate()} ${MESOS_CURT[b.getMonth()]}`
     : `${a.getDate()} ${MESOS_CURT[a.getMonth()]} → ${b.getDate()} ${MESOS_CURT[b.getMonth()]}`;
@@ -3748,7 +3801,7 @@ function pintaDetallViatge() {
       <button class="subpestanya${subvistaViatge === 'agenda' ? ' activa' : ''}" data-subvista="agenda">Agenda</button>
       <button class="subpestanya${subvistaViatge === 'pressupost' ? ' activa' : ''}" data-subvista="pressupost">Pressupost</button>
     </div>
-    <div class="subvista">${cos}</div>`;
+    <div class="subvista subvista-${subvistaViatge}">${cos}</div>`;
 }
 
 /* Una idea suggerida dins del viatge: text i un botó per convertir-la
@@ -3897,7 +3950,7 @@ function pressupostHTML(v, seves) {
   let files = ORDRE_TIPUS.filter(t => perTipus[t]).map(t => liniaPressupost(TIPUS[t].plural || TIPUS[t].nom, perTipus[t])).join('');
   if (totalDespeses) {
     files += `<div class="pressupost-linia">
-      <span class="pressupost-tipus">Despeses soltes <span class="pressupost-avall" aria-hidden="true">\u25be</span></span>
+      <span class="pressupost-tipus">Despeses soltes <span class="pressupost-fletxa" aria-hidden="true">\u203a</span></span>
       <span class="pressupost-import">${esc(formataImport(totalDespeses))}</span>
     </div>`;
   }
@@ -3921,12 +3974,20 @@ function pressupostHTML(v, seves) {
     resum = `<p class="detall-buit">Encara no hi ha despeses en aquest viatge. Assigna reserves amb preu o afegeix despeses soltes aquí sota.</p>${nota}`;
   }
 
+  const detall = despesesSoltesHTML(despeses);
+
+  // Sense cap cost encara: una sola columna (no hi ha res a resumir).
+  if (!hihaCost) return resum + detall;
+
   // El repartiment compta reserves i despeses soltes per igual (import + qui paga)
   const itemsRepart = [...ambPreu, ...despesesAmbImport.map(d => ({ preu: d.import, quiPaga: d.quiPaga }))];
 
-  return resum
-    + despesesSoltesHTML(despeses)
-    + (hihaCost ? repartimentHTML(itemsRepart, v.participants) : '');
+  // Dues columnes: a l'esquerra el que es mira (resum + qui deu a qui), a la
+  // dreta el que s'edita (les despeses soltes). Al mòbil s'apilen (CSS).
+  return `<div class="pressupost-columnes">
+    <div class="pressupost-col">${resum}${repartimentHTML(itemsRepart, v.participants)}</div>
+    <div class="pressupost-col">${detall}</div>
+  </div>`;
 }
 
 /* Una línia del desglossament: etiqueta a l'esquerra, import a la dreta. */
@@ -3985,11 +4046,17 @@ function despesesSoltesHTML(despeses) {
       <h4 class="agenda-titol">Despeses soltes · el detall</h4>
       <div class="despeses-llista">${llista}</div>
       <div class="despesa-nova">
-        <input id="nova-despesa-concepte" class="despesa-camp concepte" placeholder="Concepte (sopar, benzina…)">
-        <input id="nova-despesa-import" class="despesa-camp import" placeholder="Import" inputmode="decimal">
-        <select id="nova-despesa-categoria" class="despesa-camp categoria">${opcions}</select>
-        <input id="nova-despesa-paga" class="despesa-camp paga" placeholder="Qui ho paga (opcional)" list="noms-pagadors" autocomplete="off">
-        <button class="primari mini" data-afegeix-despesa>Afegeix</button>
+        <div class="despesa-fila">
+          <input id="nova-despesa-concepte" class="despesa-camp concepte" placeholder="Concepte (sopar, benzina…)">
+          <input id="nova-despesa-import" class="despesa-camp import" placeholder="Import" inputmode="decimal">
+        </div>
+        <div class="despesa-fila">
+          <select id="nova-despesa-categoria" class="despesa-camp categoria">${opcions}</select>
+          <input id="nova-despesa-paga" class="despesa-camp paga" placeholder="Qui ho paga (opcional)" list="noms-pagadors" autocomplete="off">
+        </div>
+        <div class="despesa-accio">
+          <button class="primari mini" data-afegeix-despesa>Afegeix</button>
+        </div>
       </div>
       <div class="avis" id="avis-despesa"></div>
     </div>`;
