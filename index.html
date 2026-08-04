@@ -76,8 +76,47 @@
     color: #F6EFE9;
   }
   header .compta { font-size: 13px; color: var(--accent-tenue); font-variant-numeric: tabular-nums; }
-  header #btn-surt { color: #E8D8E4; }
-  header #btn-surt:hover { background: var(--accent-clar); color: #F6EFE9; }
+  header .zona-compte { position: relative; }
+  header #btn-compte { color: #E8D8E4; }
+  header #btn-compte:hover { background: var(--accent-clar); color: #F6EFE9; }
+  .menu-compte {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 40;
+    min-width: 240px;
+    background: var(--superficie);
+    border: 1px solid var(--vora-forta);
+    border-radius: 10px;
+    padding: 5px;
+    box-shadow: 0 8px 24px rgba(51, 39, 46, 0.16);
+  }
+  .menu-compte-correu {
+    margin: 0 0 4px;
+    padding: 8px 10px 10px;
+    font-size: 12px;
+    color: var(--tinta-tenue);
+    border-bottom: 1px solid var(--vora);
+    word-break: break-all;
+  }
+  .menu-compte-opcio {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13.5px;
+    color: var(--tinta);
+    cursor: pointer;
+  }
+  .menu-compte-opcio:hover { background: var(--subtil); }
+  .menu-compte-nota { font-size: 11.5px; color: var(--tinta-tenue); font-weight: 400; }
+  .menu-compte-opcio.surt { color: var(--vermell); border-top: 1px solid var(--vora); border-radius: 0; margin-top: 3px; }
+  #fitxer-importa { display: none; }
 
   main { max-width: 1120px; margin: 0 auto; padding: 24px 28px 40px; }
   .pista { color: var(--tinta-suau); font-size: 13.5px; margin: 0 0 12px; }
@@ -358,6 +397,43 @@
   .previst-peu { font-size: 13px; color: var(--verd); margin-top: 7px; }
   .previst-peu.passat { color: var(--vermell); }
   .pressupost-previst.nomes-previst .previst-peu { color: var(--tinta-suau); }
+
+  /* El resum «global» del pressupost, en targeta, com a element principal */
+  .pressupost-resum {
+    background: var(--superficie);
+    border: 1px solid var(--vora-forta);
+    border-radius: 12px;
+    padding: 15px 18px 18px;
+  }
+  .pressupost-resum-titol { font-size: 15px; font-weight: 600; color: var(--tinta); margin-bottom: 6px; }
+  .pressupost-avall { color: var(--tinta-tenue); font-size: 11px; margin-left: 2px; }
+
+  /* Despeses soltes (apuntades a mà dins del pressupost) */
+  .despeses-soltes { margin-top: 26px; }
+  .despeses-llista { display: flex; flex-direction: column; margin-bottom: 12px; }
+  .despeses-buida { font-size: 12.5px; color: var(--tinta-suau); margin: 0 0 12px; }
+  .despesa {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 9px 2px; border-bottom: 1px solid var(--vora);
+  }
+  .despesa-info { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+  .despesa-concepte { font-size: 14px; color: var(--tinta); }
+  .despesa-meta { font-size: 12px; color: var(--tinta-tenue); }
+  .despesa-import { font-size: 14px; color: var(--tinta); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .despesa-treu {
+    border: none; background: none; color: var(--tinta-tenue);
+    font-size: 17px; line-height: 1; padding: 0 4px; cursor: pointer; border-radius: 6px; flex: none;
+  }
+  .despesa-treu:hover { background: var(--subtil); color: var(--vermell); }
+  .despesa-nova { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .despesa-camp {
+    padding: 8px 10px; border: 1px solid var(--vora); border-radius: 8px;
+    font-family: inherit; font-size: 13.5px; color: var(--tinta); background: var(--superficie);
+  }
+  .despesa-camp:focus { border-color: var(--accent); outline: none; }
+  .despesa-camp.concepte { flex: 1 1 160px; min-width: 120px; }
+  .despesa-camp.import { flex: 0 1 96px; width: 96px; font-variant-numeric: tabular-nums; }
+  .despesa-camp.paga { flex: 1 1 150px; min-width: 120px; }
 
   /* Repartiment: qui deu a qui, sota el pressupost */
   .repartiment { margin-top: 26px; }
@@ -796,7 +872,6 @@
     font-size: 13px;
   }
   footer .interior { border-top: 1px solid var(--vora); padding-top: 16px; }
-  #fitxer-importa { display: none; }
 
   @media (max-width: 780px) {
     header, main, footer { padding-left: 18px; padding-right: 18px; }
@@ -829,7 +904,16 @@
   <div class="cap-dreta">
     <span class="compta" id="comptador"></span>
     <span class="estat-sinc" id="estat-sinc" aria-live="polite"></span>
-    <button class="subtil mini ocult" id="btn-surt">Surt</button>
+    <div class="zona-compte ocult" id="zona-compte">
+      <button class="subtil mini" id="btn-compte" aria-haspopup="true" aria-expanded="false">Compte</button>
+      <div class="menu-compte ocult" id="menu-compte" role="menu">
+        <p class="menu-compte-correu" id="menu-compte-correu"></p>
+        <button class="menu-compte-opcio" id="opc-backup" role="menuitem">Desa una còpia de seguretat<span class="menu-compte-nota">un fitxer JSON amb tot el registre</span></button>
+        <button class="menu-compte-opcio" id="opc-restaura" role="menuitem">Recupera una còpia<span class="menu-compte-nota">afegeix el que falti, no esborra res</span></button>
+        <button class="menu-compte-opcio surt" id="opc-surt" role="menuitem">Surt</button>
+      </div>
+      <input type="file" id="fitxer-importa" accept=".json">
+    </div>
   </div>
 </header>
 
@@ -999,11 +1083,6 @@
 
 <footer>
   <div class="interior">
-    <div class="accions">
-      <button class="subtil" id="btn-backup">Desa una còpia de seguretat</button>
-      <button class="subtil" id="btn-restaura">Recupera una còpia</button>
-      <input type="file" id="fitxer-importa" accept=".json">
-    </div>
     <div class="avis" id="avis-peu"></div>
   </div>
 </footer>
@@ -1478,6 +1557,32 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Jerarquia visual del pressupost: el resum global (desglòs + total +
+      barra) passa a una targeta amb títol «Cost del viatge», i les despeses
+      soltes hi surten com UNA línia agregada (amb ▾) en comptes de per
+      categoria. A sota, les seccions «Despeses soltes · el detall» i «Qui
+      deu a qui» queden com a àrees de treball més lleugeres. Es veu que el
+      global conté el detall (v45).
+   FET · Despeses soltes del pressupost: dins d'un viatge, a la subpestanya
+      Pressupost, es poden apuntar a mà despeses que no són reserves (benzina,
+      sopars, entrades, souvenirs…), amb categoria (menjar/transport/oci/
+      compres/altres) i, opcionalment, qui les paga. Es desen dins del viatge
+      (v.despeses), sense taula nova; sumen al total i a la barra de previst-
+      contra-real i compten al repartiment igual que les reserves (v44).
+   FET · L'indicador de dalt a la dreta ja no diu «Al dia» quan tot està
+      sincronitzat: es queda buit (silenci = tot bé). Es mantenen els avisos
+      («N per sincronitzar», «Sincronitzant…», «Sense connexió», «Només en
+      aquest navegador», «No s'ha pogut sincronitzar») (v43).
+   FET · Menú de compte a la capçalera: el botó «Surt» passa a ser un
+      desplegable «Compte» (reaprofita el patró del menú d'assignació) amb el
+      correu, «Desa una còpia de seguretat» (JSON complet), «Recupera una
+      còpia» (additiva) i «Surt». Torna a estar disponible el backup/restaura
+      que la v41 havia tret, però ara amagat i agrupat (v42).
+   FET · Trets del peu els botons «Desa una còpia de seguretat» i «Recupera
+      una còpia» (i el seu JS: copiaCompleta, restauraCol i els handlers);
+      es manté l'exportació a Excel i l'àrea d'avisos del peu. A la vista
+      compacta de viatges ja no es mostra el resum (nombre de reserves ni
+      preu): funció resumViatge treta (v41).
    FET · Panell «afegeix una reserva»: ja no s'obre sol en carregar l'app
       (abans la primera càrrega amb el registre buit l'obria i es quedava
       obert fins i tot amb reserves). Es plega sempre; l'estat buit assenyala
@@ -1729,6 +1834,16 @@ const TIPUS = {
 
 const ORDRE_TIPUS = ['allotjament', 'vol', 'cotxe', 'entrada', 'altres'];
 
+/* Categories de les despeses soltes del pressupost (clau + etiqueta). Es pot
+   ampliar o reordenar aquí mateix; l'ordre és el que es mostra al desglòs. */
+const CATEGORIES_DESPESA = [
+  ['menjar', 'Menjar'],
+  ['transport', 'Transport'],
+  ['oci', 'Oci'],
+  ['compres', 'Compres'],
+  ['altres', 'Altres']
+];
+
 /* Els camps d'un tipus, seguits dels comuns. */
 function campsDe(tipus) {
   const t = TIPUS[tipus] || TIPUS.allotjament;
@@ -1866,7 +1981,7 @@ function creaMagatzem({ taula, clauLocal, demo, normalitza }) {
     escriuCru(totes) {
       if (MODE_DEMO) { enMemoria = totes; return; }
       try { localStorage.setItem(clauLocal, JSON.stringify(totes)); }
-      catch (e) { avisa($('avis-peu'), 'No s\u2019han pogut desar les dades en aquest navegador. Fes una c\u00f2pia de seguretat ara mateix.', 'mal'); }
+      catch (e) { avisa($('avis-peu'), 'No s\u2019han pogut desar les dades en aquest navegador (comprova que hi hagi espai lliure).', 'mal'); }
     },
 
     async llista() {
@@ -2078,8 +2193,10 @@ function mostraEstat(quin, detall) {
     return;
   }
   if (quin === 'error') { el.textContent = 'No s\u2019ha pogut sincronitzar'; el.classList.add('avis'); el.title = detall || ''; return; }
+  // Si tot està sincronitzat no es diu res; només es mostra el que queda
+  // pendent. Els estats d'avís (local, sense connexió, error…) es mantenen.
   const pendents = totPendent();
-  el.textContent = pendents ? pendents + ' per sincronitzar' : 'Al dia';
+  el.textContent = pendents ? pendents + ' per sincronitzar' : '';
 }
 
 /* ── Panell per afegir: replegat per defecte, obert quan el registre és buit ── */
@@ -2936,104 +3053,14 @@ $('btn-excel').addEventListener('click', async () => {
     XLSX.writeFile(llibre, `registre-${dataAvui}.xlsx`);
   } else {
     // Sense connexió al CDN: exportem CSV compatible amb Excel (BOM + punt i
-    // coma). El CSV només admet un full, així que hi van les reserves; per a
-    // la còpia completa (idees i viatges inclosos) hi ha el botó de còpia JSON.
+    // coma). El CSV només admet un full, així que hi van les reserves.
     const csv = '\uFEFF' + [capR, ...filesR]
       .map(f => f.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\r\n');
     baixa(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `reserves-${dataAvui}.csv`);
-    avisa($('avis-peu'), 'No s\u2019ha pogut carregar el m\u00f2dul d\u2019Excel (cal internet); he exportat un CSV de les reserves. Per a la c\u00f2pia completa (idees i viatges), fes servir la c\u00f2pia JSON.', 'mal');
+    avisa($('avis-peu'), 'No s\u2019ha pogut carregar el m\u00f2dul d\u2019Excel (cal internet); he exportat un CSV de les reserves.', 'mal');
   }
 });
 
-/* ── Còpia de seguretat JSON ──
-   La còpia inclou les TRES col·leccions (reserves, idees i viatges), no
-   només les reserves: és la xarxa de seguretat de tot el registre. El
-   format és un objecte amb versió; la restauració també entén el format
-   antic (un array de només reserves) per no deixar orfes les còpies velles.
-   MagatzemIdees.llista() ja retorna idees i visites juntes. */
-async function copiaCompleta() {
-  return {
-    tipus: 'registre-de-reserves-backup',
-    versio: 1,
-    exportatA: new Date().toISOString(),
-    reserves: await Magatzem.llista(),
-    idees: await MagatzemIdees.llista(),
-    viatges: await MagatzemViatges.llista()
-  };
-}
-
-$('btn-backup').addEventListener('click', async () => {
-  const dades = await copiaCompleta();
-  if (!dades.reserves.length && !dades.idees.length && !dades.viatges.length) {
-    avisa($('avis-peu'), 'El registre \u00e9s buit: no hi ha res a copiar.', 'mal'); return;
-  }
-  baixa(new Blob([JSON.stringify(dades, null, 2)], { type: 'application/json' }),
-        `registre-copia-${new Date().toISOString().slice(0, 10)}.json`);
-  avisa($('avis-peu'), 'C\u00f2pia desada (reserves, idees i viatges). Guarda-la en lloc segur (Drive, USB\u2026).', 'ok');
-});
-
-$('btn-restaura').addEventListener('click', () => $('fitxer-importa').click());
-
-/* Afegeix a un magatzem els elements que encara no hi són (per id; i, en
-   les reserves, també pel número de reserva, per si la còpia ve d'abans que
-   hi hagués ids). No sobreescriu res que ja existeixi. Torna quants n'afegeix. */
-async function restauraCol(magatzem, llista, existents) {
-  if (!Array.isArray(llista)) return 0;
-  const ids = new Set(existents.map(r => r.id).filter(Boolean));
-  const nums = new Set(existents.map(r => r.numReserva).filter(Boolean));
-  let afegits = 0;
-  for (const r of llista) {
-    if (!r || typeof r !== 'object') continue;
-    if (r.id && ids.has(r.id)) continue;
-    if (r.numReserva && nums.has(r.numReserva)) continue;
-    await magatzem.afegeix(r);
-    if (r.id) ids.add(r.id);
-    if (r.numReserva) nums.add(r.numReserva);
-    afegits++;
-  }
-  return afegits;
-}
-
-$('fitxer-importa').addEventListener('change', e => {
-  const fitxer = e.target.files[0];
-  if (!fitxer) return;
-  const lector = new FileReader();
-  lector.onload = async () => {
-    try {
-      const dades = JSON.parse(lector.result);
-
-      // Format nou: un objecte amb les tres col·leccions. Format antic: un
-      // array de només reserves. S'accepten tots dos. (Un array buit és
-      // truthy, així que una còpia nova sense res es reconeix igualment.)
-      const esNou = dades && !Array.isArray(dades) && (dades.reserves || dades.idees || dades.viatges);
-      const esAntic = Array.isArray(dades);
-      if (!esNou && !esAntic) throw new Error('format');
-
-      // Comparem contra el que ja hi ha desat (viu, sense esborrats)
-      const reservesCru = Magatzem.llegeixCru().filter(r => r && !r.esborrat);
-      const ideesCru = MagatzemIdees.llegeixCru().filter(r => r && !r.esborrat);
-      const viatgesCru = MagatzemViatges.llegeixCru().filter(r => r && !r.esborrat);
-
-      const nR = await restauraCol(Magatzem, esAntic ? dades : (dades.reserves || []), reservesCru);
-      const nI = esNou ? await restauraCol(MagatzemIdees, dades.idees || [], ideesCru) : 0;
-      const nV = esNou ? await restauraCol(MagatzemViatges, dades.viatges || [], viatgesCru) : 0;
-
-      await refresca();
-
-      const parts = [];
-      if (nR) parts.push(nR + (nR === 1 ? ' reserva' : ' reserves'));
-      if (nI) parts.push(nI + (nI === 1 ? ' idea' : ' idees'));
-      if (nV) parts.push(nV + (nV === 1 ? ' viatge' : ' viatges'));
-      avisa($('avis-peu'), parts.length
-        ? 'C\u00f2pia recuperada. S\u2019ha afegit: ' + parts.join(', ') + '.'
-        : 'C\u00f2pia recuperada: no hi havia res nou, ja ho tenies tot.', 'ok');
-    } catch (err) {
-      avisa($('avis-peu'), 'Aquest fitxer no sembla una c\u00f2pia de seguretat del registre.', 'mal');
-    }
-    e.target.value = '';
-  };
-  lector.readAsText(fitxer);
-});
 
 function baixa(blob, nom) {
   const a = document.createElement('a');
@@ -3577,25 +3604,14 @@ function pintaViatges() {
     ? viatges.length + (viatges.length === 1 ? ' viatge' : ' viatges') : '';
   buida.classList.toggle('ocult', viatges.length > 0);
   cont.innerHTML = viatges.map(v => {
-    const info = resumViatge(v);
     return `
     <div class="viatge" data-viatge="${esc(v.id)}">
       <button class="viatge-cap" data-obre="${esc(v.id)}">
         <span class="viatge-nom">${esc(v.nom || 'Viatge sense nom')}</span>
         <span class="viatge-dates">${esc(rangViatge(v))}</span>
-        ${info ? `<span class="viatge-resum">${esc(info)}</span>` : ''}
       </button>
     </div>`;
   }).join('');
-}
-
-/* Un resum curt del contingut del viatge: quantes reserves i el total. */
-function resumViatge(v) {
-  const seves = reserves.filter(r => r.viatgeId === v.id);
-  if (!seves.length) return '';
-  const total = seves.reduce((s, r) => s + (importNum(r.preu) || 0), 0);
-  const nRes = seves.length + (seves.length === 1 ? ' reserva' : ' reserves');
-  return total ? `${nRes} · ${formataImport(total)}` : nRes;
 }
 
 /* ── Formulari de crear / editar viatge ── */
@@ -3866,67 +3882,151 @@ function agendaHTML(seves) {
    previst arribaran en passos següents (l'estructura ja els espera). */
 function pressupostHTML(v, seves) {
   const ambPreu = seves.filter(r => importNum(r.preu));
+  const despeses = Array.isArray(v.despeses) ? v.despeses : [];
+  const despesesAmbImport = despeses.filter(d => importNum(d.import) != null);
   const previst = importNum(v.pressupost);
 
-  if (!ambPreu.length) {
+  const totalDespeses = despesesAmbImport.reduce((s, d) => s + importNum(d.import), 0);
+  const total = ambPreu.reduce((s, r) => s + importNum(r.preu), 0) + totalDespeses;
+  const hihaCost = ambPreu.length || despesesAmbImport.length;
+
+  // Desglossament del resum: subtotals per tipus de reserva i UNA línia
+  // agregada per a les despeses soltes (el detall va a la secció de sota).
+  const perTipus = {};
+  for (const r of ambPreu) { const t = tipusDe(r); perTipus[t] = (perTipus[t] || 0) + importNum(r.preu); }
+  let files = ORDRE_TIPUS.filter(t => perTipus[t]).map(t => liniaPressupost(TIPUS[t].plural || TIPUS[t].nom, perTipus[t])).join('');
+  if (totalDespeses) {
+    files += `<div class="pressupost-linia">
+      <span class="pressupost-tipus">Despeses soltes <span class="pressupost-avall" aria-hidden="true">\u25be</span></span>
+      <span class="pressupost-import">${esc(formataImport(totalDespeses))}</span>
+    </div>`;
+  }
+
+  let resum;
+  if (hihaCost) {
+    resum = `
+      <div class="pressupost-resum">
+        <div class="pressupost-resum-titol">Cost del viatge</div>
+        <div class="pressupost-desglos">${files}</div>
+        <div class="pressupost-total"><span>Total</span><span>${esc(formataImport(total))}</span></div>
+        ${barraPrevist(previst, total)}
+      </div>`;
+  } else {
     const nota = previst
       ? `<div class="pressupost-previst nomes-previst">
            <div class="previst-cap"><span>Pressupost previst</span><span>${esc(formataImport(previst))}</span></div>
            <div class="previst-peu">Encara no has assignat cap despesa.</div>
          </div>`
       : '';
-    return `<p class="detall-buit">Encara no hi ha despeses en aquest viatge. Els preus de les reserves que hi assignis apareixeran aquí.</p>${nota}`;
+    resum = `<p class="detall-buit">Encara no hi ha despeses en aquest viatge. Assigna reserves amb preu o afegeix despeses soltes aquí sota.</p>${nota}`;
   }
 
-  // Subtotal per tipus, en l'ordre habitual dels tipus
-  const perTipus = {};
-  for (const r of ambPreu) {
-    const t = tipusDe(r);
-    perTipus[t] = (perTipus[t] || 0) + importNum(r.preu);
-  }
-  const files = ORDRE_TIPUS
-    .filter(t => perTipus[t])
-    .map(t => `<div class="pressupost-linia">
-      <span class="pressupost-tipus">${esc(TIPUS[t].plural || TIPUS[t].nom)}</span>
-      <span class="pressupost-import">${esc(formataImport(perTipus[t]))}</span>
-    </div>`).join('');
+  // El repartiment compta reserves i despeses soltes per igual (import + qui paga)
+  const itemsRepart = [...ambPreu, ...despesesAmbImport.map(d => ({ preu: d.import, quiPaga: d.quiPaga }))];
 
-  const total = ambPreu.reduce((s, r) => s + importNum(r.preu), 0);
+  return resum
+    + despesesSoltesHTML(despeses)
+    + (hihaCost ? repartimentHTML(itemsRepart, v.participants) : '');
+}
 
-  // Pressupost previst (el sostre), si el viatge en té
-  let barra = '';
-  if (previst) {
-    const percent = Math.min(100, Math.round(total / previst * 100));
-    const passat = total > previst;
-    const diferencia = Math.abs(previst - total);
-    const missatge = passat
-      ? `Te n'has passat de ${formataImport(diferencia)}`
-      : `Et queden ${formataImport(diferencia)}`;
-    barra = `
-      <div class="pressupost-previst">
-        <div class="previst-cap">
-          <span>Pressupost previst</span>
-          <span>${esc(formataImport(previst))}</span>
-        </div>
-        <div class="previst-barra"><div class="previst-ompliment${passat ? ' passat' : ''}" style="width:${percent}%"></div></div>
-        <div class="previst-peu${passat ? ' passat' : ''}">${esc(missatge)}</div>
-      </div>`;
-  }
+/* Una línia del desglossament: etiqueta a l'esquerra, import a la dreta. */
+function liniaPressupost(etiqueta, valor) {
+  return `<div class="pressupost-linia">
+    <span class="pressupost-tipus">${esc(etiqueta)}</span>
+    <span class="pressupost-import">${esc(formataImport(valor))}</span>
+  </div>`;
+}
+
+/* La barra de «previst contra real», si el viatge té sostre definit. */
+function barraPrevist(previst, total) {
+  if (!previst) return '';
+  const percent = Math.min(100, Math.round(total / previst * 100));
+  const passat = total > previst;
+  const diferencia = Math.abs(previst - total);
+  const missatge = passat ? `Te n'has passat de ${formataImport(diferencia)}` : `Et queden ${formataImport(diferencia)}`;
+  return `
+    <div class="pressupost-previst">
+      <div class="previst-cap">
+        <span>Pressupost previst</span>
+        <span>${esc(formataImport(previst))}</span>
+      </div>
+      <div class="previst-barra"><div class="previst-ompliment${passat ? ' passat' : ''}" style="width:${percent}%"></div></div>
+      <div class="previst-peu${passat ? ' passat' : ''}">${esc(missatge)}</div>
+    </div>`;
+}
+
+/* ── Despeses soltes ──
+   Despeses apuntades a mà que no són cap reserva (benzina, sopars, entrades,
+   souvenirs…), cadascuna amb una categoria i, opcionalment, qui la va pagar.
+   Es desen dins del viatge (v.despeses), així que viatgen amb la
+   sincronització i la còpia sense cap taula nova. Sumen al total i a la barra
+   de previst-contra-real, i compten al repartiment igual que les reserves. */
+function despesesSoltesHTML(despeses) {
+  const llista = despeses.length
+    ? despeses.map(d => {
+        const cat = (CATEGORIES_DESPESA.find(([k]) => k === d.categoria) || ['', 'Altres'])[1];
+        const imp = importNum(d.import) != null ? formataImport(importNum(d.import)) : (d.import || '');
+        const paga = (d.quiPaga || '').trim();
+        return `<div class="despesa">
+          <div class="despesa-info">
+            <span class="despesa-concepte">${esc(d.concepte || cat)}</span>
+            <span class="despesa-meta">${esc(cat)}${paga ? ' · ' + esc(paga) : ''}</span>
+          </div>
+          <span class="despesa-import">${esc(imp)}</span>
+          <button class="despesa-treu" data-treu-despesa="${esc(d.id)}" aria-label="Treu la despesa" title="Treu">\u00d7</button>
+        </div>`;
+      }).join('')
+    : `<p class="despeses-buida">Cap despesa solta encara. Afegeix-hi benzina, sopars, entrades, souvenirs…</p>`;
+
+  const opcions = CATEGORIES_DESPESA.map(([k, label]) => `<option value="${esc(k)}">${esc(label)}</option>`).join('');
 
   return `
-    <div class="pressupost-desglos">${files}</div>
-    <div class="pressupost-total">
-      <span>Total</span>
-      <span>${esc(formataImport(total))}</span>
-    </div>
-    ${barra}
-    ${repartimentHTML(ambPreu, v.participants)}`;
+    <div class="despeses-soltes">
+      <h4 class="agenda-titol">Despeses soltes · el detall</h4>
+      <div class="despeses-llista">${llista}</div>
+      <div class="despesa-nova">
+        <input id="nova-despesa-concepte" class="despesa-camp concepte" placeholder="Concepte (sopar, benzina…)">
+        <input id="nova-despesa-import" class="despesa-camp import" placeholder="Import" inputmode="decimal">
+        <select id="nova-despesa-categoria" class="despesa-camp categoria">${opcions}</select>
+        <input id="nova-despesa-paga" class="despesa-camp paga" placeholder="Qui ho paga (opcional)" list="noms-pagadors" autocomplete="off">
+        <button class="primari mini" data-afegeix-despesa>Afegeix</button>
+      </div>
+      <div class="avis" id="avis-despesa"></div>
+    </div>`;
+}
+
+/* Afegeix la despesa que hi ha al formulari al viatge obert. */
+async function afegeixDespesa() {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const concepte = $('nova-despesa-concepte').value.trim();
+  const importText = $('nova-despesa-import').value.trim();
+  const categoria = $('nova-despesa-categoria').value;
+  const quiPaga = $('nova-despesa-paga').value.trim();
+  if (importNum(importText) == null) {
+    avisa($('avis-despesa'), 'Posa un import (per exemple, 38,50 €).', 'mal');
+    $('nova-despesa-import').focus();
+    return;
+  }
+  const despeses = Array.isArray(v.despeses) ? [...v.despeses] : [];
+  despeses.push({ id: nouId(), concepte, import: importText, categoria, quiPaga });
+  await MagatzemViatges.actualitza(v.id, { despeses });
+  await refresca();
+}
+
+/* Treu una despesa del viatge obert pel seu id. */
+async function treuDespesa(id) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const despeses = (v.despeses || []).filter(d => d.id !== id);
+  await MagatzemViatges.actualitza(v.id, { despeses });
+  await refresca();
 }
 
 /* ── Repartiment: qui deu a qui ──
-   A partir del «qui ho paga» de cada reserva, reparteix el cost del viatge
-   a parts iguals entre els participants i calcula les transferències
-   mínimes per quedar en paus (com un Tricount).
+   A partir del «qui ho paga» de cada reserva o despesa solta, reparteix el
+   cost del viatge a parts iguals entre els participants i calcula les
+   transferències mínimes per quedar en paus (com un Tricount).
 
    Qui són els participants:
    · Els que el viatge tingui definits a «entre qui es reparteix» (els
@@ -4067,6 +4167,18 @@ $('detall-viatge-vista').addEventListener('click', async e => {
     await refresca();
     return;
   }
+  // Despeses soltes del pressupost
+  if (e.target.closest('[data-afegeix-despesa]')) { await afegeixDespesa(); return; }
+  const trd = e.target.closest('[data-treu-despesa]');
+  if (trd) { await treuDespesa(trd.dataset.treuDespesa); return; }
+});
+
+// Enter en un camp de la nova despesa equival a prémer «Afegeix»
+$('detall-viatge-vista').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.closest('.despesa-nova')) {
+    e.preventDefault();
+    afegeixDespesa();
+  }
 });
 
 /* Editar en línia els camps d'una visita (dia, hora, zona, etiquetes, nota) */
@@ -4132,7 +4244,7 @@ $('btn-cancela-viatge').addEventListener('click', tancaFitxaViatge);
 
 function mostraAcces(visible) {
   $('acces').classList.toggle('ocult', !visible);
-  $('btn-surt').classList.toggle('ocult', visible);
+  $('zona-compte').classList.toggle('ocult', visible);
   if (visible) $('acces-correu').focus();
 }
 
@@ -4184,7 +4296,8 @@ for (const id of ['acces-correu', 'acces-clau']) {
   $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-entra').click(); });
 }
 
-$('btn-surt').addEventListener('click', async () => {
+$('opc-surt').addEventListener('click', async () => {
+  tancaMenuCompte();
   const pendents = totPendent();
   const avis = pendents
     ? 'Tens ' + pendents + (pendents === 1 ? ' canvi' : ' canvis') + ' sense sincronitzar. '
@@ -4201,6 +4314,106 @@ $('btn-surt').addEventListener('click', async () => {
   await Nuvol.surt();
   esborraDadesLocals();
   location.reload();
+});
+
+/* ── Menú de compte (a la capçalera) ──
+   Agrupa les accions poc freqüents darrere d'un clic: el correu, la còpia
+   de seguretat, la restauració i el botó de sortir. Reaprofita el patró de
+   desplegable (obrir, i tancar si es clica a fora) del menú d'assignació. */
+function obreMenuCompte() {
+  const menu = $('menu-compte');
+  if (!menu.classList.contains('ocult')) { tancaMenuCompte(); return; }
+  $('menu-compte-correu').textContent = (Nuvol.usuari && Nuvol.usuari.email) || 'Sessió oberta';
+  menu.classList.remove('ocult');
+  $('btn-compte').setAttribute('aria-expanded', 'true');
+  setTimeout(() => document.addEventListener('click', tancaMenuCompteSiFora), 0);
+}
+function tancaMenuCompte() {
+  $('menu-compte').classList.add('ocult');
+  $('btn-compte').setAttribute('aria-expanded', 'false');
+  document.removeEventListener('click', tancaMenuCompteSiFora);
+}
+function tancaMenuCompteSiFora(e) {
+  if (!e.target.closest('#zona-compte')) tancaMenuCompte();
+}
+$('btn-compte').addEventListener('click', () => obreMenuCompte());
+
+/* ── Còpia de seguretat JSON (completa) i restauració ──
+   La còpia inclou les tres col·leccions (reserves, idees i viatges) amb tots
+   els camps. La restauració és additiva: només afegeix el que falti (per id;
+   i, en les reserves, també pel número de reserva), sense sobreescriure ni
+   esborrar res, i entén tant el format nou com l'antic (array de reserves). */
+async function copiaCompleta() {
+  return {
+    tipus: 'registre-de-reserves-backup',
+    versio: 1,
+    exportatA: new Date().toISOString(),
+    reserves: await Magatzem.llista(),
+    idees: await MagatzemIdees.llista(),
+    viatges: await MagatzemViatges.llista()
+  };
+}
+
+$('opc-backup').addEventListener('click', async () => {
+  tancaMenuCompte();
+  const dades = await copiaCompleta();
+  if (!dades.reserves.length && !dades.idees.length && !dades.viatges.length) {
+    avisa($('avis-peu'), 'El registre \u00e9s buit: no hi ha res a copiar.', 'mal'); return;
+  }
+  baixa(new Blob([JSON.stringify(dades, null, 2)], { type: 'application/json' }),
+        `registre-copia-${new Date().toISOString().slice(0, 10)}.json`);
+  avisa($('avis-peu'), 'C\u00f2pia desada (reserves, idees i viatges). Guarda-la en lloc segur (Drive, USB\u2026).', 'ok');
+});
+
+$('opc-restaura').addEventListener('click', () => { tancaMenuCompte(); $('fitxer-importa').click(); });
+
+async function restauraCol(magatzem, llista, existents) {
+  if (!Array.isArray(llista)) return 0;
+  const ids = new Set(existents.map(r => r.id).filter(Boolean));
+  const nums = new Set(existents.map(r => r.numReserva).filter(Boolean));
+  let afegits = 0;
+  for (const r of llista) {
+    if (!r || typeof r !== 'object') continue;
+    if (r.id && ids.has(r.id)) continue;
+    if (r.numReserva && nums.has(r.numReserva)) continue;
+    await magatzem.afegeix(r);
+    if (r.id) ids.add(r.id);
+    if (r.numReserva) nums.add(r.numReserva);
+    afegits++;
+  }
+  return afegits;
+}
+
+$('fitxer-importa').addEventListener('change', e => {
+  const fitxer = e.target.files[0];
+  if (!fitxer) return;
+  const lector = new FileReader();
+  lector.onload = async () => {
+    try {
+      const dades = JSON.parse(lector.result);
+      const esNou = dades && !Array.isArray(dades) && (dades.reserves || dades.idees || dades.viatges);
+      const esAntic = Array.isArray(dades);
+      if (!esNou && !esAntic) throw new Error('format');
+      const reservesCru = Magatzem.llegeixCru().filter(r => r && !r.esborrat);
+      const ideesCru = MagatzemIdees.llegeixCru().filter(r => r && !r.esborrat);
+      const viatgesCru = MagatzemViatges.llegeixCru().filter(r => r && !r.esborrat);
+      const nR = await restauraCol(Magatzem, esAntic ? dades : (dades.reserves || []), reservesCru);
+      const nI = esNou ? await restauraCol(MagatzemIdees, dades.idees || [], ideesCru) : 0;
+      const nV = esNou ? await restauraCol(MagatzemViatges, dades.viatges || [], viatgesCru) : 0;
+      await refresca();
+      const parts = [];
+      if (nR) parts.push(nR + (nR === 1 ? ' reserva' : ' reserves'));
+      if (nI) parts.push(nI + (nI === 1 ? ' idea' : ' idees'));
+      if (nV) parts.push(nV + (nV === 1 ? ' viatge' : ' viatges'));
+      avisa($('avis-peu'), parts.length
+        ? 'C\u00f2pia recuperada. S\u2019ha afegit: ' + parts.join(', ') + '.'
+        : 'C\u00f2pia recuperada: no hi havia res nou, ja ho tenies tot.', 'ok');
+    } catch (err) {
+      avisa($('avis-peu'), 'Aquest fitxer no sembla una c\u00f2pia de seguretat del registre.', 'mal');
+    }
+    e.target.value = '';
+  };
+  lector.readAsText(fitxer);
 });
 
 /* Buida tot el que l'app ha desat en aquest navegador. Es fa en tancar la
