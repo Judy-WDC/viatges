@@ -471,6 +471,25 @@
   .despesa-camp.categoria { flex: 1 1 0; min-width: 0; }
   .despesa-camp.paga { flex: 1 1 0; min-width: 0; }
 
+  /* Fila de despesa clicable (s'obre per editar) i formulari d'edició */
+  .despesa-obre {
+    flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 10px;
+    background: none; border: none; text-align: left; font-family: inherit; color: inherit; cursor: pointer; padding: 0;
+  }
+  .despesa-obre:hover .despesa-concepte { color: var(--accent); }
+  .despesa-edicio {
+    background: var(--superficie-clara); border: 1px solid var(--vora-forta); border-radius: 10px;
+    padding: 12px; margin: 8px 0; display: flex; flex-direction: column; gap: 8px;
+  }
+  .despesa-edicio-accions { display: flex; align-items: center; margin-top: 2px; }
+  .despesa-edicio-spacer { flex: 1; }
+  .despesa-edicio-accions .subtil { margin-right: 8px; }
+  .despesa-elimina {
+    border: none; background: none; color: var(--vermell); font-family: inherit; font-size: 12.5px;
+    cursor: pointer; padding: 6px 2px;
+  }
+  .despesa-elimina:hover { text-decoration: underline; }
+
   /* Repartiment: qui deu a qui, sota el pressupost */
   .repartiment { margin-top: 26px; }
   .repart-nota { font-size: 12.5px; color: var(--tinta-suau); margin: 0 0 12px; }
@@ -495,6 +514,20 @@
   .repart-de, .repart-a { font-weight: 600; color: var(--accent); }
   .repart-fletxa { color: var(--accent-clar); }
   .repart-import { margin-left: auto; font-weight: 600; color: var(--accent-fort); font-variant-numeric: tabular-nums; }
+
+  /* Ajustos de mòbil del pressupost. Va aquí, DESPRÉS de les regles que
+     sobreescriu (import, despesa-camp, repart-*), perquè guanyi per ordre. */
+  @media (max-width: 500px) {
+    /* Formulari de despeses: un camp per filera, més còmode amb el dit.
+       En columna cal reposar l'import a alçada automàtica (si no, el 96px
+       es llegeix com a alçada i la caixa surt alta). */
+    .despesa-fila { flex-direction: column; }
+    .despesa-fila .despesa-camp { flex: 0 0 auto; width: 100%; height: auto; }
+    /* Repartiment: nom i saldo a dalt, i el detall (pagat/li'n toquen) a sota */
+    .repart-nom { order: 1; }
+    .repart-saldo { order: 2; }
+    .repart-detall { order: 3; flex-basis: 100%; margin-top: 2px; }
+  }
 
   /* Agenda del viatge: blocs d'itinerari, per encaixar i idees */
   .agenda-bloc { margin-bottom: 22px; }
@@ -1642,6 +1675,28 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Les despeses soltes ara s'editen en línia: en clicar una despesa de
+      la llista s'obre allà mateix amb els seus camps (concepte, import,
+      categoria, qui paga) i les accions Desa / Cancel·la / Elimina. Una a la
+      vegada, mateixa validació que en afegir (import obligatori), i en desar
+      es recalculen total, barra i repartiment (v61).
+   FET · Correcció: al mòbil, la caixa de l'import del formulari de despeses
+      sortia massa alta (el 96px es llegia com a alçada en columna). El bloc
+      d'ajustos mòbil s'ha mogut després de les regles que sobreescriu perquè
+      guanyi per ordre; l'import torna a alçada normal (v60).
+   FET · Responsive del pressupost (mòbil, ≤500px): el formulari d'afegir
+      despesa passa a un camp per filera, i les files del repartiment posen
+      el nom i el saldo a dalt i el detall a sota, per no amuntegar-se. La
+      resta del pressupost i l'agenda ja s'hi veien bé (v59).
+   FET · A la fila compacta (plegada), l'avís de cancel·lació només surt si
+      encara es pot cancel·lar: s'amaga quan no en té (vols), quan és «no
+      reemborsable» o quan la data ja ha vençut (classe cancel-apagat). Al
+      detall desplegat s'hi continua veient sempre (v58).
+   FET · El resum de dalt de les idees s'agrupa per VIATGE en comptes de per
+      poble de cada reserva: una línia per viatge («Tens N idees per al viatge
+      a Tenerife · del … al …»), amb el mateix creuament geogràfic de
+      l'agenda (entén que Los Cristianos és a Tenerife), sense partir-ho per
+      pobles ni comptar idees dues vegades (v57).
    FET · A «Activitats del dia», cada fila és desplegable: en clicar-la
       s'obre el detall complet de només lectura (els mateixos camps que
       l'itinerari complet: dates, hores, companyia, núm. de reserva, preu,
@@ -2912,7 +2967,7 @@ function filaReservaHTML(r) {
             <span class="xifra">${esc(dates.principal)}</span>
             <span class="menuda">${esc(dates.secundari)}</span>
           </span>
-          <span class="cel-cancel ${canc.classe}">${esc(canc.text)}</span>
+          <span class="cel-cancel ${canc.classe === 'cancel-apagat' ? '' : canc.classe}">${canc.classe === 'cancel-apagat' ? '' : esc(canc.text)}</span>
           <span class="cel-preu">
             <span class="xifra ${pag.classe}">${preuTxt}</span>
             <span class="menuda ${pag.classe}">${esc(pag.text)}</span>
@@ -3424,34 +3479,32 @@ function pintaCoincidencies() {
   if (!caixa) return;
   const ara = avui();
 
-  // Reserves futures amb població, agrupades per zona (l'entrada més propera)
-  const futures = [];
-  for (const r of reserves) {
-    const p = poblacioReserva(r);
-    const d = aData(r.checkinISO);
-    if (!p || !d || d < ara) continue;
-    futures.push({ nom: p, data: d, r });
-  }
-
+  // Per a cada viatge que encara no hagi passat, quantes idees de la wishlist
+  // hi encaixen (el mateix creuament geogràfic que fa servir l'agenda a
+  // «Idees per a aquest viatge»). Una línia per VIATGE, amb el seu nom, en
+  // comptes d'anar per pobles de cada reserva.
   const trobades = [];
-  const vistes = new Set();
-  for (const f of futures) {
-    const clau = f.nom.toLowerCase();
-    if (vistes.has(clau)) continue;
-    vistes.add(clau);
-    // Idees que coincideixen amb aquesta zona, per text o per jerarquia
-    const quantes = idees.filter(i => zonesCoincideixen(i.zona, f.nom)).length;
-    if (quantes) trobades.push({ ...f, quantes });
+  for (const v of viatges) {
+    const fi = aData(v.dataFi) || aData(v.dataInici);
+    if (fi && fi < ara) continue;   // viatge ja passat
+    const seves = reserves.filter(r => r.viatgeId === v.id);
+    const quantes = ideesSuggerides(v, seves).length;
+    if (quantes) trobades.push({ v, quantes, ini: aData(v.dataInici), fi: aData(v.dataFi) });
   }
-  trobades.sort((a, b) => a.data - b.data);
+  // Amb data, primer i pels més propers; sense data, al final
+  trobades.sort((a, b) => {
+    if (a.ini && b.ini) return a.ini - b.ini;
+    if (a.ini) return -1;
+    if (b.ini) return 1;
+    return 0;
+  });
 
   caixa.innerHTML = trobades.map(t => {
-    const sortida = aData(t.r.checkoutISO);
-    const quan = sortida
-      ? 'hi vas del ' + dataLlarga(t.data) + ' al ' + dataLlarga(sortida)
-      : 'hi vas el ' + dataLlarga(t.data);
+    const quan = (t.ini && t.fi) ? 'del ' + dataLlarga(t.ini) + ' al ' + dataLlarga(t.fi)
+      : t.ini ? 'a partir del ' + dataLlarga(t.ini)
+      : '';
     return `<div class="coincidencia">
-      Tens ${t.quantes} ${t.quantes === 1 ? 'idea' : 'idees'} a ${esc(t.nom)} i ${esc(quan)}
+      Tens ${t.quantes} ${t.quantes === 1 ? 'idea' : 'idees'} per al viatge a <strong>${esc(t.v.nom || 'sense nom')}</strong>${quan ? ' · ' + esc(quan) : ''}
     </div>`;
   }).join('');
 
@@ -4335,24 +4388,54 @@ function barraPrevist(previst, total) {
    Es desen dins del viatge (v.despeses), així que viatgen amb la
    sincronització i la còpia sense cap taula nova. Sumen al total i a la barra
    de previst-contra-real, i compten al repartiment igual que les reserves. */
+let despesaEnEdicio = null;   // id de la despesa que s'està editant en línia, o null
+
+/* Les opcions de categoria per a un <select>, amb la triada marcada. */
+function opcionsCategoria(sel) {
+  return CATEGORIES_DESPESA.map(([k, label]) => `<option value="${esc(k)}"${k === sel ? ' selected' : ''}>${esc(label)}</option>`).join('');
+}
+
+/* Una despesa plegada: es clica per obrir-la i editar-la; la × la treu. */
+function filaDespesaHTML(d) {
+  const cat = (CATEGORIES_DESPESA.find(([k]) => k === d.categoria) || ['', 'Altres'])[1];
+  const imp = importNum(d.import) != null ? formataImport(importNum(d.import)) : (d.import || '');
+  const paga = (d.quiPaga || '').trim();
+  return `<div class="despesa">
+    <button class="despesa-obre" data-edita-despesa="${esc(d.id)}">
+      <span class="despesa-info">
+        <span class="despesa-concepte">${esc(d.concepte || cat)}</span>
+        <span class="despesa-meta">${esc(cat)}${paga ? ' · ' + esc(paga) : ''}</span>
+      </span>
+      <span class="despesa-import">${esc(imp)}</span>
+    </button>
+    <button class="despesa-treu" data-treu-despesa="${esc(d.id)}" aria-label="Treu la despesa" title="Treu">\u00d7</button>
+  </div>`;
+}
+
+/* Una despesa oberta en mode edició: els seus camps i les accions. */
+function formEdicioDespesaHTML(d) {
+  return `<div class="despesa-edicio">
+    <div class="despesa-fila">
+      <input id="edita-despesa-concepte" class="despesa-camp concepte" value="${esc(d.concepte || '')}" placeholder="Concepte (sopar, benzina…)">
+      <input id="edita-despesa-import" class="despesa-camp import" value="${esc(d.import || '')}" placeholder="Import" inputmode="decimal">
+    </div>
+    <div class="despesa-fila">
+      <select id="edita-despesa-categoria" class="despesa-camp categoria">${opcionsCategoria(d.categoria)}</select>
+      <input id="edita-despesa-paga" class="despesa-camp paga" value="${esc(d.quiPaga || '')}" placeholder="Qui ho paga (opcional)" list="noms-pagadors" autocomplete="off">
+    </div>
+    <div class="despesa-edicio-accions">
+      <button class="despesa-elimina" data-treu-despesa="${esc(d.id)}">Elimina</button>
+      <span class="despesa-edicio-spacer"></span>
+      <button class="subtil mini" data-cancela-edicio>Cancel·la</button>
+      <button class="primari mini" data-desa-despesa="${esc(d.id)}">Desa</button>
+    </div>
+  </div>`;
+}
+
 function despesesSoltesHTML(despeses) {
   const llista = despeses.length
-    ? despeses.map(d => {
-        const cat = (CATEGORIES_DESPESA.find(([k]) => k === d.categoria) || ['', 'Altres'])[1];
-        const imp = importNum(d.import) != null ? formataImport(importNum(d.import)) : (d.import || '');
-        const paga = (d.quiPaga || '').trim();
-        return `<div class="despesa">
-          <div class="despesa-info">
-            <span class="despesa-concepte">${esc(d.concepte || cat)}</span>
-            <span class="despesa-meta">${esc(cat)}${paga ? ' · ' + esc(paga) : ''}</span>
-          </div>
-          <span class="despesa-import">${esc(imp)}</span>
-          <button class="despesa-treu" data-treu-despesa="${esc(d.id)}" aria-label="Treu la despesa" title="Treu">\u00d7</button>
-        </div>`;
-      }).join('')
+    ? despeses.map(d => d.id === despesaEnEdicio ? formEdicioDespesaHTML(d) : filaDespesaHTML(d)).join('')
     : `<p class="despeses-buida">Cap despesa solta encara. Afegeix-hi benzina, sopars, entrades, souvenirs…</p>`;
-
-  const opcions = CATEGORIES_DESPESA.map(([k, label]) => `<option value="${esc(k)}">${esc(label)}</option>`).join('');
 
   return `
     <div class="despeses-soltes">
@@ -4364,7 +4447,7 @@ function despesesSoltesHTML(despeses) {
           <input id="nova-despesa-import" class="despesa-camp import" placeholder="Import" inputmode="decimal">
         </div>
         <div class="despesa-fila">
-          <select id="nova-despesa-categoria" class="despesa-camp categoria">${opcions}</select>
+          <select id="nova-despesa-categoria" class="despesa-camp categoria">${opcionsCategoria('')}</select>
           <input id="nova-despesa-paga" class="despesa-camp paga" placeholder="Qui ho paga (opcional)" list="noms-pagadors" autocomplete="off">
         </div>
         <div class="despesa-accio">
@@ -4394,10 +4477,30 @@ async function afegeixDespesa() {
   await refresca();
 }
 
+/* Desa els canvis de la despesa que s'està editant en línia. */
+async function desaDespesa(id) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const importText = $('edita-despesa-import').value.trim();
+  if (importNum(importText) == null) {
+    avisa($('avis-despesa'), 'Posa un import (per exemple, 38,50 €).', 'mal');
+    $('edita-despesa-import').focus();
+    return;
+  }
+  const concepte = $('edita-despesa-concepte').value.trim();
+  const categoria = $('edita-despesa-categoria').value;
+  const quiPaga = $('edita-despesa-paga').value.trim();
+  const despeses = (v.despeses || []).map(d => d.id === id ? { ...d, concepte, import: importText, categoria, quiPaga } : d);
+  despesaEnEdicio = null;
+  await MagatzemViatges.actualitza(v.id, { despeses });
+  await refresca();
+}
+
 /* Treu una despesa del viatge obert pel seu id. */
 async function treuDespesa(id) {
   const v = viatges.find(x => x.id === viatgeObert);
   if (!v) return;
+  despesaEnEdicio = null;
   const despeses = (v.despeses || []).filter(d => d.id !== id);
   await MagatzemViatges.actualitza(v.id, { despeses });
   await refresca();
@@ -4570,16 +4673,20 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   }
   // Despeses soltes del pressupost
   if (e.target.closest('[data-afegeix-despesa]')) { await afegeixDespesa(); return; }
+  const edita = e.target.closest('[data-edita-despesa]');
+  if (edita) { despesaEnEdicio = edita.dataset.editaDespesa; pintaDetallViatge(); return; }
+  const desa = e.target.closest('[data-desa-despesa]');
+  if (desa) { await desaDespesa(desa.dataset.desaDespesa); return; }
+  if (e.target.closest('[data-cancela-edicio]')) { despesaEnEdicio = null; pintaDetallViatge(); return; }
   const trd = e.target.closest('[data-treu-despesa]');
   if (trd) { await treuDespesa(trd.dataset.treuDespesa); return; }
 });
 
-// Enter en un camp de la nova despesa equival a prémer «Afegeix»
+// Enter en un camp del formulari: afegeix (formulari nou) o desa (edició)
 $('detall-viatge-vista').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.closest('.despesa-nova')) {
-    e.preventDefault();
-    afegeixDespesa();
-  }
+  if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
+  if (e.target.closest('.despesa-nova')) { e.preventDefault(); afegeixDespesa(); }
+  else if (e.target.closest('.despesa-edicio') && despesaEnEdicio) { e.preventDefault(); desaDespesa(despesaEnEdicio); }
 });
 
 /* Editar en línia els camps d'una visita (dia, hora, zona, etiquetes, nota) */
