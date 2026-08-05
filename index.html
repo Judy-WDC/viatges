@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registre de reserves</title>
+<title>Els meus viatges</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
@@ -123,6 +123,23 @@
 
   /* ── Barra d'accions ── */
   .barra-accions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+
+  /* Filtre de les idees per etiqueta (píndoles commutables) */
+  .filtre-etiquetes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 18px; }
+  .filtre-etiquetes:empty { display: none; }
+  .pill-etiq {
+    padding: 5px 12px; border-radius: 999px; font-family: inherit; font-size: 13px;
+    background: transparent; color: var(--tinta-suau); border: 1px solid var(--vora-forta); cursor: pointer;
+  }
+  .pill-etiq:hover { border-color: var(--accent-clar); color: var(--accent); }
+  .pill-etiq.activa { background: var(--accent); color: #F6EFE9; border-color: var(--accent); }
+  .pill-etiq.sense { border-style: dashed; color: var(--tinta-tenue); }
+  .pill-etiq.sense.activa { border-style: solid; color: #F6EFE9; }
+  .pill-esborra {
+    background: none; border: none; color: var(--accent); font-family: inherit; font-size: 12.5px;
+    cursor: pointer; padding: 5px 4px;
+  }
+  .pill-esborra:hover { text-decoration: underline; }
   .barra-accions .separa { flex: 1; }
 
   button {
@@ -482,6 +499,52 @@
   /* Agenda del viatge: blocs d'itinerari, per encaixar i idees */
   .agenda-bloc { margin-bottom: 22px; }
   .agenda-titol { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin: 0 0 4px; }
+
+  /* Commutador de l'agenda: itinerari complet / activitats del dia */
+  .agenda-mode { display: inline-flex; border: 1px solid var(--vora-forta); border-radius: 8px; overflow: hidden; margin-bottom: 18px; }
+  .agenda-mode-opcio { padding: 7px 13px; border: none; background: transparent; color: var(--tinta-suau); font-family: inherit; font-size: 12.5px; cursor: pointer; }
+  .agenda-mode-opcio + .agenda-mode-opcio { border-left: 1px solid var(--vora-forta); }
+  .agenda-mode-opcio.activa { background: var(--accent); color: #F6EFE9; }
+
+  /* Navegació per dies */
+  .dia-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .dia-fletxa {
+    width: 30px; height: 30px; flex: none; border: 1px solid var(--vora-forta); border-radius: 8px;
+    background: var(--superficie); color: var(--tinta-suau); font-size: 16px; line-height: 1; cursor: pointer;
+  }
+  .dia-fletxa:hover:not(:disabled) { border-color: var(--accent-clar); color: var(--accent); }
+  .dia-fletxa:disabled { opacity: 0.4; cursor: default; }
+  .dia-etiqueta { font-size: 14px; font-weight: 500; color: var(--tinta); }
+  .dia-compta { margin-left: auto; font-size: 12px; color: var(--tinta-tenue); }
+
+  /* Files compactes d'activitat del dia (desplegables) */
+  .activitat-item { border-bottom: 1px solid var(--vora); }
+  .activitat {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 4px;
+    background: none; border: none; text-align: left; font-family: inherit; color: inherit; cursor: pointer;
+  }
+  .activitat:hover { background: var(--subtil); }
+  .activitat-icona {
+    width: 30px; height: 30px; flex: none; display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; background: var(--accent-fons); color: var(--accent);
+  }
+  .activitat-icona svg { width: 18px; height: 18px; }
+  .activitat-cos { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .activitat-nom { font-size: 14px; color: var(--tinta); }
+  .activitat-sub { font-size: 12px; color: var(--tinta-tenue); margin-top: 1px; }
+  .activitat-hora { font-size: 13px; color: var(--tinta-suau); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .activitat-chev { flex: none; color: var(--tinta-tenue); display: flex; align-items: center; }
+  .activitat-item.oberta .activitat-chev .chev { transform: rotate(180deg); }
+  .activitat-detall { padding: 6px 4px 16px; }
+  .dia-buit { padding: 16px 4px; }
+
+  /* On es dorm aquesta nit: informació secundària, dissimulada */
+  .dia-nit {
+    margin-top: 18px; padding-top: 12px; border-top: 1px dashed var(--vora-forta);
+    display: flex; align-items: center; gap: 9px; color: var(--tinta-tenue); font-size: 12.5px;
+  }
+  .dia-nit strong { color: var(--tinta-suau); font-weight: 600; }
+  .dia-nit-icona { width: 17px; height: 17px; flex: none; }
   .agenda-nota { font-size: 12.5px; color: var(--tinta-suau); margin: 0 0 10px; }
   .agenda-bloc .fila { margin-bottom: 9px; }
 
@@ -919,7 +982,7 @@
 <body>
 
 <header>
-  <h1>Registre de reserves</h1>
+  <h1>Els meus viatges</h1>
   <div class="cap-dreta">
     <span class="compta" id="comptador"></span>
     <span class="estat-sinc" id="estat-sinc" aria-live="polite"></span>
@@ -938,7 +1001,7 @@
 
 <div class="acces ocult" id="acces">
   <div class="acces-caixa">
-    <p class="acces-titol">Registre de reserves</p>
+    <p class="acces-titol">Els meus viatges</p>
     <p class="acces-intro" id="acces-intro">Identifica’t per accedir a les teves reserves.</p>
     <div class="acces-camp">
       <label for="acces-correu">Correu electrònic</label>
@@ -1040,12 +1103,15 @@
       <button class="primari" id="btn-nova-idea">Afegeix una idea</button>
     </div>
 
+    <div class="filtre-etiquetes" id="filtre-etiquetes"></div>
+
     <div id="coincidencies"></div>
 
     <div class="idees" id="llista-idees"></div>
     <div class="llista-buida" id="idees-buida">
       Encara no hi ha cap idea. Apunta-hi el que et vagin recomanant, encara que no sàpigues quan hi aniràs.
     </div>
+    <div class="llista-buida" id="idees-buida-filtre" style="display:none">Cap idea amb aquest filtre.</div>
   </section>
 
   <section id="vista-viatges" class="ocult">
@@ -1576,6 +1642,30 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · A «Activitats del dia», cada fila és desplegable: en clicar-la
+      s'obre el detall complet de només lectura (els mateixos camps que
+      l'itinerari complet: dates, hores, companyia, núm. de reserva, preu,
+      notes…; per a visites, nota/zona/etiquetes/enllaç), amb un chevron que
+      gira. Per editar, l'itinerari complet (v56).
+   FET · A «Activitats del dia», l'allotjament surt com a activitat el dia de
+      check-in («Check-in a…») i el de check-out («Check-out de…»), simètric
+      amb el cotxe. Sense hora, el check-in va al final del dia i el check-out
+      a l'inici. El dia del check-in ja no es repeteix a sota («A la nit»),
+      que es reserva per a les nits d'enmig (v55).
+   FET · L'agenda té un mode nou «Activitats del dia» (commutador amb
+      «Itinerari complet»): un dia cada cop amb ‹ ›, per defecte avui si ets
+      dins del viatge. Hi surten vols, entrades i visites; el cotxe només el
+      dia de recollida i de devolució; l'allotjament no és activitat: va a
+      baix, dissimulat, com «A la nit · [on dorms]» segons el rang de dates.
+      Files compactes, no editables (per editar, l'itinerari complet) (v54).
+   FET · L'app passa a dir-se «Els meus viatges» (títol de la pestanya,
+      capçalera i pantalla d'accés). No es toquen els usos genèrics de la
+      paraula «registre» (missatges com «el registre és buit») (v53).
+   FET · Filtre de les idees per etiqueta: barra de píndoles commutables a
+      sobre de la llista (multi-selecció amb «o»), amb píndola «sense
+      etiqueta», comptador «N de M» i «esborra el filtre». Viu en memòria,
+      no toca dades ni sincronització; en afegir una idea el filtre es
+      neteja perquè la nova es vegi (v52).
    FET · Els ítems del mateix dia (un vol Barcelona–Lisboa, una activitat…)
       mostren una sola data en lloc d'un rang repetit («3 set» en comptes de
       «3 → 3 set»); només si duren més d'un dia surt «entrada → sortida».
@@ -3376,6 +3466,39 @@ function valorModel(idea, quin) {
   return idea[quin] || '';
 }
 
+/* ── Filtre de les idees per etiqueta ──
+   Barra de píndoles a sobre de la llista. Multi-selecció amb «o»: es
+   mostren les idees que tinguin ALGUNA de les etiquetes triades. La píndola
+   «sense etiqueta» ensenya les que encara no has classificat. El filtre viu
+   només en memòria (es reinicia en recarregar). */
+let filtreEtiquetes = new Set();
+const SENSE_ETIQ = '__sense-etiqueta__';
+
+function ideaPassaFiltre(i) {
+  if (!filtreEtiquetes.size) return true;
+  const etiq = i.etiquetes || [];
+  for (const e of etiq) if (filtreEtiquetes.has(e)) return true;
+  if (filtreEtiquetes.has(SENSE_ETIQ) && !etiq.length) return true;
+  return false;
+}
+
+function filtreEtiquetesHTML(totes) {
+  const hiHaSense = idees.some(i => !(i.etiquetes && i.etiquetes.length));
+  if (!totes.length && !hiHaSense) return '';
+  const pills = totes.map(e => {
+    const on = filtreEtiquetes.has(e);
+    return `<button class="pill-etiq${on ? ' activa' : ''}" data-filtre-etiq="${esc(e)}" aria-pressed="${on}">${esc(e)}</button>`;
+  }).join('');
+  const onSense = filtreEtiquetes.has(SENSE_ETIQ);
+  const sense = hiHaSense
+    ? `<button class="pill-etiq sense${onSense ? ' activa' : ''}" data-filtre-etiq="${SENSE_ETIQ}" aria-pressed="${onSense}">sense etiqueta</button>`
+    : '';
+  const esborra = filtreEtiquetes.size
+    ? `<button class="pill-esborra" data-esborra-filtre aria-label="Esborra el filtre">\u00d7 esborra el filtre</button>`
+    : '';
+  return pills + sense + esborra;
+}
+
 function pintaIdees() {
   const cos = $('llista-idees');
 
@@ -3400,13 +3523,23 @@ function pintaIdees() {
     }
   }
 
-  $('compta-idees').textContent = idees.length === 1 ? '1 idea' : idees.length + ' idees';
-  $('idees-buida').style.display = idees.length ? 'none' : 'block';
-  $('llista-idees').style.display = idees.length ? '' : 'none';
-  pintaCoincidencies();
-  if (!idees.length) { cos.innerHTML = ''; return; }
+  const totes = etiquetesConegudes();
+  // Treu del filtre les etiquetes que ja no existeixen (editades o esborrades)
+  for (const e of [...filtreEtiquetes]) if (e !== SENSE_ETIQ && !totes.includes(e)) filtreEtiquetes.delete(e);
+  const visibles = idees.filter(ideaPassaFiltre);
+  const hiHaFiltre = filtreEtiquetes.size > 0;
 
-  cos.innerHTML = idees.map(i => `
+  $('compta-idees').textContent = hiHaFiltre
+    ? `${visibles.length} de ${idees.length} ${idees.length === 1 ? 'idea' : 'idees'}`
+    : (idees.length === 1 ? '1 idea' : idees.length + ' idees');
+  $('filtre-etiquetes').innerHTML = filtreEtiquetesHTML(totes);
+  $('idees-buida').style.display = idees.length ? 'none' : 'block';
+  $('idees-buida-filtre').style.display = (idees.length && !visibles.length) ? 'block' : 'none';
+  $('llista-idees').style.display = visibles.length ? '' : 'none';
+  pintaCoincidencies();
+  if (!visibles.length) { cos.innerHTML = ''; return; }
+
+  cos.innerHTML = visibles.map(i => `
     <div class="idea" data-idea="${esc(i.id)}">
       <textarea class="idea-text" rows="1" data-camp="text"
         placeholder="Escriu la idea…" spellcheck="false">${esc(i.text || '')}</textarea>
@@ -3524,9 +3657,23 @@ $('llista-idees').addEventListener('keydown', e => {
   }
 });
 
+/* Commutar les píndoles del filtre (o esborrar-lo). Només repinta la
+   llista; les dades no canvien. */
+$('filtre-etiquetes').addEventListener('click', e => {
+  const pill = e.target.closest('[data-filtre-etiq]');
+  if (pill) {
+    const et = pill.dataset.filtreEtiq;
+    if (filtreEtiquetes.has(et)) filtreEtiquetes.delete(et); else filtreEtiquetes.add(et);
+    pintaIdees();
+    return;
+  }
+  if (e.target.closest('[data-esborra-filtre]')) { filtreEtiquetes.clear(); pintaIdees(); }
+});
+
 /* Afegir no obre cap formulari: crea la idea buida i hi posa el cursor */
 $('btn-nova-idea').addEventListener('click', async () => {
   const nova = await MagatzemIdees.afegeix({ text: '', zona: '', etiquetes: [], enllac: '' });
+  filtreEtiquetes.clear();   // que la idea nova es vegi encara que hi hagués filtre actiu
   // Una idea acabada de crear és buida, i el repintat en segon pla (per
   // una sincronització, per exemple) l'esborraria com si fos una idea
   // buidada expressament. Es marca com a esborrany fins que s'hi escriu:
@@ -3766,6 +3913,9 @@ function tancaDetallViatge() {
 }
 
 let subvistaViatge = 'agenda';   // 'agenda' o 'pressupost'
+let agendaMode = 'complet';      // 'complet' o 'dia' (activitats del dia)
+let diaAgenda = null;            // ISO del dia seleccionat a «activitats del dia»
+let activitatsObertes = new Set(); // claus de les activitats desplegades a la vista del dia
 
 function pintaDetallViatge() {
   const v = viatges.find(x => x.id === viatgeObert);
@@ -3881,16 +4031,179 @@ function ideesSuggerides(v, seves) {
   return idees.filter(i => i.zona && zones.some(z => zonesCoincideixen(i.zona, z)));
 }
 
-/* L'agenda: itinerari (reserves i visites amb data, cronològic), després
-   les visites sense data ("per encaixar"), i les idees de la zona que es
-   poden convertir en visita. */
+/* ── Vista «activitats del dia» de l'agenda ──
+   Un dia cada cop, amb les activitats ordenades per hora. Hi surten els
+   vols, les entrades, les visites i «altres»; el cotxe només el dia de
+   recollida i el de devolució; l'allotjament no és una activitat: va a baix
+   de tot, dissimulat, com a «on es dorm aquesta nit». */
+const DIES_CURT = ['diumenge', 'dilluns', 'dimarts', 'dimecres', 'dijous', 'divendres', 'dissabte'];
+
+function isoDe(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function diaBonic(iso) {
+  const d = aData(iso);
+  return d ? `${DIES_CURT[d.getDay()]}, ${d.getDate()} ${MESOS_CURT[d.getMonth()]}` : (iso || '');
+}
+function diesEntre(iniIso, fiIso) {
+  const ini = aData(iniIso), fi = aData(fiIso);
+  if (!ini || !fi) return iniIso ? [iniIso] : [];
+  const dies = [];
+  for (const d = new Date(ini); d <= fi; d.setDate(d.getDate() + 1)) dies.push(isoDe(d));
+  return dies;
+}
+/* Els dies que abasta el viatge (de les seves dates o, si no en té, de les
+   dates de les reserves i visites). */
+function diesDelViatge() {
+  const v = viatges.find(x => x.id === viatgeObert);
+  const seves = reserves.filter(r => r.viatgeId === viatgeObert);
+  const sevesVisites = visites.filter(vi => vi.viatgeId === viatgeObert);
+  const dates = [];
+  if (v && v.dataInici) dates.push(v.dataInici);
+  if (v && v.dataFi) dates.push(v.dataFi);
+  for (const r of seves) { if (r.checkinISO) dates.push(r.checkinISO); if (r.checkoutISO) dates.push(r.checkoutISO); }
+  for (const vi of sevesVisites) if (vi.dataVisita) dates.push(vi.dataVisita);
+  const isos = dates.filter(Boolean).sort();
+  return isos.length ? diesEntre(isos[0], isos[isos.length - 1]) : [];
+}
+
+/* El detall (només lectura) d'una reserva a la vista del dia: els mateixos
+   camps que a l'itinerari complet, sense els botons d'acció ni els camps
+   editables. */
+function detallReservaLecturaHTML(r) {
+  const geo = { allotjament: 'Adreça', entrada: 'Població', cotxe: 'Lloc de recollida', altres: 'Lloc' }[tipusDe(r)];
+  const camps = detallReserva(r).map(([et, val, ample]) =>
+    (et === geo && val) ? campDetall(et, val, ample, enllacMaps(r)) : campDetall(et, val, ample)
+  ).join('');
+  return `<div class="detall-graella">
+    ${camps}
+    ${r.plataforma ? campDetall('Plataforma', r.plataforma) : ''}
+    ${r.preu ? campDetall('Preu', r.preu) : ''}
+    ${r.quiPaga ? campDetall('Qui ho paga', r.quiPaga) : ''}
+    ${r.pagament ? campDetall('Estat del pagament', r.pagament) : ''}
+    ${r.cancelacio ? campDetall('Cancel·lació', r.cancelacio, true) : ''}
+    ${r.numReserva ? campDetall('Núm. de reserva', r.numReserva) : ''}
+    ${r.notes ? campDetall('Notes', r.notes, true) : ''}
+  </div>`;
+}
+
+/* El detall (només lectura) d'una visita a la vista del dia. */
+function detallVisitaLecturaHTML(vi) {
+  const dia = [dataBonica(vi.dataVisita), vi.horaVisita].filter(Boolean).join(' · ');
+  return `<div class="detall-graella">
+    ${campDetall('Nota', vi.text, true)}
+    ${vi.zona ? campDetall('Zona', vi.zona) : ''}
+    ${(vi.etiquetes && vi.etiquetes.length) ? campDetall('Etiquetes', vi.etiquetes.join(', ')) : ''}
+    ${dia ? campDetall('Dia', dia) : ''}
+    ${vi.enllac ? `<div class="detall-camp ample"><span>Enllaç</span><p><a class="idea-enllac" href="${esc(vi.enllac)}" target="_blank" rel="noopener noreferrer">${esc(nomEnllac(vi.enllac))}</a></p></div>` : ''}
+  </div>`;
+}
+
+/* Una fila d'activitat: capçalera compacta (icona, nom, subtítol, hora) que
+   es desplega amb el detall complet de només lectura. */
+function filaActivitatHTML(a) {
+  const obert = activitatsObertes.has(a.id);
+  const detall = a.mena === 'visita' ? detallVisitaLecturaHTML(a.obj) : detallReservaLecturaHTML(a.obj);
+  return `<div class="activitat-item${obert ? ' oberta' : ''}">
+    <button class="activitat" data-activitat="${esc(a.id)}" aria-expanded="${obert ? 'true' : 'false'}">
+      <span class="activitat-icona">${iconaSVG(a.icona)}</span>
+      <span class="activitat-cos">
+        <span class="activitat-nom">${esc(a.nom)}</span>
+        ${a.sub ? `<span class="activitat-sub">${esc(a.sub)}</span>` : ''}
+      </span>
+      <span class="activitat-hora">${esc(a.hora || '—')}</span>
+      <span class="activitat-chev">${CHEVRON}</span>
+    </button>
+    <div class="activitat-detall${obert ? '' : ' ocult'}">${detall}</div>
+  </div>`;
+}
+
+function agendaDiaHTML(v, seves, sevesVisites) {
+  const dies = diesDelViatge();
+  if (!dies.length) {
+    return `<p class="detall-buit">Aquest viatge encara no té dates. Posa-les al viatge o a les reserves per veure les activitats dia a dia.</p>`;
+  }
+  const minDia = dies[0], maxDia = dies[dies.length - 1];
+  // Dia seleccionat: avui si és dins del viatge; si no, el primer dia. Si el
+  // que hi havia queda fora del rang (canvi de viatge), es recol·loca.
+  const avui = isoDe(new Date());
+  if (!diaAgenda || diaAgenda < minDia || diaAgenda > maxDia) {
+    diaAgenda = (avui >= minDia && avui <= maxDia) ? avui : minDia;
+  }
+  const idx = dies.indexOf(diaAgenda);
+
+  // Activitats del dia, ordenades per hora. El cotxe només el dia de
+  // recollida i de devolució; l'allotjament, el dia de check-in i de
+  // check-out. Sense hora: el check-out va a l'inici del dia (sol ser al
+  // matí) i tota la resta al final.
+  const activitats = [];
+  const ordreDe = (hora, aInici) => { const m = minutsDia(hora); return (m === 99999 && aInici) ? -1 : m; };
+  for (const r of seves) {
+    const t = tipusDe(r);
+    if (t === 'allotjament') {
+      const lloc = poblacio(r.adreca);
+      if (r.checkinISO === diaAgenda) activitats.push({ id: r.id + ':checkin', mena: 'reserva', obj: r, icona: 'llit', nom: 'Check-in a ' + nomReserva(r), sub: lloc, hora: r.checkinHora || '', ordre: ordreDe(r.checkinHora) });
+      if (r.checkoutISO === diaAgenda) activitats.push({ id: r.id + ':checkout', mena: 'reserva', obj: r, icona: 'llit', nom: 'Check-out de ' + nomReserva(r), sub: lloc, hora: r.checkoutHora || '', ordre: ordreDe(r.checkoutHora, true) });
+      continue;
+    }
+    if (t === 'cotxe') {
+      if (r.checkinISO === diaAgenda) activitats.push({ id: r.id + ':recollida', mena: 'reserva', obj: r, icona: 'cotxe', nom: 'Recollida del cotxe', sub: [r.companyia, r.llocRecollida].filter(Boolean).join(' · '), hora: r.checkinHora || '', ordre: ordreDe(r.checkinHora) });
+      if (r.checkoutISO === diaAgenda) activitats.push({ id: r.id + ':devolucio', mena: 'reserva', obj: r, icona: 'cotxe', nom: 'Devolució del cotxe', sub: [r.companyia, r.llocDevolucio].filter(Boolean).join(' · '), hora: r.checkoutHora || '', ordre: ordreDe(r.checkoutHora) });
+      continue;
+    }
+    if (r.checkinISO === diaAgenda) activitats.push({ id: r.id, mena: 'reserva', obj: r, icona: TIPUS[t].icona, nom: nomReserva(r), sub: subtitolReserva(r), hora: r.checkinHora || '', ordre: ordreDe(r.checkinHora) });
+  }
+  for (const vi of sevesVisites) {
+    if (vi.dataVisita === diaAgenda) activitats.push({ id: vi.id, mena: 'visita', obj: vi, icona: 'estrella', nom: (vi.text || 'Visita').split('\n')[0], sub: vi.zona || '', hora: vi.horaVisita || '', ordre: ordreDe(vi.horaVisita) });
+  }
+  activitats.sort((a, b) => a.ordre - b.ordre);
+
+  // On es dorm aquesta nit: l'allotjament que cobreix la nit d'aquest dia.
+  // El dia del check-in no es repeteix a sota (la fila de check-in ja ho diu).
+  const nit = seves.find(r => tipusDe(r) === 'allotjament' && r.checkinISO && r.checkoutISO
+    && r.checkinISO <= diaAgenda && diaAgenda < r.checkoutISO);
+  const mostraNit = nit && nit.checkinISO !== diaAgenda;
+  const lloc = mostraNit ? poblacio(nit.adreca) : '';
+
+  const nav = `
+    <div class="dia-nav">
+      <button class="dia-fletxa" data-dia-salt="-1"${idx <= 0 ? ' disabled' : ''} aria-label="Dia anterior">\u2039</button>
+      <span class="dia-etiqueta">${esc(diaBonic(diaAgenda))}</span>
+      <button class="dia-fletxa" data-dia-salt="1"${idx >= dies.length - 1 ? ' disabled' : ''} aria-label="Dia següent">\u203a</button>
+      <span class="dia-compta">dia ${idx + 1} de ${dies.length}</span>
+    </div>`;
+  const cos = activitats.length
+    ? activitats.map(a => filaActivitatHTML(a)).join('')
+    : `<p class="agenda-nota dia-buit">Cap activitat programada aquest dia.</p>`;
+  const dorm = mostraNit
+    ? `<div class="dia-nit">${iconaSVG('llit', 'dia-nit-icona')}<span>A la nit · <strong>${esc(nomReserva(nit))}</strong>${lloc ? ', ' + esc(lloc) : ''}</span></div>`
+    : '';
+  return nav + `<div class="dia-activitats">${cos}</div>` + dorm;
+}
+
+/* L'agenda té dos modes: itinerari complet (per defecte) i activitats del
+   dia. El commutador de dalt els alterna. */
 function agendaHTML(seves) {
   const v = viatges.find(x => x.id === viatgeObert);
   const sevesVisites = visites.filter(vi => vi.viatgeId === viatgeObert);
+  const commutador = `
+    <div class="agenda-mode">
+      <button class="agenda-mode-opcio${agendaMode === 'complet' ? ' activa' : ''}" data-agenda-mode="complet">Itinerari complet</button>
+      <button class="agenda-mode-opcio${agendaMode === 'dia' ? ' activa' : ''}" data-agenda-mode="dia">Activitats del dia</button>
+    </div>`;
+  const cos = agendaMode === 'dia'
+    ? agendaDiaHTML(v, seves, sevesVisites)
+    : agendaCompletHTML(v, seves, sevesVisites);
+  return commutador + cos;
+}
+
+/* L'itinerari complet: reserves i visites amb data (cronològic), després
+   les visites sense data ("per encaixar"), i les idees de la zona que es
+   poden convertir en visita. */
+function agendaCompletHTML(v, seves, sevesVisites) {
   const ambData = sevesVisites.filter(vi => vi.dataVisita);
   const senseData = sevesVisites.filter(vi => !vi.dataVisita);
 
-  // Itinerari: reserves + visites amb data, tot ordenat pel temps
   const itinerari = [
     ...seves.map(r => ({ tipus: 'reserva', obj: r, quan: r.checkinISO || '', hora: r.checkinHora || '' })),
     ...ambData.map(vi => ({ tipus: 'visita', obj: vi, quan: vi.dataVisita || '', hora: vi.horaVisita || '' }))
@@ -4217,6 +4530,27 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   const sub = e.target.closest('[data-subvista]');
   if (sub) {
     subvistaViatge = sub.dataset.subvista;
+    pintaDetallViatge();
+    return;
+  }
+  const mode = e.target.closest('[data-agenda-mode]');
+  if (mode) {
+    agendaMode = mode.dataset.agendaMode;
+    if (agendaMode === 'dia') diaAgenda = null;   // que es recol·loqui a avui/primer dia
+    pintaDetallViatge();
+    return;
+  }
+  const salt = e.target.closest('[data-dia-salt]');
+  if (salt) {
+    const dies = diesDelViatge();
+    const nou = dies.indexOf(diaAgenda) + Number(salt.dataset.diaSalt);
+    if (nou >= 0 && nou < dies.length) { diaAgenda = dies[nou]; pintaDetallViatge(); }
+    return;
+  }
+  const act = e.target.closest('[data-activitat]');
+  if (act) {
+    const k = act.dataset.activitat;
+    if (activitatsObertes.has(k)) activitatsObertes.delete(k); else activitatsObertes.add(k);
     pintaDetallViatge();
     return;
   }
