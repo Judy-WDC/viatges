@@ -542,9 +542,12 @@
   /* Navegació per dies */
   .dia-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
   .dia-fletxa {
-    width: 30px; height: 30px; flex: none; border: 1px solid var(--vora-forta); border-radius: 8px;
-    background: var(--superficie); color: var(--tinta-suau); font-size: 16px; line-height: 1; cursor: pointer;
+    width: 30px; height: 30px; flex: none; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--vora-forta); border-radius: 8px; padding: 0;
+    background: var(--superficie); color: var(--tinta-suau); cursor: pointer;
   }
+  .dia-fletxa.enrere .chev { transform: rotate(90deg); }
+  .dia-fletxa.endavant .chev { transform: rotate(-90deg); }
   .dia-fletxa:hover:not(:disabled) { border-color: var(--accent-clar); color: var(--accent); }
   .dia-fletxa:disabled { opacity: 0.4; cursor: default; }
   .dia-etiqueta { font-size: 14px; font-weight: 500; color: var(--tinta); }
@@ -607,6 +610,15 @@
   .suggerida-text { font-size: 14px; color: var(--tinta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .suggerida-meta { font-size: 12px; color: var(--tinta-suau); }
   .idea-suggerida .primari.mini { flex: none; }
+
+  /* Crear una idea des de dins del viatge (pestanya Idees) */
+  .idea-nova-viatge { display: flex; gap: 8px; margin-bottom: 16px; }
+  .idea-nova-camp {
+    flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--vora); border-radius: 8px;
+    font-family: inherit; font-size: 13.5px; color: var(--tinta); background: var(--superficie);
+  }
+  .idea-nova-camp:focus { border-color: var(--accent); outline: none; }
+  .idea-nova-viatge .primari.mini { flex: none; }
   .detall-total strong { font-weight: 600; }
   .viatge-reserves { display: flex; flex-direction: column; gap: 8px; }
   .viatge-reserva {
@@ -1054,7 +1066,7 @@
 
 <nav class="pestanyes" aria-label="Seccions">
   <button id="tab-reserves" aria-current="page">Reserves</button>
-  <button id="tab-idees">Idees</button>
+  <button id="tab-idees">Inspiració</button>
   <button id="tab-viatges">Viatges</button>
 </nav>
 
@@ -1128,7 +1140,7 @@
   </section>
 
   <section id="vista-idees" class="ocult">
-    <h2 class="sr-only">Les teves idees</h2>
+    <h2 class="sr-only">La teva inspiració</h2>
 
     <div class="barra-accions">
       <span class="compta" id="compta-idees"></span>
@@ -1675,6 +1687,24 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Es poden crear idees des de dins d'un viatge: a la pestanya Idees hi
+      ha un camp «Nova idea…» que crea una idea de la wishlist marcada amb la
+      zona del viatge (el seu nom), així que apareix tant a la pestanya del
+      viatge (per convertir-la en visita) com a la Inspiració general. De
+      moment no s'edita des d'aquí; per retocar-la a fons, la Inspiració (v65).
+   FET · Les fletxes del selector de dia («Activitats del dia») ara van
+      centrades: el botó centra amb flex i s'usa el chevron de l'app (girat
+      a esquerra/dreta) en lloc dels glifs ‹ › de text, que quedaven
+      descentrats (v64).
+   FET · La pestanya general «Idees» passa a dir-se «Inspiració», per no
+      confondre's amb la subpestanya «Idees» de dins d'un viatge. Només canvia
+      l'etiqueta visible (i el títol per a lectors de pantalla); l'id intern
+      i la resta del codi queden igual (v63).
+   FET · Cada viatge té una subpestanya nova «Idees», a l'esquerra de
+      l'Agenda: hi ha les idees de la llista que encaixen amb la zona del
+      viatge (per convertir-les en visites), que abans penjaven a sota de
+      l'agenda com a «Idees per a aquest viatge». L'Agenda segueix sent la
+      pestanya per defecte en obrir un viatge (v62).
    FET · Les despeses soltes ara s'editen en línia: en clicar una despesa de
       la llista s'obre allà mateix amb els seus camps (concepte, import,
       categoria, qui paga) i les accions Desa / Cancel·la / Elimina. Una a la
@@ -3480,9 +3510,9 @@ function pintaCoincidencies() {
   const ara = avui();
 
   // Per a cada viatge que encara no hagi passat, quantes idees de la wishlist
-  // hi encaixen (el mateix creuament geogràfic que fa servir l'agenda a
-  // «Idees per a aquest viatge»). Una línia per VIATGE, amb el seu nom, en
-  // comptes d'anar per pobles de cada reserva.
+  // hi encaixen (el mateix creuament geogràfic que fa servir la pestanya
+  // «Idees» del viatge). Una línia per VIATGE, amb el seu nom, en comptes
+  // d'anar per pobles de cada reserva.
   const trobades = [];
   for (const v of viatges) {
     const fi = aData(v.dataFi) || aData(v.dataInici);
@@ -3989,6 +4019,8 @@ function pintaDetallViatge() {
 
   const cos = subvistaViatge === 'pressupost'
     ? pressupostHTML(v, seves)
+    : subvistaViatge === 'idees'
+    ? ideesViatgeHTML(v, seves)
     : agendaHTML(seves);
 
   cont.innerHTML = `
@@ -4001,10 +4033,46 @@ function pintaDetallViatge() {
       <button class="subtil mini" id="btn-edita-viatge-detall">Edita</button>
     </div>
     <div class="subpestanyes" role="tablist">
+      <button class="subpestanya${subvistaViatge === 'idees' ? ' activa' : ''}" data-subvista="idees">Idees</button>
       <button class="subpestanya${subvistaViatge === 'agenda' ? ' activa' : ''}" data-subvista="agenda">Agenda</button>
       <button class="subpestanya${subvistaViatge === 'pressupost' ? ' activa' : ''}" data-subvista="pressupost">Pressupost</button>
     </div>
     <div class="subvista subvista-${subvistaViatge}">${cos}</div>`;
+}
+
+/* La pestanya «Idees» del viatge: les idees de la wishlist que encaixen
+   amb la zona del viatge (per convertir-les en visites). Són les que abans
+   sortien a sota de l'agenda com a «Idees per a aquest viatge». */
+function ideesViatgeHTML(v, seves) {
+  const suggerides = v ? ideesSuggerides(v, seves) : [];
+  const form = `
+    <div class="idea-nova-viatge">
+      <input id="nova-idea-viatge" class="idea-nova-camp" placeholder="Nova idea (una activitat, un lloc…)" autocomplete="off">
+      <button class="primari mini" data-afegeix-idea-viatge>Afegeix</button>
+    </div>
+    <div class="avis" id="avis-idea-viatge"></div>`;
+  const cos = suggerides.length
+    ? `<p class="agenda-nota">Idees de la teva llista que encaixen amb la zona del viatge. Converteix-les en visites.</p>`
+      + suggerides.map(ideaSuggeridaHTML).join('')
+    : `<p class="agenda-nota">Encara no hi ha idees per a aquest viatge. Apunta la primera aquí dalt: neix marcada amb la zona del viatge i la trobaràs també a la Inspiració.</p>`;
+  return `<div class="idees-viatge">${form}<div class="agenda-bloc">${cos}</div></div>`;
+}
+
+/* Crea una idea de la wishlist des de dins del viatge, marcada amb la zona
+   del viatge (el seu nom), perquè aparegui aquí i a la Inspiració. */
+async function afegeixIdeaViatge() {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const text = $('nova-idea-viatge').value.trim();
+  if (!text) {
+    avisa($('avis-idea-viatge'), 'Escriu la idea abans d\u2019afegir-la.', 'mal');
+    $('nova-idea-viatge').focus();
+    return;
+  }
+  await MagatzemIdees.afegeix({ text, zona: v.nom || '', etiquetes: [], enllac: '' });
+  await refresca();
+  const camp = $('nova-idea-viatge');
+  if (camp) camp.focus();
 }
 
 /* Una idea suggerida dins del viatge: text i un botó per convertir-la
@@ -4220,9 +4288,9 @@ function agendaDiaHTML(v, seves, sevesVisites) {
 
   const nav = `
     <div class="dia-nav">
-      <button class="dia-fletxa" data-dia-salt="-1"${idx <= 0 ? ' disabled' : ''} aria-label="Dia anterior">\u2039</button>
+      <button class="dia-fletxa enrere" data-dia-salt="-1"${idx <= 0 ? ' disabled' : ''} aria-label="Dia anterior">${CHEVRON}</button>
       <span class="dia-etiqueta">${esc(diaBonic(diaAgenda))}</span>
-      <button class="dia-fletxa" data-dia-salt="1"${idx >= dies.length - 1 ? ' disabled' : ''} aria-label="Dia següent">\u203a</button>
+      <button class="dia-fletxa endavant" data-dia-salt="1"${idx >= dies.length - 1 ? ' disabled' : ''} aria-label="Dia següent">${CHEVRON}</button>
       <span class="dia-compta">dia ${idx + 1} de ${dies.length}</span>
     </div>`;
   const cos = activitats.length
@@ -4268,7 +4336,7 @@ function agendaCompletHTML(v, seves, sevesVisites) {
   let html = '';
 
   if (!seves.length && !sevesVisites.length) {
-    html += `<p class="detall-buit">Aquest viatge encara no té res. Assigna-hi reserves des de Reserves, o converteix en visites les idees de la zona que et surtin aquí sota.</p>`;
+    html += `<p class="detall-buit">Aquest viatge encara no té res. Assigna-hi reserves des de Reserves, o converteix en visites les idees de la pestanya Idees.</p>`;
   }
 
   if (itinerari.length) {
@@ -4281,15 +4349,6 @@ function agendaCompletHTML(v, seves, sevesVisites) {
     html += `<div class="agenda-bloc"><h4 class="agenda-titol">Per encaixar</h4>`
       + `<p class="agenda-nota">Visites sense dia fixat. Obre-les per posar-los data quan la sàpigues.</p>`
       + senseData.map(filaVisitaHTML).join('')
-      + `</div>`;
-  }
-
-  // Idees de la zona encara no convertides
-  const suggerides = v ? ideesSuggerides(v, seves) : [];
-  if (suggerides.length) {
-    html += `<div class="agenda-bloc"><h4 class="agenda-titol">Idees per a aquest viatge</h4>`
-      + `<p class="agenda-nota">Tens aquestes idees a la zona. Converteix-les en visites del viatge.</p>`
-      + suggerides.map(ideaSuggeridaHTML).join('')
       + `</div>`;
   }
 
@@ -4671,6 +4730,8 @@ $('detall-viatge-vista').addEventListener('click', async e => {
     await refresca();
     return;
   }
+  // Crear una idea des de dins del viatge (pestanya Idees)
+  if (e.target.closest('[data-afegeix-idea-viatge]')) { await afegeixIdeaViatge(); return; }
   // Despeses soltes del pressupost
   if (e.target.closest('[data-afegeix-despesa]')) { await afegeixDespesa(); return; }
   const edita = e.target.closest('[data-edita-despesa]');
@@ -4685,7 +4746,8 @@ $('detall-viatge-vista').addEventListener('click', async e => {
 // Enter en un camp del formulari: afegeix (formulari nou) o desa (edició)
 $('detall-viatge-vista').addEventListener('keydown', e => {
   if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
-  if (e.target.closest('.despesa-nova')) { e.preventDefault(); afegeixDespesa(); }
+  if (e.target.id === 'nova-idea-viatge') { e.preventDefault(); afegeixIdeaViatge(); }
+  else if (e.target.closest('.despesa-nova')) { e.preventDefault(); afegeixDespesa(); }
   else if (e.target.closest('.despesa-edicio') && despesaEnEdicio) { e.preventDefault(); desaDespesa(despesaEnEdicio); }
 });
 
