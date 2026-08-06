@@ -140,6 +140,10 @@
     cursor: pointer; padding: 5px 4px;
   }
   .pill-esborra:hover { text-decoration: underline; }
+
+  /* Mapa d'idees (Leaflet) */
+  .mapa-idees { height: 380px; border-radius: 12px; overflow: hidden; border: 1px solid var(--vora-forta); }
+  .mapa-nota { font-size: 12px; color: var(--tinta-tenue); margin-top: 8px; }
   .barra-accions .separa { flex: 1; }
 
   button {
@@ -1148,6 +1152,11 @@
       <button class="primari" id="btn-nova-idea">Afegeix una idea</button>
     </div>
 
+    <div class="agenda-mode" id="inspiracio-mode">
+      <button class="agenda-mode-opcio" data-inspiracio-vista="llista">Llista</button>
+      <button class="agenda-mode-opcio" data-inspiracio-vista="mapa">Mapa</button>
+    </div>
+
     <div class="filtre-etiquetes" id="filtre-etiquetes"></div>
 
     <div id="coincidencies"></div>
@@ -1157,6 +1166,8 @@
       Encara no hi ha cap idea. Apunta-hi el que et vagin recomanant, encara que no sàpigues quan hi aniràs.
     </div>
     <div class="llista-buida" id="idees-buida-filtre" style="display:none">Cap idea amb aquest filtre.</div>
+    <div class="mapa-idees ocult" id="mapa-idees"></div>
+    <div class="mapa-nota" id="mapa-nota"></div>
   </section>
 
   <section id="vista-viatges" class="ocult">
@@ -1687,6 +1698,13 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Mapa d'idees a la Inspiració (commutador Llista/Mapa): Leaflet +
+      OpenStreetMap carregat sota demanda; cada idea amb zona resoluble és un
+      pin (clic → text, zona, etiquetes), el filtre d'etiquetes filtra també
+      els pins, i les idees sense ubicació es compten en una nota. El
+      geocoding ara desa també les coordenades (cauCoords) amb la mateixa
+      consulta a Nominatim; en demo se'n sembren un parell. Colors dels pins:
+      PENDENT (els deixem tots iguals de moment) (v66).
    FET · Es poden crear idees des de dins d'un viatge: a la pestanya Idees hi
       ha un camp «Nova idea…» que crea una idea de la wishlist marcada amb la
       zona del viatge (el seu nom), així que apareix tant a la pestanya del
@@ -3406,6 +3424,28 @@ function desaCauJerarquies() {
   try { localStorage.setItem(CLAU_JER, JSON.stringify(cauJerarquies)); } catch (e) {}
 }
 
+const CLAU_COORDS = 'registre-coords-v1';
+/* Coordenades (lat/lon) de cada zona ja resolta, per situar-la al mapa. Es
+   reomple amb la mateixa consulta a Nominatim que la jerarquia. */
+let cauCoords = (() => {
+  try { return JSON.parse(localStorage.getItem(CLAU_COORDS) || '{}'); }
+  catch (e) { return {}; }
+})();
+// En demo el geocoding està desactivat: sembrem un parell de coordenades
+// perquè el mapa d'idees no surti buit.
+if (MODE_DEMO) {
+  if (!cauCoords['lisboa']) cauCoords['lisboa'] = { lat: 38.7223, lon: -9.1393 };
+  if (!cauCoords['douro']) cauCoords['douro'] = { lat: 41.1622, lon: -7.7899 };
+}
+function desaCauCoords() {
+  try { localStorage.setItem(CLAU_COORDS, JSON.stringify(cauCoords)); } catch (e) {}
+}
+/* Coordenades d'una zona des de la memòria cau (síncron), o null. */
+function coordsDe(zona) {
+  const k = (zona || '').trim().toLowerCase();
+  return (k && cauCoords[k]) || null;
+}
+
 /* Cua d'una consulta per segon: la política de Nominatim és estricta. */
 const cuaGeo = { pendents: [], treballant: false };
 
@@ -3431,7 +3471,9 @@ async function mouCuaGeo() {
 async function jerarquiaDe(zona) {
   const clau = (zona || '').trim().toLowerCase();
   if (!clau) return null;
-  if (cauJerarquies[clau]) return cauJerarquies[clau];
+  // Hi ha cau completa si tenim jerarquia i, o bé coordenades, o bé sabem que
+  // la zona no existeix (jerarquia buida, sense coordenades possibles).
+  if (cauJerarquies[clau] && (cauCoords[clau] || cauJerarquies[clau].length === 0)) return cauJerarquies[clau];
   if (MODE_DEMO) return null;
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return null;
 
@@ -3454,10 +3496,15 @@ async function jerarquiaDe(zona) {
     const llocs = [];
     if (dades[0].name) llocs.push(dades[0].name.toLowerCase());
     for (const n of nivells) if (adr[n]) llocs.push(String(adr[n]).toLowerCase());
-    return { jer: [...new Set(llocs)] };
+    return { jer: [...new Set(llocs)], lat: parseFloat(dades[0].lat), lon: parseFloat(dades[0].lon) };
   });
 
-  if (res && res.jer && res.jer.length) { cauJerarquies[clau] = res.jer; desaCauJerarquies(); return res.jer; }
+  if (res && res.jer && res.jer.length) {
+    cauJerarquies[clau] = res.jer;
+    if (isFinite(res.lat) && isFinite(res.lon)) cauCoords[clau] = { lat: res.lat, lon: res.lon };
+    desaCauJerarquies(); desaCauCoords();
+    return res.jer;
+  }
   // «No trobat» es cacheja com a llista buida: no es torna a consultar mai,
   // ni entre sessions, i el creuament recau en la comparació de text.
   if (res && res.buit) { cauJerarquies[clau] = []; desaCauJerarquies(); return []; }
@@ -3494,11 +3541,15 @@ async function geocodificaPendents() {
     let noves = 0;
     for (const z of zones) {
       const clau = z.toLowerCase();
-      if (cauJerarquies[clau]) continue;
+      // Salta si ja tenim jerarquia i coordenades (o sabem que és buida)
+      if (cauJerarquies[clau] && (cauCoords[clau] || cauJerarquies[clau].length === 0)) continue;
       const jer = await jerarquiaDe(z);
       if (jer && jer.length) noves++;
     }
-    if (noves) pintaCoincidencies();
+    if (noves) {
+      pintaCoincidencies();
+      if (inspiracioVista === 'mapa' && mapaIdees && window.L) dibuixaPinsIdees(window.L);
+    }
   } finally {
     geocodificant = false;
   }
@@ -3582,6 +3633,74 @@ function filtreEtiquetesHTML(totes) {
   return pills + sense + esborra;
 }
 
+/* ── Mapa d'idees (Leaflet + OpenStreetMap, carregat sota demanda) ──
+   Leaflet i les tessel·les es baixen només en obrir el mapa; la resta de
+   l'app no depèn de xarxa. Cada idea amb zona resoluble és un pin. */
+let inspiracioVista = 'llista';   // 'llista' o 'mapa'
+let leafletCarregat = null;
+let mapaIdees = null;
+let capaPinsIdees = null;
+
+function carregaLeaflet() {
+  if (leafletCarregat) return leafletCarregat;
+  leafletCarregat = new Promise((resol, rebutja) => {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
+    const js = document.createElement('script');
+    js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    js.onload = () => resol(window.L);
+    js.onerror = () => rebutja(new Error('leaflet'));
+    document.head.appendChild(js);
+  });
+  return leafletCarregat;
+}
+
+async function mostraMapaIdees() {
+  const cont = $('mapa-idees');
+  if (!cont) return;
+  let L;
+  try { L = await carregaLeaflet(); }
+  catch (e) {
+    cont.innerHTML = '<p class="detall-buit" style="padding:20px">No s\u2019ha pogut carregar el mapa. Cal connexió a internet; torna-ho a provar.</p>';
+    return;
+  }
+  if (!mapaIdees) {
+    mapaIdees = L.map(cont, { scrollWheelZoom: false });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '\u00a9 OpenStreetMap'
+    }).addTo(mapaIdees);
+    capaPinsIdees = L.layerGroup().addTo(mapaIdees);
+  }
+  dibuixaPinsIdees(L);
+  setTimeout(() => { if (mapaIdees) mapaIdees.invalidateSize(); }, 0);
+}
+
+function dibuixaPinsIdees(L) {
+  if (!mapaIdees || !capaPinsIdees) return;
+  capaPinsIdees.clearLayers();
+  const visibles = idees.filter(ideaPassaFiltre);
+  const punts = [];
+  let sense = 0;
+  for (const i of visibles) {
+    const c = coordsDe(i.zona);
+    if (!c) { sense++; continue; }
+    let titol = (i.text || 'Idea').split('\n')[0];
+    if (titol.length > 80) titol = titol.slice(0, 80) + '…';
+    const zona = i.zona ? '<br><span style="color:#9C9088">' + esc(i.zona) + '</span>' : '';
+    const etiq = (i.etiquetes || []).length ? '<br>' + esc(i.etiquetes.join(' \u00b7 ')) : '';
+    L.marker([c.lat, c.lon]).bindPopup('<strong>' + esc(titol) + '</strong>' + zona + etiq).addTo(capaPinsIdees);
+    punts.push([c.lat, c.lon]);
+  }
+  if (punts.length) mapaIdees.fitBounds(punts, { padding: [34, 34], maxZoom: 12 });
+  else mapaIdees.setView([41.6, 1.9], 4);
+  const nota = $('mapa-nota');
+  if (nota) nota.textContent = sense
+    ? sense + (sense === 1 ? ' idea sense ubicació (només a la llista)' : ' idees sense ubicació (només a la llista)')
+    : '';
+}
+
 function pintaIdees() {
   const cos = $('llista-idees');
 
@@ -3616,10 +3735,26 @@ function pintaIdees() {
     ? `${visibles.length} de ${idees.length} ${idees.length === 1 ? 'idea' : 'idees'}`
     : (idees.length === 1 ? '1 idea' : idees.length + ' idees');
   $('filtre-etiquetes').innerHTML = filtreEtiquetesHTML(totes);
+  pintaCoincidencies();
+
+  // Commutador Llista / Mapa
+  for (const b of document.querySelectorAll('#inspiracio-mode [data-inspiracio-vista]'))
+    b.classList.toggle('activa', b.dataset.inspiracioVista === inspiracioVista);
+
+  if (inspiracioVista === 'mapa') {
+    $('mapa-idees').classList.remove('ocult');
+    $('llista-idees').style.display = 'none';
+    $('idees-buida').style.display = 'none';
+    $('idees-buida-filtre').style.display = 'none';
+    mostraMapaIdees();
+    return;
+  }
+  $('mapa-idees').classList.add('ocult');
+  $('mapa-nota').textContent = '';
+
   $('idees-buida').style.display = idees.length ? 'none' : 'block';
   $('idees-buida-filtre').style.display = (idees.length && !visibles.length) ? 'block' : 'none';
   $('llista-idees').style.display = visibles.length ? '' : 'none';
-  pintaCoincidencies();
   if (!visibles.length) { cos.innerHTML = ''; return; }
 
   cos.innerHTML = visibles.map(i => `
@@ -3751,6 +3886,14 @@ $('filtre-etiquetes').addEventListener('click', e => {
     return;
   }
   if (e.target.closest('[data-esborra-filtre]')) { filtreEtiquetes.clear(); pintaIdees(); }
+});
+
+/* Commutar entre la llista d'idees i el mapa */
+$('inspiracio-mode').addEventListener('click', e => {
+  const b = e.target.closest('[data-inspiracio-vista]');
+  if (!b) return;
+  inspiracioVista = b.dataset.inspiracioVista;
+  pintaIdees();
 });
 
 /* Afegir no obre cap formulari: crea la idea buida i hi posa el cursor */
@@ -4990,7 +5133,7 @@ $('fitxer-importa').addEventListener('change', e => {
    sessió perquè, en un ordinador compartit, no en quedi rastre. Al núvol
    les dades hi són intactes i tornen en tornar a entrar. */
 function esborraDadesLocals() {
-  for (const clau of [CLAU, CLAU_IDEES, CLAU_VIATGES, CLAU_SINC, CLAU_JER, CLAU_VISTA, CLAU_PESTANYA]) {
+  for (const clau of [CLAU, CLAU_IDEES, CLAU_VIATGES, CLAU_SINC, CLAU_JER, CLAU_COORDS, CLAU_VISTA, CLAU_PESTANYA]) {
     try { localStorage.removeItem(clau); } catch (e) {}
   }
 }
