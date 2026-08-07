@@ -141,9 +141,13 @@
   }
   .pill-esborra:hover { text-decoration: underline; }
 
-  /* Mapa d'idees (Leaflet) */
-  .mapa-idees { height: 380px; border-radius: 12px; overflow: hidden; border: 1px solid var(--vora-forta); }
+  /* Mapa d'idees i de viatge (Leaflet) */
+  .mapa-idees, .mapa-viatge { height: 380px; border-radius: 12px; overflow: hidden; border: 1px solid var(--vora-forta); }
   .mapa-nota { font-size: 12px; color: var(--tinta-tenue); margin-top: 8px; }
+  .mapa-llegenda { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
+  .mapa-lleg { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--tinta-suau); }
+  .mapa-lleg-punt { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+  .pin-color { background: transparent; border: none; }
   .barra-accions .separa { flex: 1; }
 
   button {
@@ -1026,6 +1030,28 @@
     #fitxa.visible { animation: entra 0.22s ease-out; }
     @keyframes entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   }
+  /* Finestra de novetats (modal) */
+  .novetats-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(51, 39, 46, 0.55);
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .novetats-overlay.visible { display: flex; }
+  .novetats {
+    position: relative; width: 100%; max-width: 420px;
+    background: var(--superficie-clara); border: 1px solid var(--vora-forta); border-radius: 16px;
+    padding: 26px 26px 22px; box-shadow: 0 18px 50px rgba(51, 39, 46, 0.3);
+  }
+  .novetats-x {
+    position: absolute; top: 12px; right: 12px; width: 32px; height: 32px;
+    border: none; background: none; color: var(--tinta-tenue); font-size: 22px; line-height: 1;
+    cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  }
+  .novetats-x:hover { background: var(--subtil); color: var(--tinta); }
+  .novetats-titol { margin: 0 0 12px; font-size: 20px; font-weight: 600; color: var(--accent); }
+  .novetats-cos p { margin: 0 0 12px; font-size: 14.5px; line-height: 1.5; color: var(--tinta-suau); }
+  .novetats-cos p:last-child { margin-bottom: 0; }
+  .novetats-ok { width: 100%; margin-top: 20px; }
 </style>
 </head>
 <body>
@@ -1227,6 +1253,18 @@
     <div class="avis" id="avis-peu"></div>
   </div>
 </footer>
+
+<div class="novetats-overlay" id="novetats-overlay">
+  <div class="novetats" role="dialog" aria-modal="true" aria-labelledby="novetats-titol">
+    <button class="novetats-x" id="novetats-x" aria-label="Tanca">&times;</button>
+    <h2 class="novetats-titol" id="novetats-titol">Hola, Carles!</h2>
+    <div class="novetats-cos">
+      <p>Com va el viatge? Com va amb l'aplicació?</p>
+      <p>Recorda que si tens qualsevol dubte, suggeriment, problema, necessitat de nova funcionalitat… li ho pots dir a la Clara! Ella farà… els possibles ;)</p>
+    </div>
+    <button class="primari novetats-ok" id="novetats-ok">Entesos</button>
+  </div>
+</div>
 
 <script>
 /* ═══════════════ PARSER (provat amb mostres reals) ═══════════════ */
@@ -1698,6 +1736,28 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Finestra de novetats (modal) que surt un sol cop en obrir l'app
+      (usuari real, no en demo): finestra flotant amb l'estètica de l'app,
+      fons enfosquit al darrere, botó «Entesos» i creu a dalt a la dreta (i
+      també tanca amb Escape o clicant fora). El «un sol cop» es recorda a
+      localStorage; per tornar-la a mostrar amb un text nou, es puja
+      VERSIO_NOVETATS. No es mostra la versió a l'usuari (v70).
+   FET · Una idea assignada a un viatge (visita) té ara dues accions al seu
+      detall: «Torna a Inspiració» (la desassigna i torna a ser idea lliure,
+      com abans «Treure del viatge») i «Elimina» (l'esborra del tot, del
+      viatge i de la Inspiració, amb confirmació) (v69).
+   FET · Pins de color al mapa de viatge, per categoria: Allotjament (pruna),
+      Transport (avió+cotxe, blau-verd), Activitats (entrades+visites, ambre)
+      i Idea candidata (gris). S'agrupa per lloc I categoria (un pin de color
+      per tipus a cada lloc), repartits en ventall perquè no es trepitgin, amb
+      llegenda a sota. Pins dibuixats amb SVG (sense imatges externes). Els
+      colors del mapa d'idees encara van tots iguals: PENDENT (v68).
+   FET · Mapa de viatge: subpestanya nova «Mapa» dins del viatge (Idees ·
+      Agenda · Pressupost · Mapa), que reaprofita el motor de Leaflet. En un
+      sol mapa hi surten les reserves, les visites i les idees candidates de
+      la zona. Com que les coordenades són per poble, s'agrupen per ubicació:
+      un pin per lloc amb un globus que llista tot el que hi ha. Es geocodifiquen
+      també les zones de les visites. Colors i precisió fina: PENDENTS (v67).
    FET · Mapa d'idees a la Inspiració (commutador Llista/Mapa): Leaflet +
       OpenStreetMap carregat sota demanda; cada idea amb zona resoluble és un
       pin (clic → text, zona, etiquetes), el filtre d'etiquetes filtra també
@@ -3536,6 +3596,7 @@ async function geocodificaPendents() {
   try {
     const zones = new Set();
     for (const i of idees) if (i.zona) zones.add(i.zona.trim());
+    for (const vi of visites) if (vi.zona) zones.add(vi.zona.trim());
     for (const r of reserves) { const p = poblacioReserva(r); if (p) zones.add(p); }
 
     let noves = 0;
@@ -3549,6 +3610,7 @@ async function geocodificaPendents() {
     if (noves) {
       pintaCoincidencies();
       if (inspiracioVista === 'mapa' && mapaIdees && window.L) dibuixaPinsIdees(window.L);
+      if (subvistaViatge === 'mapa' && viatgeObert && window.L) pintaDetallViatge();
     }
   } finally {
     geocodificant = false;
@@ -3698,6 +3760,125 @@ function dibuixaPinsIdees(L) {
   const nota = $('mapa-nota');
   if (nota) nota.textContent = sense
     ? sense + (sense === 1 ? ' idea sense ubicació (només a la llista)' : ' idees sense ubicació (només a la llista)')
+    : '';
+}
+
+let mapaViatge = null;
+
+function mapaViatgeHTML(v) {
+  return `<div class="mapa-viatge" id="mapa-viatge"></div>
+    <div class="mapa-llegenda" id="mapa-viatge-llegenda"></div>
+    <div class="mapa-nota" id="mapa-viatge-nota"></div>`;
+}
+
+async function mostraMapaViatge(v, seves) {
+  const cont = $('mapa-viatge');
+  if (!cont) return;
+  let L;
+  try { L = await carregaLeaflet(); }
+  catch (e) {
+    cont.innerHTML = '<p class="detall-buit" style="padding:20px">No s\u2019ha pogut carregar el mapa. Cal connexió a internet; torna-ho a provar.</p>';
+    return;
+  }
+  // El contenidor es recrea a cada render del detall; refem el mapa net.
+  if (mapaViatge) { try { mapaViatge.remove(); } catch (e) {} mapaViatge = null; }
+  const cont2 = $('mapa-viatge');
+  if (!cont2) return;   // s'ha canviat de subpestanya mentre carregava
+  mapaViatge = L.map(cont2, { scrollWheelZoom: false });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '\u00a9 OpenStreetMap'
+  }).addTo(mapaViatge);
+  const capa = L.layerGroup().addTo(mapaViatge);
+  dibuixaPinsViatge(L, capa, v, seves);
+  setTimeout(() => { if (mapaViatge) mapaViatge.invalidateSize(); }, 0);
+}
+
+/* Colors dels pins del mapa de viatge, per categoria. */
+const COLORS_MAPA = { allotjament: '#5E3352', transport: '#2E6E7E', activitats: '#C1741E', idea: '#9C9088' };
+const ETIQ_MAPA = { allotjament: 'Allotjament', transport: 'Transport', activitats: 'Activitats', idea: 'Idea' };
+const ORDRE_MAPA = ['allotjament', 'transport', 'activitats', 'idea'];
+
+/* La categoria de color d'un element. Transport ajunta avió i cotxe;
+   Activitats ajunta entrades i visites; les idees candidates van a part. */
+function categoriaMapa(mena, tipus) {
+  if (mena === 'idea') return 'idea';
+  if (mena === 'visita') return 'activitats';
+  if (tipus === 'allotjament') return 'allotjament';
+  if (tipus === 'vol' || tipus === 'cotxe') return 'transport';
+  return 'activitats';   // entrada, altres
+}
+
+/* Un pin de color dibuixat (SVG), sense imatges externes. */
+function pinIcona(L, color) {
+  const svg = `<svg width="26" height="34" viewBox="0 0 26 34" xmlns="http://www.w3.org/2000/svg"><path d="M13 0C5.8 0 0 5.8 0 13c0 9 13 21 13 21s13-12 13-21C26 5.8 20.2 0 13 0z" fill="${color}" stroke="#FBF9F5" stroke-width="1.5"/><circle cx="13" cy="13" r="4.4" fill="#FBF9F5"/></svg>`;
+  return L.divIcon({ html: svg, className: 'pin-color', iconSize: [26, 34], iconAnchor: [13, 34], popupAnchor: [0, -30] });
+}
+
+/* Els punts del mapa d'un viatge: reserves, visites i idees candidates. Com
+   que les coordenades són per zona (poble), s'agrupen per lloc I categoria:
+   un pin de color per tipus a cada lloc, repartits en ventall perquè no es
+   trepitgin, i el globus llista el que hi ha d'aquella categoria. */
+function dibuixaPinsViatge(L, capa, v, seves) {
+  const items = [];
+  for (const r of seves) {
+    const t = tipusDe(r);
+    items.push({ zona: poblacioReserva(r), cat: categoriaMapa('reserva', t), tipus: (TIPUS[t].nom || 'Reserva'), nom: nomReserva(r) });
+  }
+  for (const vi of visites.filter(x => x.viatgeId === v.id)) items.push({ zona: vi.zona, cat: 'activitats', tipus: 'Visita', nom: (vi.text || 'Visita').split('\n')[0] });
+  for (const i of ideesSuggerides(v, seves)) items.push({ zona: i.zona, cat: 'idea', tipus: 'Idea', nom: (i.text || 'Idea').split('\n')[0] });
+
+  // Agrupa per lloc + categoria, i recorda quins grups té cada lloc
+  const grups = new Map();
+  const perLloc = new Map();
+  const catsPresents = new Set();
+  let sense = 0;
+  for (const it of items) {
+    const c = coordsDe(it.zona);
+    if (!c) { sense++; continue; }
+    const llocClau = c.lat.toFixed(4) + ',' + c.lon.toFixed(4);
+    const clau = llocClau + '|' + it.cat;
+    if (!grups.has(clau)) {
+      grups.set(clau, { lat: c.lat, lon: c.lon, zona: it.zona, cat: it.cat, items: [] });
+      if (!perLloc.has(llocClau)) perLloc.set(llocClau, []);
+      perLloc.get(llocClau).push(clau);
+    }
+    grups.get(clau).items.push(it);
+    catsPresents.add(it.cat);
+  }
+
+  const punts = [];
+  for (const clausGrup of perLloc.values()) {
+    const n = clausGrup.length;
+    clausGrup.forEach((clau, idx) => {
+      const g = grups.get(clau);
+      let lat = g.lat, lon = g.lon;
+      if (n > 1) {   // reparteix en ventall si hi ha més d'un tipus al mateix lloc
+        const ang = (idx / n) * 2 * Math.PI;
+        const radi = 0.006;
+        lat += radi * Math.cos(ang);
+        lon += radi * Math.sin(ang) / Math.cos(g.lat * Math.PI / 180);
+      }
+      const linies = g.items.map(it => {
+        let nom = it.nom; if (nom.length > 60) nom = nom.slice(0, 60) + '…';
+        return `<div style="margin-top:3px"><span style="color:#9C9088">${esc(it.tipus)}</span> · ${esc(nom)}</div>`;
+      }).join('');
+      const popup = `<strong>${esc(g.zona || 'Lloc')}</strong> <span style="color:${COLORS_MAPA[g.cat]}">· ${esc(ETIQ_MAPA[g.cat])}</span>${linies}`;
+      L.marker([lat, lon], { icon: pinIcona(L, COLORS_MAPA[g.cat]) }).bindPopup(popup).addTo(capa);
+      punts.push([lat, lon]);
+    });
+  }
+
+  if (punts.length) mapaViatge.fitBounds(punts, { padding: [40, 40], maxZoom: 13 });
+  else mapaViatge.setView([41.6, 1.9], 4);
+
+  const lleg = $('mapa-viatge-llegenda');
+  if (lleg) lleg.innerHTML = ORDRE_MAPA.filter(c => catsPresents.has(c)).map(c =>
+    `<span class="mapa-lleg"><span class="mapa-lleg-punt" style="background:${COLORS_MAPA[c]}"></span>${esc(ETIQ_MAPA[c])}</span>`
+  ).join('');
+
+  const nota = $('mapa-viatge-nota');
+  if (nota) nota.textContent = sense
+    ? sense + (sense === 1 ? ' element sense ubicació al mapa' : ' elements sense ubicació al mapa')
     : '';
 }
 
@@ -4164,6 +4345,8 @@ function pintaDetallViatge() {
     ? pressupostHTML(v, seves)
     : subvistaViatge === 'idees'
     ? ideesViatgeHTML(v, seves)
+    : subvistaViatge === 'mapa'
+    ? mapaViatgeHTML(v)
     : agendaHTML(seves);
 
   cont.innerHTML = `
@@ -4179,8 +4362,11 @@ function pintaDetallViatge() {
       <button class="subpestanya${subvistaViatge === 'idees' ? ' activa' : ''}" data-subvista="idees">Idees</button>
       <button class="subpestanya${subvistaViatge === 'agenda' ? ' activa' : ''}" data-subvista="agenda">Agenda</button>
       <button class="subpestanya${subvistaViatge === 'pressupost' ? ' activa' : ''}" data-subvista="pressupost">Pressupost</button>
+      <button class="subpestanya${subvistaViatge === 'mapa' ? ' activa' : ''}" data-subvista="mapa">Mapa</button>
     </div>
     <div class="subvista subvista-${subvistaViatge}">${cos}</div>`;
+
+  if (subvistaViatge === 'mapa') mostraMapaViatge(v, seves);
 }
 
 /* La pestanya «Idees» del viatge: les idees de la wishlist que encaixen
@@ -4272,7 +4458,8 @@ function filaVisitaHTML(vi) {
         ${vi.enllac ? `<a class="idea-enllac" href="${esc(vi.enllac)}" target="_blank" rel="noopener noreferrer">${esc(nomEnllac(vi.enllac))}</a>` : ''}
       </div>
       <div class="detall-accions">
-        <button class="subtil" data-treu-visita="${esc(vi.id)}">Treure del viatge</button>
+        <button class="subtil" data-treu-visita="${esc(vi.id)}">Torna a Inspiració</button>
+        <button class="subtil perill" data-esborra-visita="${esc(vi.id)}">Elimina</button>
       </div>
     </div>
   </div>`;
@@ -4873,6 +5060,14 @@ $('detall-viatge-vista').addEventListener('click', async e => {
     await refresca();
     return;
   }
+  // Eliminar una idea del tot (desapareix del viatge i de la Inspiració)
+  const esbVis = e.target.closest('[data-esborra-visita]');
+  if (esbVis) {
+    if (!confirm('Vols eliminar aquesta idea? Desapareixerà del viatge i de la Inspiració.')) return;
+    await MagatzemIdees.esborra(esbVis.dataset.esborraVisita);
+    await refresca();
+    return;
+  }
   // Crear una idea des de dins del viatge (pestanya Idees)
   if (e.target.closest('[data-afegeix-idea-viatge]')) { await afegeixIdeaViatge(); return; }
   // Despeses soltes del pressupost
@@ -4971,10 +5166,32 @@ function textErrorAcces(e) {
   return (e && e.message) || 'Hi ha hagut un problema.';
 }
 
+/* ── Finestra de novetats ──
+   Surt un sol cop en obrir l'app. Si algun dia vols tornar-la a mostrar
+   (amb un text nou), canvia VERSIO_NOVETATS i tornarà a aparèixer un cop. */
+const VERSIO_NOVETATS = '1';
+const CLAU_NOVETATS = 'novetats-vista';
+
+function mostrarNovetats() {
+  try { if (localStorage.getItem(CLAU_NOVETATS) === VERSIO_NOVETATS) return; } catch (e) {}
+  const ov = $('novetats-overlay');
+  if (ov) ov.classList.add('visible');
+}
+function tancarNovetats() {
+  try { localStorage.setItem(CLAU_NOVETATS, VERSIO_NOVETATS); } catch (e) {}
+  const ov = $('novetats-overlay');
+  if (ov) ov.classList.remove('visible');
+}
+$('novetats-x').addEventListener('click', tancarNovetats);
+$('novetats-ok').addEventListener('click', tancarNovetats);
+$('novetats-overlay').addEventListener('click', e => { if (e.target === $('novetats-overlay')) tancarNovetats(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('novetats-overlay').classList.contains('visible')) tancarNovetats(); });
+
 async function haEntrat(usuari) {
   Nuvol.usuari = usuari;
   mostraAcces(false);
   await refresca();
+  mostrarNovetats();
   await Nuvol.sincronitza();
 }
 
