@@ -7,6 +7,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<!-- PWA: instal·lable i amb funcionament sense connexió. Rutes relatives,
+     perquè l'app viu dins de …/viatges/. -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#5E3352">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Viatges">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="icon" href="favicon.ico" sizes="any">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -142,7 +154,12 @@
   .pill-esborra:hover { text-decoration: underline; }
 
   /* Mapa d'idees i de viatge (Leaflet) */
-  .mapa-idees, .mapa-viatge { height: 380px; border-radius: 12px; overflow: hidden; border: 1px solid var(--vora-forta); }
+  .mapa-idees, .mapa-viatge { height: clamp(440px, 68vh, 700px); border-radius: 12px; overflow: hidden; border: 1px solid var(--vora-forta); }
+  /* Al mòbil, alçada fixa moderada; el clamp de dalt engrandeix el mapa a
+     l'ordinador, adaptant-se a l'alt de la finestra. */
+  @media (max-width: 620px) {
+    .mapa-idees, .mapa-viatge { height: 380px; }
+  }
   .mapa-nota { font-size: 12px; color: var(--tinta-tenue); margin-top: 8px; }
   .mapa-llegenda { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
   .mapa-lleg { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--tinta-suau); }
@@ -1736,6 +1753,27 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Ara és una PWA: instal·lable al mòbil i a l'escriptori, amb icona
+      pròpia (maleta) i funcionament sense connexió. S'hi afegeixen el
+      manifest, un service worker (desa el nucli de l'app; mai els mapes, el
+      geocodificador ni Supabase) i les etiquetes del <head>. Rutes relatives
+      perquè viu dins de /viatges/. Cal pujar els fitxers nous al costat de
+      l'HTML (manifest.webmanifest, sw.js i les icones) (v74).
+   FET · Mapa més gran a l'ordinador: l'alçada s'adapta a la finestra (uns dos
+      terços de l'alt, amb mínim i màxim), en comptes dels 380px fixos. Al
+      mòbil es manté a 380px. En redimensionar la finestra, el mapa visible es
+      refresca (invalidateSize) per no deixar requadres grisos (v73).
+   FET · Pins del mapa de viatge a l'adreça exacta quan n'hi ha: allotjaments
+      (adreça), cotxe i «altres» (lloc de recollida) i entrades (recinte +
+      població) es geocodifiquen a banda, així el pin va al lloc real i no al
+      centre del poble. Si l'adreça no es pot situar, recau al poble com
+      abans. Les coordenades d'adreça es desen en una memòria pròpia i no
+      entren al creuament d'idees per jerarquia (v72).
+   FET · Suggeriment d'idees per viatge: en creuar zones per jerarquia
+      territorial, s'ignora ara el nivell més ampli (el país). Compartir
+      només «espanya» ja no compta com a proximitat, així que idees de
+      Granada o Granollers deixen d'aparèixer al viatge a Tenerife. Cal
+      compartir un nivell més fi (illa, comarca, ciutat…) (v71).
    FET · Finestra de novetats (modal) que surt un sol cop en obrir l'app
       (usuari real, no en demo): finestra flotant amb l'estètica de l'app,
       fons enfosquit al darrere, botó «Entesos» i creu a dalt a la dreta (i
@@ -3008,6 +3046,19 @@ function poblacioReserva(r) {
   return poblacio(r.adreca);
 }
 
+/* L'adreça més precisa que una reserva ofereix per situar-la al mapa, o ''
+   si només en tenim el poble (vols) o no n'hi ha res. Es geocodifica a banda
+   de la zona per posar el pin al lloc exacte; si no es pot resoldre, el pin
+   recau al poble (poblacioReserva). */
+function adrecaMapa(r) {
+  const t = tipusDe(r);
+  if (t === 'vol') return '';
+  if (t === 'cotxe') return (r.llocRecollida || '').trim();
+  if (t === 'entrada') return [r.recinte, r.poblacio].filter(Boolean).join(', ').trim();
+  if (t === 'altres') return (r.llocRecollida || '').trim();
+  return (r.adreca || '').trim();   // allotjament
+}
+
 /* Els camps que mostra el desplegable, en parells [etiqueta, valor]. */
 function detallReserva(r) {
   const t = tipusDe(r);
@@ -3506,6 +3557,28 @@ function coordsDe(zona) {
   return (k && cauCoords[k]) || null;
 }
 
+const CLAU_COORDS_ADR = 'registre-coords-adreca-v1';
+/* Coordenades exactes d'adreces concretes (allotjaments, recintes, punts de
+   recollida…), per posar el pin al lloc real i no al centre del poble. Clau:
+   l'adreça en minúscules. Valor: {lat,lon} si s'ha trobat, o {buit:true} si
+   es va consultar i no es va trobar (així no es repeteix la consulta).
+   Separada de cauCoords perquè les adreces no entren mai al creuament
+   d'idees per jerarquia: només serveixen per situar pins. */
+let cauCoordsAdr = (() => {
+  try { return JSON.parse(localStorage.getItem(CLAU_COORDS_ADR) || '{}'); }
+  catch (e) { return {}; }
+})();
+function desaCauCoordsAdr() {
+  try { localStorage.setItem(CLAU_COORDS_ADR, JSON.stringify(cauCoordsAdr)); } catch (e) {}
+}
+/* Coordenades d'una adreça exacta des de la memòria cau (síncron), o null
+   (si no s'ha resolt encara o es va consultar sense trobar-la). */
+function coordsAdreca(adreca) {
+  const k = (adreca || '').trim().toLowerCase();
+  const v = k && cauCoordsAdr[k];
+  return (v && isFinite(v.lat)) ? v : null;
+}
+
 /* Cua d'una consulta per segon: la política de Nominatim és estricta. */
 const cuaGeo = { pendents: [], treballant: false };
 
@@ -3583,8 +3656,47 @@ function zonesCoincideixen(zonaA, zonaB) {
   const ja = cauJerarquies[a], jb = cauJerarquies[b];
   if (ja && ja.includes(b)) return true;   // b és un nivell de a (Tenerife dins de Los Cristianos)
   if (jb && jb.includes(a)) return true;   // a és un nivell de b
-  if (ja && jb && ja.some(x => jb.includes(x))) return true;   // comparteixen algun nivell
+  // Comparteixen algun nivell, PERÒ ignorant el més ampli de cada jerarquia
+  // (típicament el país): compartir només «espanya» no és proximitat, i feia
+  // que Granada i Granollers encaixessin amb Tenerife. La jerarquia va del
+  // més petit al més gran, així que el nivell més ampli és l'últim.
+  if (ja && jb) {
+    const aFi = ja.length > 1 ? ja.slice(0, -1) : ja;
+    const bFi = jb.length > 1 ? jb.slice(0, -1) : jb;
+    if (aFi.some(x => bFi.includes(x))) return true;
+  }
   return false;
+}
+
+/* Coordenades d'una adreça exacta, consultant Nominatim si cal (coordenades
+   només, sense jerarquia). Cacheja el resultat —o el fet que no s'ha trobat—
+   perquè no es repeteixi. Torna {lat,lon} o null. */
+async function coordsDeAdrecaRemot(adreca) {
+  const clau = (adreca || '').trim().toLowerCase();
+  if (!clau) return null;
+  if (clau in cauCoordsAdr) {
+    const v = cauCoordsAdr[clau];
+    return (v && isFinite(v.lat)) ? v : null;
+  }
+  if (MODE_DEMO) return null;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return null;
+  const res = await encuaGeo(async () => {
+    const url = NOMINATIM_URL + '?format=jsonv2&limit=1&accept-language=ca&q=' + encodeURIComponent(adreca);
+    const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const dades = await resp.json();
+    if (!Array.isArray(dades) || !dades.length) return { buit: true };
+    return { lat: parseFloat(dades[0].lat), lon: parseFloat(dades[0].lon) };
+  });
+  if (res && isFinite(res.lat) && isFinite(res.lon)) {
+    cauCoordsAdr[clau] = { lat: res.lat, lon: res.lon };
+    desaCauCoordsAdr();
+    return cauCoordsAdr[clau];
+  }
+  // Consulta feta però sense resultat: es marca per no repetir-la. El pin
+  // recaurà al poble. Un error transitori (xarxa/HTTP) NO es cacheja.
+  if (res && res.buit) { cauCoordsAdr[clau] = { buit: true }; desaCauCoordsAdr(); return null; }
+  return null;
 }
 
 /* Consulta en segon pla les zones que encara no tenen jerarquia. Quan
@@ -3607,6 +3719,23 @@ async function geocodificaPendents() {
       const jer = await jerarquiaDe(z);
       if (jer && jer.length) noves++;
     }
+
+    // Adreces exactes de les reserves (allotjaments, recollides, recintes…),
+    // per situar-ne el pin al lloc real. Només les que aporten més detall
+    // que el poble; les que no es resolguin recauran al poble igualment.
+    const adreces = new Set();
+    for (const r of reserves) {
+      const a = adrecaMapa(r);
+      if (!a) continue;
+      const z = (poblacioReserva(r) || '').toLowerCase();
+      if (a.toLowerCase() !== z) adreces.add(a);
+    }
+    for (const a of adreces) {
+      if (a.toLowerCase() in cauCoordsAdr) continue;
+      const c = await coordsDeAdrecaRemot(a);
+      if (c) noves++;
+    }
+
     if (noves) {
       pintaCoincidencies();
       if (inspiracioVista === 'mapa' && mapaIdees && window.L) dibuixaPinsIdees(window.L);
@@ -3702,6 +3831,19 @@ let inspiracioVista = 'llista';   // 'llista' o 'mapa'
 let leafletCarregat = null;
 let mapaIdees = null;
 let capaPinsIdees = null;
+
+/* L'alçada dels mapes depèn ara de la finestra (clamp amb vh). En redimensionar,
+   Leaflet no s'assabenta que el seu contenidor ha canviat i deixaria requadres
+   grisos: se l'avisa amb invalidateSize. Es fa amb un petit retard perquè no
+   es dispari a cada píxel del redimensionament. */
+let tempsResizeMapa = null;
+window.addEventListener('resize', () => {
+  clearTimeout(tempsResizeMapa);
+  tempsResizeMapa = setTimeout(() => {
+    if (inspiracioVista === 'mapa' && mapaIdees) mapaIdees.invalidateSize();
+    if (typeof subvistaViatge !== 'undefined' && subvistaViatge === 'mapa' && mapaViatge) mapaViatge.invalidateSize();
+  }, 200);
+});
 
 function carregaLeaflet() {
   if (leafletCarregat) return leafletCarregat;
@@ -3822,10 +3964,13 @@ function dibuixaPinsViatge(L, capa, v, seves) {
   const items = [];
   for (const r of seves) {
     const t = tipusDe(r);
-    items.push({ zona: poblacioReserva(r), cat: categoriaMapa('reserva', t), tipus: (TIPUS[t].nom || 'Reserva'), nom: nomReserva(r) });
+    const zona = poblacioReserva(r);
+    const adr = adrecaMapa(r);
+    const precisa = (adr && adr.toLowerCase() !== (zona || '').toLowerCase()) ? adr : '';
+    items.push({ zona, adreca: precisa, cat: categoriaMapa('reserva', t), tipus: (TIPUS[t].nom || 'Reserva'), nom: nomReserva(r) });
   }
-  for (const vi of visites.filter(x => x.viatgeId === v.id)) items.push({ zona: vi.zona, cat: 'activitats', tipus: 'Visita', nom: (vi.text || 'Visita').split('\n')[0] });
-  for (const i of ideesSuggerides(v, seves)) items.push({ zona: i.zona, cat: 'idea', tipus: 'Idea', nom: (i.text || 'Idea').split('\n')[0] });
+  for (const vi of visites.filter(x => x.viatgeId === v.id)) items.push({ zona: vi.zona, adreca: '', cat: 'activitats', tipus: 'Visita', nom: (vi.text || 'Visita').split('\n')[0] });
+  for (const i of ideesSuggerides(v, seves)) items.push({ zona: i.zona, adreca: '', cat: 'idea', tipus: 'Idea', nom: (i.text || 'Idea').split('\n')[0] });
 
   // Agrupa per lloc + categoria, i recorda quins grups té cada lloc
   const grups = new Map();
@@ -3833,7 +3978,8 @@ function dibuixaPinsViatge(L, capa, v, seves) {
   const catsPresents = new Set();
   let sense = 0;
   for (const it of items) {
-    const c = coordsDe(it.zona);
+    // Primer l'adreça exacta (pin al lloc real); si no s'ha resolt, el poble.
+    const c = (it.adreca && coordsAdreca(it.adreca)) || coordsDe(it.zona);
     if (!c) { sense++; continue; }
     const llocClau = c.lat.toFixed(4) + ',' + c.lon.toFixed(4);
     const clau = llocClau + '|' + it.cat;
@@ -5391,6 +5537,15 @@ window.addEventListener('offline', () => mostraEstat('sense-connexio'));
   if (!sessio) { mostraAcces(true); return; }
   await haEntrat(sessio.user);
 })();
+</script>
+<script>
+/* Registre del service worker (PWA). Ruta relativa: es resol a …/viatges/sw.js,
+   i el seu abast queda limitat a …/viatges/. Si falla, l'app continua igual. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>
