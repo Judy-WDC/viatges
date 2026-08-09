@@ -6,7 +6,7 @@
 
    Puja el número de versió (CACHE) cada cop que vulguis que els navegadors
    es baixin la versió nova de l'app. */
-const CACHE = 'viatges-v1';
+const CACHE = 'viatges-v2';
 
 /* Fitxers del nucli que es desen en instal·lar. Rutes relatives: es resolen
    respecte de la carpeta on viu el service worker (…/viatges/). */

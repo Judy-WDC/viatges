@@ -708,6 +708,10 @@
     border-radius: 11px;
     overflow: hidden;
   }
+  /* Separació entre caixes de reserva dins d'un mateix mes: viuen dins de
+     #cos-llista, on el «gap» de .llista no arriba. Entre mesos, l'aire ja el
+     dona el marge de la capçalera .grup. */
+  #cos-llista .fila { margin-bottom: 9px; }
   .fila.oberta { border-left-color: var(--accent); }
   .fila-cap {
     width: 100%;
@@ -1753,6 +1757,13 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Suggeriment d'idees més fi: ara es desa de quin tipus és cada nivell
+      de la zona. Compartir comarca o illa SÍ que suggereix; compartir
+      província, comunitat autònoma o país, NO. (Abans, compartir província o
+      comunitat encara comptava.) Es puja la versió de la memòria cau, així
+      que les zones es tornen a consultar un cop, en segon pla (v76).
+   FET · Separació entre les caixes de reserva d'un mateix mes a la llista
+      (abans quedaven enganxades perquè el «gap» no arribava a les files) (v75).
    FET · Ara és una PWA: instal·lable al mòbil i a l'escriptori, amb icona
       pròpia (maleta) i funcionament sense connexió. S'hi afegeixen el
       manifest, un service worker (desa el nucli de l'app; mai els mapes, el
@@ -3521,11 +3532,19 @@ function opcions(llista) {
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const NOMINATIM_APP = 'RegistreDeReserves';   // identificació (User-Agent)
-const CLAU_JER = 'registre-jerarquies-v1';    // memòria cau al navegador
+const CLAU_JER = 'registre-jerarquies-v2';    // memòria cau al navegador
 
-/* Memòria cau de zones ja resoltes, perquè no es repeteixi la consulta
-   ni entre sessions. Clau: la zona en minúscules. Valor: llista de llocs
-   de la jerarquia, també en minúscules. */
+/* Memòria cau de zones ja resoltes, perquè no es repeteixi la consulta ni
+   entre sessions. Clau: la zona en minúscules. Valor: objecte
+   { jer: [...], local: [...] }, tots dos en minúscules:
+   · jer   = tots els nivells territorials (per completesa).
+   · local = només els nivells "locals" que impliquen proximitat de debò
+             (el lloc mateix, ciutat, municipi, comarca, illa). Els nivells
+             amplis (província, comunitat, regió, arxipèlag, país) NO hi són:
+             així, compartir província o comunitat no fa que dues zones
+             encaixin, però compartir comarca o illa sí.
+   (La versió v2 de la clau força tornar a consultar les zones amb aquest
+   format nou; les entrades v1 antigues s'ignoren.) */
 let cauJerarquies = (() => {
   try { return JSON.parse(localStorage.getItem(CLAU_JER) || '{}'); }
   catch (e) { return {}; }
@@ -3534,6 +3553,12 @@ let cauJerarquies = (() => {
 function desaCauJerarquies() {
   try { localStorage.setItem(CLAU_JER, JSON.stringify(cauJerarquies)); } catch (e) {}
 }
+
+/* Accessos tolerants al format: accepten tant el nou objecte {jer,local} com
+   una llista antiga (per si en quedés cap), sense petar. */
+function jerLlista(v) { return Array.isArray(v) ? v : ((v && v.jer) || []); }
+function jerLocal(v)  { return Array.isArray(v) ? v.slice(0, -1) : ((v && v.local) || []); }
+function jerBuida(v)  { return jerLlista(v).length === 0; }
 
 const CLAU_COORDS = 'registre-coords-v1';
 /* Coordenades (lat/lon) de cada zona ja resolta, per situar-la al mapa. Es
@@ -3606,7 +3631,7 @@ async function jerarquiaDe(zona) {
   if (!clau) return null;
   // Hi ha cau completa si tenim jerarquia i, o bé coordenades, o bé sabem que
   // la zona no existeix (jerarquia buida, sense coordenades possibles).
-  if (cauJerarquies[clau] && (cauCoords[clau] || cauJerarquies[clau].length === 0)) return cauJerarquies[clau];
+  if (cauJerarquies[clau] && (cauCoords[clau] || jerBuida(cauJerarquies[clau]))) return jerLlista(cauJerarquies[clau]);
   if (MODE_DEMO) return null;
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return null;
 
@@ -3622,49 +3647,53 @@ async function jerarquiaDe(zona) {
     const dades = await resp.json();
     if (!Array.isArray(dades) || !dades.length) return { buit: true };
     const adr = dades[0].address || {};
-    // Ens quedem els nivells territorials, del més petit al més gran
-    const nivells = ['city', 'town', 'village', 'municipality', 'county',
-                     'state_district', 'state', 'region', 'island',
-                     'archipelago', 'country'];
-    const llocs = [];
-    if (dades[0].name) llocs.push(dades[0].name.toLowerCase());
-    for (const n of nivells) if (adr[n]) llocs.push(String(adr[n]).toLowerCase());
-    return { jer: [...new Set(llocs)], lat: parseFloat(dades[0].lat), lon: parseFloat(dades[0].lon) };
+    // Nivells LOCALS: el lloc mateix i tot el que implica proximitat real
+    // (ciutat, poble, municipi, comarca, illa). Compten per suggerir.
+    const LOCALS = ['city', 'town', 'village', 'municipality', 'county',
+                    'state_district', 'island'];
+    // Nivells AMPLIS: província, comunitat/regió, arxipèlag i país. Es desen a
+    // la jerarquia però NO compten per suggerir (compartir-los no és proximitat).
+    const AMPLIS = ['province', 'state', 'region', 'archipelago', 'country'];
+    const jer = [], local = [];
+    if (dades[0].name) { const nom = String(dades[0].name).toLowerCase(); jer.push(nom); local.push(nom); }
+    for (const n of LOCALS) if (adr[n]) { const v = String(adr[n]).toLowerCase(); jer.push(v); local.push(v); }
+    for (const n of AMPLIS) if (adr[n]) jer.push(String(adr[n]).toLowerCase());
+    return {
+      jer: [...new Set(jer)],
+      local: [...new Set(local)],
+      lat: parseFloat(dades[0].lat), lon: parseFloat(dades[0].lon)
+    };
   });
 
   if (res && res.jer && res.jer.length) {
-    cauJerarquies[clau] = res.jer;
+    cauJerarquies[clau] = { jer: res.jer, local: res.local || [] };
     if (isFinite(res.lat) && isFinite(res.lon)) cauCoords[clau] = { lat: res.lat, lon: res.lon };
     desaCauJerarquies(); desaCauCoords();
     return res.jer;
   }
-  // «No trobat» es cacheja com a llista buida: no es torna a consultar mai,
-  // ni entre sessions, i el creuament recau en la comparació de text.
-  if (res && res.buit) { cauJerarquies[clau] = []; desaCauJerarquies(); return []; }
+  // «No trobat» es cacheja com a buit: no es torna a consultar mai, ni entre
+  // sessions, i el creuament recau en la comparació de text.
+  if (res && res.buit) { cauJerarquies[clau] = { jer: [], local: [] }; desaCauJerarquies(); return []; }
   return null;   // error transitori (xarxa/HTTP): no es cacheja, es reprovarà
 }
 
-/* Diu si dues zones coincideixen. Primer prova per text (ràpid i sempre
-   disponible); si no, mira si una jerarquia conté l'altra o la zona de
-   l'altra. Aquesta versió és SÍNCRONA: fa servir el que ja hi ha desat,
-   no dispara consultes (d'això se n'encarrega geocodificaPendents). */
+/* Diu si dues zones coincideixen a efectes de suggerir idees. Primer per text
+   exacte; si no, mira els nivells LOCALS (ciutat, comarca, illa…): una zona
+   és "dins" de l'altra si el seu nom hi surt com a nivell local, o bé totes
+   dues comparteixen un nivell local. Els nivells amplis (província, comunitat,
+   regió, país) no es tenen en compte: compartir-los no és proximitat.
+   És SÍNCRONA: fa servir el que ja hi ha desat; consultar-ho és feina de
+   geocodificaPendents. */
 function zonesCoincideixen(zonaA, zonaB) {
   const a = (zonaA || '').trim().toLowerCase();
   const b = (zonaB || '').trim().toLowerCase();
   if (!a || !b) return false;
-  if (a === b) return true;
-  const ja = cauJerarquies[a], jb = cauJerarquies[b];
-  if (ja && ja.includes(b)) return true;   // b és un nivell de a (Tenerife dins de Los Cristianos)
-  if (jb && jb.includes(a)) return true;   // a és un nivell de b
-  // Comparteixen algun nivell, PERÒ ignorant el més ampli de cada jerarquia
-  // (típicament el país): compartir només «espanya» no és proximitat, i feia
-  // que Granada i Granollers encaixessin amb Tenerife. La jerarquia va del
-  // més petit al més gran, així que el nivell més ampli és l'últim.
-  if (ja && jb) {
-    const aFi = ja.length > 1 ? ja.slice(0, -1) : ja;
-    const bFi = jb.length > 1 ? jb.slice(0, -1) : jb;
-    if (aFi.some(x => bFi.includes(x))) return true;
-  }
+  if (a === b) return true;                       // mateix nom exacte
+  const la = jerLocal(cauJerarquies[a]);
+  const lb = jerLocal(cauJerarquies[b]);
+  if (la.includes(b)) return true;                // b és un nivell local de a (illa/comarca que la conté)
+  if (lb.includes(a)) return true;                // a és un nivell local de b
+  if (la.length && lb.length && la.some(x => lb.includes(x))) return true;  // mateixa comarca, mateixa illa…
   return false;
 }
 
@@ -3715,7 +3744,7 @@ async function geocodificaPendents() {
     for (const z of zones) {
       const clau = z.toLowerCase();
       // Salta si ja tenim jerarquia i coordenades (o sabem que és buida)
-      if (cauJerarquies[clau] && (cauCoords[clau] || cauJerarquies[clau].length === 0)) continue;
+      if (cauJerarquies[clau] && (cauCoords[clau] || jerBuida(cauJerarquies[clau]))) continue;
       const jer = await jerarquiaDe(z);
       if (jer && jer.length) noves++;
     }
