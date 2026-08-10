@@ -27,6 +27,7 @@
     --fons: #F1ECE6;
     --superficie: #FAF7F2;
     --superficie-clara: #FBF9F5;
+    --superficie-apagada: #F5F1EB;   /* fons de les reserves ja passades */
     --subtil: #EDE7DF;
     --vora: #E4DBD0;
     --vora-forta: #D8CFC4;
@@ -161,8 +162,19 @@
     .mapa-idees, .mapa-viatge { height: 380px; }
   }
   .mapa-nota { font-size: 12px; color: var(--tinta-tenue); margin-top: 8px; }
-  .mapa-llegenda { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
-  .mapa-lleg { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--tinta-suau); }
+  .mapa-llegenda { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 8px 0 0 -6px; }
+  /* Cada element de la llegenda és també un interruptor: clicar-ne un deixa
+     al mapa només aquella categoria; clicant-ne més, s'hi van sumant. */
+  .mapa-lleg {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 400; color: var(--tinta-suau);
+    padding: 3px 9px 3px 6px; border: 1px solid transparent; border-radius: 999px;
+    background: none; cursor: pointer;
+  }
+  .mapa-lleg:hover { background: var(--subtil); border-color: var(--vora); color: var(--tinta); }
+  .mapa-lleg.apagat { color: var(--tinta-tenue); }
+  /* El punt de color va per estil en línia, per això cal !important per buidar-lo. */
+  .mapa-lleg.apagat .mapa-lleg-punt { background: transparent !important; box-shadow: inset 0 0 0 1.5px var(--vora-forta); }
   .mapa-lleg-punt { width: 11px; height: 11px; border-radius: 50%; flex: none; }
   .pin-color { background: transparent; border: none; }
   .barra-accions .separa { flex: 1; }
@@ -789,6 +801,32 @@
   .preu-desconegut { color: var(--tinta-tenue); }
   .chev { transition: transform 0.15s ease; }
   .fila.oberta .chev { transform: rotate(180deg); }
+
+  /* Reserves ja passades: es despinten mentre la fila és tancada. En obrir-la
+     recuperen els colors normals, que és just quan les vols llegir de debò.
+     Val també dins del detall d'un viatge, perquè la fila és la mateixa. */
+  .fila.passada { border-left-color: var(--vora-forta); background: var(--superficie-apagada); }
+  .fila.passada:not(.oberta) .icona-tipus { background: var(--subtil); color: var(--tinta-tenue); }
+  .fila.passada:not(.oberta) .nom { color: var(--tinta-suau); font-weight: 400; }
+  .fila.passada:not(.oberta) .sotanom,
+  .fila.passada:not(.oberta) .cel-dates .xifra,
+  .fila.passada:not(.oberta) .cel-preu .xifra,
+  .fila.passada:not(.oberta) .cel-preu .menuda { color: var(--tinta-tenue); }
+  .fila.passada:not(.oberta) .cel-cancel { color: var(--tinta-tenue); opacity: 0.7; }
+  .fila.passada:not(.oberta) .fila-cap:hover .nom { color: var(--accent); }
+
+  /* La barra que plega tot el passat, al final de la llista. */
+  .plega-passades {
+    display: flex; align-items: center; gap: 9px; width: 100%;
+    margin-top: 22px; padding: 11px 14px;
+    background: var(--subtil); border-color: var(--vora);
+    font-size: 13px; font-weight: 400; color: var(--tinta-suau);
+  }
+  .plega-passades:hover { background: var(--vora); color: var(--tinta); }
+  .plega-passades .chev-plega { display: inline-flex; color: var(--tinta-tenue); transform: rotate(-90deg); transition: transform 0.15s ease; }
+  .plega-passades.obert .chev-plega { transform: rotate(0deg); }
+  .plega-passades .plega-compta { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--tinta-tenue); }
+  .llista-nota { margin: 18px 2px; font-size: 13px; color: var(--tinta-suau); }
   .pregunta {
     display: flex;
     flex-wrap: wrap;
@@ -1757,6 +1795,28 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Les reserves ja passades surten de la llista principal i queden
+      plegades al final, sota una barra «Ja passades · N reserves» que s'obre
+      amb un clic (per defecte, tancada). A dins, els mesos van del més recent
+      al més antic. Una reserva és passada l'endemà del seu ÚLTIM dia
+      (checkout, o checkin si no en té): un cotxe que tornes avui es veu actiu
+      tot el dia; les que no tenen cap data no són passades mai. A més, les
+      files passades es despinten mentre estan tancades (icona, nom, dates i
+      preu en gris, vora lateral apagada) i recuperen el color en obrir-les.
+      Com que la fila és un component únic, l'atenuació val també dins del
+      detall d'un viatge; la partició, en canvi, és només de la llista
+      principal (v78).
+   FET · Filtre per categoria al mapa del viatge: la llegenda de sota el mapa
+      passa a ser clicable. Clicar una categoria (Allotjament, Transport,
+      Activitats, Idea) deixa al mapa només aquella; clicant-ne més, s'hi
+      sumen; en apagar-les totes o encendre-les totes, es torna a veure tot.
+      Els pins descartats desapareixen. El filtre no refà el mapa (repinta
+      només la capa de pins), així el zoom i la posició no salten a cada clic,
+      i no es reenquadra. La llegenda es calcula sempre amb el viatge sencer,
+      perquè el botó d'una categoria amagada segueixi sent-hi. La nota
+      d'elements sense ubicació compta només el que es veu. És una preferència
+      de vista: no es desa ni se sincronitza, i es reinicia en obrir un viatge
+      (v77).
    FET · Suggeriment d'idees més fi: ara es desa de quin tipus és cada nivell
       de la zona. Compartir comarca o illa SÍ que suggereix; compartir
       província, comunitat autònoma o país, NO. (Abans, compartir província o
@@ -2212,6 +2272,7 @@ let reserves = [];        // cau en memòria; qui la manté és el Magatzem
 // Repintar la llista la tornava a plegar sencera. Amb això, el que tenies
 // obert segueix obert després de desar, sincronitzar o esborrar.
 const filesObertes = new Set();
+let passadesObertes = false;   // el bloc de reserves passades comença plegat
 let editantId = null;
 let plataformaActual = '';
 
@@ -2924,6 +2985,22 @@ function calRevisar(r) {
   return (CLAUS_CLAU[tipusDe(r)] || CLAUS_CLAU.allotjament).some(k => !r[k]);
 }
 
+/* Una reserva no és un punt sinó un tram, així que el que mana és el seu
+   ÚLTIM dia: la sortida de l'hotel, la devolució del cotxe. I no passa a
+   passada fins l'endemà: un cotxe que tornes avui es veu actiu tot el dia.
+   Els vols i les entrades no tenen sortida i van per la seva data.
+   Una reserva sense cap data no és passada mai. */
+function reservaPassada(r) {
+  const fi = r.checkoutISO || r.checkinISO;
+  return !!fi && fi < isoDe(new Date());
+}
+
+/* La capçalera d'un grup de mes: el títol i quantes reserves hi ha. */
+function grupHTML(clau, grup) {
+  return `<div class="grup"><span>${esc(titolGrup(clau))}</span>`
+       + `<span>${grup.length === 1 ? '1 reserva' : grup.length + ' reserves'}</span></div>`;
+}
+
 function agrupaPerMes(llista) {
   const grups = new Map();
   for (const r of llista) {
@@ -3123,7 +3200,7 @@ function filaReservaHTML(r) {
   const pregunta = preguntaCobrament(r);
   const obert = filesObertes.has(r.id);
 
-  return `<div class="fila${pregunta ? ' te-pregunta' : ''}${obert ? ' oberta' : ''}" data-id="${esc(r.id)}">
+  return `<div class="fila${pregunta ? ' te-pregunta' : ''}${obert ? ' oberta' : ''}${reservaPassada(r) ? ' passada' : ''}" data-id="${esc(r.id)}">
         <button class="fila-cap graella-fila" aria-expanded="${obert ? 'true' : 'false'}" aria-controls="detall-${esc(r.id)}">
           <span class="cel-punt">
             <span class="icona-tipus${revisar ? ' revisar' : ''}"
@@ -3185,11 +3262,35 @@ function pintaLlista() {
   $('llista').querySelector('.llista-capcalera').style.display = reserves.length ? '' : 'none';
   if (!reserves.length) return;
 
+  // El que ve, a dalt; el que ja ha passat, plegat al final. Obrir l'app ha
+  // d'ensenyar el proper viatge, no el de fa dos anys.
+  const properes = reserves.filter(r => !reservaPassada(r));
+  const passades = reserves.filter(reservaPassada);
+
   let html = '';
-  for (const [clau, grup] of agrupaPerMes(reserves)) {
-    html += `<div class="grup"><span>${esc(titolGrup(clau))}</span>`
-          + `<span>${grup.length === 1 ? '1 reserva' : grup.length + ' reserves'}</span></div>`;
+  for (const [clau, grup] of agrupaPerMes(properes)) {
+    html += grupHTML(clau, grup);
     for (const r of grup) html += filaReservaHTML(r);
+  }
+  if (!properes.length && passades.length) {
+    html += `<p class="llista-nota">No tens cap reserva pendent. Les que ja has fet són aquí sota.</p>`;
+  }
+
+  if (passades.length) {
+    // Del mes més recent al més antic: si obres el passat, hi vas a buscar
+    // l'últim viatge, no el primer de tots.
+    let hp = '';
+    for (const [clau, grup] of agrupaPerMes(passades).reverse()) {
+      hp += grupHTML(clau, grup);
+      for (const r of grup) hp += filaReservaHTML(r);
+    }
+    html += `<button class="plega-passades${passadesObertes ? ' obert' : ''}" id="plega-passades"
+        aria-expanded="${passadesObertes ? 'true' : 'false'}" aria-controls="llista-passades">
+        <span class="chev-plega">${CHEVRON}</span>
+        <span>Ja passades</span>
+        <span class="plega-compta">${passades.length === 1 ? '1 reserva' : passades.length + ' reserves'}</span>
+      </button>
+      <div id="llista-passades"${passadesObertes ? '' : ' class="ocult"'}>${hp}</div>`;
   }
 
   cos.innerHTML = html + `<datalist id="noms-pagadors">${llistaPagadors()}</datalist>`;
@@ -3212,6 +3313,18 @@ function gestionaToggleFila(e) {
 }
 $('cos-llista').addEventListener('click', gestionaToggleFila);
 $('detall-viatge-vista').addEventListener('click', gestionaToggleFila);
+
+/* Plegar i desplegar el bloc de reserves passades. Com a la resta de la
+   llista, no es repinta res: només s'ensenya o s'amaga el que ja hi és. */
+$('cos-llista').addEventListener('click', e => {
+  const boto = e.target.closest('#plega-passades');
+  if (!boto) return;
+  passadesObertes = !passadesObertes;
+  const cont = $('llista-passades');
+  if (cont) cont.classList.toggle('ocult', !passadesObertes);
+  boto.classList.toggle('obert', passadesObertes);
+  boto.setAttribute('aria-expanded', passadesObertes ? 'true' : 'false');
+});
 
 /* ── Commutador de vista ── */
 const CLAU_VISTA = 'registre-reserves-vista';
@@ -3935,6 +4048,9 @@ function dibuixaPinsIdees(L) {
 }
 
 let mapaViatge = null;
+let capaPinsViatge = null;    // la capa dels pins, a part, per repintar-la sense refer el mapa
+let filtreMapa = null;        // null = totes; si no, el conjunt de categories visibles
+let catsMapaPresents = [];    // les categories que té el viatge obert, per a la llegenda
 
 function mapaViatgeHTML(v) {
   return `<div class="mapa-viatge" id="mapa-viatge"></div>
@@ -3959,8 +4075,8 @@ async function mostraMapaViatge(v, seves) {
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '\u00a9 OpenStreetMap'
   }).addTo(mapaViatge);
-  const capa = L.layerGroup().addTo(mapaViatge);
-  dibuixaPinsViatge(L, capa, v, seves);
+  capaPinsViatge = L.layerGroup().addTo(mapaViatge);
+  dibuixaPinsViatge(L, capaPinsViatge, v, seves, true);
   setTimeout(() => { if (mapaViatge) mapaViatge.invalidateSize(); }, 0);
 }
 
@@ -3979,6 +4095,32 @@ function categoriaMapa(mena, tipus) {
   return 'activitats';   // entrada, altres
 }
 
+/* Si una categoria s'ha de veure ara mateix al mapa. Sense filtre, totes. */
+function categoriaVisible(cat) { return !filtreMapa || filtreMapa.has(cat); }
+
+/* Clicar una categoria de la llegenda: si no hi havia filtre, l'aïlla (queda
+   només ella, que és el cas normal); si ja n'hi havia, la suma o la treu.
+   Quan s'acaben apagant totes, o s'encenen totes, es torna a mostrar-ho tot. */
+function alternaCategoriaMapa(cat) {
+  if (!filtreMapa) filtreMapa = new Set([cat]);
+  else if (filtreMapa.has(cat)) filtreMapa.delete(cat);
+  else filtreMapa.add(cat);
+  if (filtreMapa && (filtreMapa.size === 0 || filtreMapa.size >= catsMapaPresents.length)) filtreMapa = null;
+  redibuixaPinsViatge();
+}
+
+/* Repinta només els pins, deixant el mapa on és. Important: no passa pel
+   repintat general del detall, perquè aquell refà el mapa de zero i tornaria
+   a enquadrar-lo, i el zoom i la posició de l'usuari saltarien a cada clic. */
+function redibuixaPinsViatge() {
+  if (!mapaViatge || !capaPinsViatge || !window.L) return;
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const seves = reserves.filter(r => r.viatgeId === v.id).sort(comparaCronologic);
+  capaPinsViatge.clearLayers();
+  dibuixaPinsViatge(window.L, capaPinsViatge, v, seves, false);
+}
+
 /* Un pin de color dibuixat (SVG), sense imatges externes. */
 function pinIcona(L, color) {
   const svg = `<svg width="26" height="34" viewBox="0 0 26 34" xmlns="http://www.w3.org/2000/svg"><path d="M13 0C5.8 0 0 5.8 0 13c0 9 13 21 13 21s13-12 13-21C26 5.8 20.2 0 13 0z" fill="${color}" stroke="#FBF9F5" stroke-width="1.5"/><circle cx="13" cy="13" r="4.4" fill="#FBF9F5"/></svg>`;
@@ -3988,8 +4130,11 @@ function pinIcona(L, color) {
 /* Els punts del mapa d'un viatge: reserves, visites i idees candidates. Com
    que les coordenades són per zona (poble), s'agrupen per lloc I categoria:
    un pin de color per tipus a cada lloc, repartits en ventall perquè no es
-   trepitgin, i el globus llista el que hi ha d'aquella categoria. */
-function dibuixaPinsViatge(L, capa, v, seves) {
+   trepitgin, i el globus llista el que hi ha d'aquella categoria.
+   Si hi ha filtre actiu (des de la llegenda), només s'hi dibuixen les
+   categories triades. «ajustaVista» només és cert el primer cop: en filtrar no
+   es reenquadra, perquè el zoom i la posició de l'usuari no saltin. */
+function dibuixaPinsViatge(L, capa, v, seves, ajustaVista) {
   const items = [];
   for (const r of seves) {
     const t = tipusDe(r);
@@ -4001,15 +4146,25 @@ function dibuixaPinsViatge(L, capa, v, seves) {
   for (const vi of visites.filter(x => x.viatgeId === v.id)) items.push({ zona: vi.zona, adreca: '', cat: 'activitats', tipus: 'Visita', nom: (vi.text || 'Visita').split('\n')[0] });
   for (const i of ideesSuggerides(v, seves)) items.push({ zona: i.zona, adreca: '', cat: 'idea', tipus: 'Idea', nom: (i.text || 'Idea').split('\n')[0] });
 
+  // Es resolen les coordenades un sol cop i s'apunta quines categories té el
+  // viatge SENCER. La llegenda no pot dependre del filtre: si en apagar-ne una
+  // li desaparegués el botó, ja no hi hauria manera de tornar-la a encendre.
+  // Primer l'adreça exacta (pin al lloc real); si no s'ha resolt, el poble.
+  const catsPresents = new Set();
+  for (const it of items) {
+    it.coords = (it.adreca && coordsAdreca(it.adreca)) || coordsDe(it.zona) || null;
+    if (it.coords) catsPresents.add(it.cat);
+  }
+  catsMapaPresents = ORDRE_MAPA.filter(c => catsPresents.has(c));
+
   // Agrupa per lloc + categoria, i recorda quins grups té cada lloc
   const grups = new Map();
   const perLloc = new Map();
-  const catsPresents = new Set();
   let sense = 0;
   for (const it of items) {
-    // Primer l'adreça exacta (pin al lloc real); si no s'ha resolt, el poble.
-    const c = (it.adreca && coordsAdreca(it.adreca)) || coordsDe(it.zona);
-    if (!c) { sense++; continue; }
+    if (!categoriaVisible(it.cat)) continue;
+    if (!it.coords) { sense++; continue; }
+    const c = it.coords;
     const llocClau = c.lat.toFixed(4) + ',' + c.lon.toFixed(4);
     const clau = llocClau + '|' + it.cat;
     if (!grups.has(clau)) {
@@ -4018,7 +4173,6 @@ function dibuixaPinsViatge(L, capa, v, seves) {
       perLloc.get(llocClau).push(clau);
     }
     grups.get(clau).items.push(it);
-    catsPresents.add(it.cat);
   }
 
   const punts = [];
@@ -4043,13 +4197,18 @@ function dibuixaPinsViatge(L, capa, v, seves) {
     });
   }
 
-  if (punts.length) mapaViatge.fitBounds(punts, { padding: [40, 40], maxZoom: 13 });
-  else mapaViatge.setView([41.6, 1.9], 4);
+  if (ajustaVista) {
+    if (punts.length) mapaViatge.fitBounds(punts, { padding: [40, 40], maxZoom: 13 });
+    else mapaViatge.setView([41.6, 1.9], 4);
+  }
 
   const lleg = $('mapa-viatge-llegenda');
-  if (lleg) lleg.innerHTML = ORDRE_MAPA.filter(c => catsPresents.has(c)).map(c =>
-    `<span class="mapa-lleg"><span class="mapa-lleg-punt" style="background:${COLORS_MAPA[c]}"></span>${esc(ETIQ_MAPA[c])}</span>`
-  ).join('');
+  if (lleg) lleg.innerHTML = catsMapaPresents.map(c => {
+    const encesa = categoriaVisible(c);
+    return `<button type="button" class="mapa-lleg${encesa ? '' : ' apagat'}" data-cat-mapa="${c}"`
+      + ` aria-pressed="${encesa}" title="${encesa ? 'Amaga' : 'Mostra'} ${esc(ETIQ_MAPA[c])} al mapa">`
+      + `<span class="mapa-lleg-punt" style="background:${COLORS_MAPA[c]}"></span>${esc(ETIQ_MAPA[c])}</button>`;
+  }).join('');
 
   const nota = $('mapa-viatge-nota');
   if (nota) nota.textContent = sense
@@ -4478,6 +4637,7 @@ $('btn-nou-viatge').addEventListener('click', () => obreFitxaViatge(null));
 function obreDetallViatge(id) {
   viatgeObert = id;
   subvistaViatge = 'agenda';
+  filtreMapa = null;   // cada viatge comença ensenyant-ho tot al mapa
   $('llista-viatges').classList.add('ocult');
   $('viatges-buida').classList.add('ocult');
   $('fitxa-viatge').classList.remove('visible');
@@ -5198,6 +5358,13 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   if (sub) {
     subvistaViatge = sub.dataset.subvista;
     pintaDetallViatge();
+    return;
+  }
+  // Filtre del mapa des de la llegenda. A posta NO crida pintaDetallViatge():
+  // només repinta els pins, per no refer el mapa i moure'l de lloc.
+  const catMapa = e.target.closest('[data-cat-mapa]');
+  if (catMapa) {
+    alternaCategoriaMapa(catMapa.dataset.catMapa);
     return;
   }
   const mode = e.target.closest('[data-agenda-mode]');
