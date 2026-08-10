@@ -1155,6 +1155,8 @@
 
 <nav class="pestanyes" aria-label="Seccions">
   <button id="tab-reserves" aria-current="page">Reserves</button>
+  <!-- id «idees», etiqueta «Inspiració»: no és cap error. S'explica al
+       comentari llarg de la secció vista-idees, més avall. -->
   <button id="tab-idees">Inspiració</button>
   <button id="tab-viatges">Viatges</button>
 </nav>
@@ -1228,6 +1230,32 @@
   </div>
   </section>
 
+  <!-- «Inspiració» i «idees» són la mateixa cosa vista des de fora i des de
+       dins: la secció es diu Inspiració, i el que hi guardes són idees. Per
+       això els noms interns d'aquí diuen «idees» (vista-idees, llista-idees,
+       compta-idees, idees-buida, mapa-idees) tot i que l'etiqueta visible
+       digui Inspiració. No és cap descuit: el nom intern parla de les DADES
+       (que són idees, i així es diu la taula a Supabase), i l'etiqueta parla
+       del que hi veu l'usuari.
+
+       Tres avisos per si algun dia hi poses mà:
+
+       1. El commutador Llista/Mapa d'aquesta mateixa secció, en canvi, sí que
+          es diu «inspiracio» per dins (inspiracio-mode, data-inspiracio-vista,
+          la variable inspiracioVista). És l'únic tros amb l'altre vocabulari,
+          perquè es va afegir després del canvi de nom. Conviuen sense
+          problema, però si busques alguna cosa i no la trobes, prova l'altre
+          nom.
+
+       2. Dins d'un viatge hi ha una subpestanya que TAMBÉ es diu «idees»
+          (subvistaViatge === 'idees'), i és una altra cosa: les idees de la
+          zona que pots convertir en visites. No es barreja mai amb aquesta,
+          perquè viu en una variable diferent.
+
+       3. Aquest id no es pot renombrar sol: mostraSeccio() construeix els
+          identificadors concatenant ('vista-' + clau i 'tab-' + clau), i la
+          clau es desa a localStorage. Canviar-lo obliga a tocar l'HTML, el JS
+          i deixa la preferència desada obsoleta. -->
   <section id="vista-idees" class="ocult">
     <h2 class="sr-only">La teva inspiració</h2>
 
@@ -1795,6 +1823,22 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Pins al lloc correcte: adreces amb el codi postal al final feien que
+      Nominatim no trobés RES, i el pin recaigués en un «poble» que era el
+      codi postal pelat («38700» → Baixa Saxònia, Alemanya). Tres canvis:
+      (1) l'adreça es neteja abans de preguntar-la —es treuen els codis
+      postals que van sols al final, que sovint ni són correctes; el país es
+      manté, que sí que ajuda—; (2) poblacio() ja no es queda un codi postal
+      com a nom de poble: descarta també els codis postals finals, alternant
+      amb el país, perquè hi ha adreces amb l'ordre «…, Villa de Mazo, Spain,
+      38700»; (3) xarxa de seguretat nova: si l'adreça es resol a més de
+      100 km del seu poble, es descarta i el pin va al poble. Això arregla de
+      retruc el creuament d'idees, que amb el codi postal dolent situava la
+      reserva a Alemanya. No cal invalidar cap memòria cau: com que canvia el
+      text que es pregunta i el poble que es dedueix, canvien les claus i les
+      consultes es refan soles. A més, en tancar la sessió ara sí que
+      s'esborra la memòria cau de coordenades d'adreces, que s'havia quedat
+      fora de la llista (v79).
    FET · Les reserves ja passades surten de la llista principal i queden
       plegades al final, sota una barra «Ja passades · N reserves» que s'obre
       amb un clic (per defecte, tancada). A dins, els mesos van del més recent
@@ -3038,11 +3082,32 @@ function capitalitza(t) {
   ).join(' ');
 }
 
+/* Un tros que és NOMÉS un codi postal, sense res al darrere. */
+const CODI_POSTAL = /^\d{4,6}(?:[-\s]\d{3,4})?$/;
+
+/* L'adreça preparada per preguntar-la al geocodificador. Se li treuen els
+   codis postals que van sols al final, perquè quan no coincideixen amb la
+   resta de l'adreça fan que Nominatim no trobi RES (i llavors el pin recau
+   al poble, que és quan es veuen coses rares). Passa sovint amb les adreces
+   que donen els proveïdors: «Aeropuerto de La Palma, Villa de Mazo, Spain,
+   38700» no es troba, i sense el 38700 —que a més era erroni— sí.
+   El país es respecta: aquest sí que ajuda a situar el lloc. */
+function netejaAdreca(adreca) {
+  const trossos = String(adreca || '').split(/\s*(?:,|\s-\s|·)\s*/).map(t => t.trim()).filter(Boolean);
+  while (trossos.length > 1 && CODI_POSTAL.test(trossos[trossos.length - 1])) trossos.pop();
+  return trossos.join(', ');
+}
+
 function poblacio(adreca) {
   if (!adreca) return '';
   const trossos = String(adreca).split(/\s*(?:,|\s-\s|·)\s*/).map(t => t.trim()).filter(Boolean);
   if (!trossos.length) return '';
-  while (trossos.length > 1 && PAISOS.test(trossos[trossos.length - 1])) trossos.pop();
+  // Es llencen els trossos finals que no diuen on és el lloc: el país i els
+  // codis postals que van sols. Es va alternant, perquè hi ha adreces amb
+  // l'ordre «…, Villa de Mazo, Spain, 38700», on el codi postal queda
+  // DARRERE del país. Sense això, la població deduïda era «38700».
+  while (trossos.length > 1 && (PAISOS.test(trossos[trossos.length - 1])
+         || CODI_POSTAL.test(trossos[trossos.length - 1]))) trossos.pop();
   for (let i = trossos.length - 1; i >= 0; i--) {
     const m = trossos[i].match(/^\d{4,5}(?:[-\s]\d{3})?\s+(.{2,40})$/);
     if (m) return capitalitza(m[1].trim());
@@ -3141,10 +3206,10 @@ function poblacioReserva(r) {
 function adrecaMapa(r) {
   const t = tipusDe(r);
   if (t === 'vol') return '';
-  if (t === 'cotxe') return (r.llocRecollida || '').trim();
-  if (t === 'entrada') return [r.recinte, r.poblacio].filter(Boolean).join(', ').trim();
-  if (t === 'altres') return (r.llocRecollida || '').trim();
-  return (r.adreca || '').trim();   // allotjament
+  if (t === 'cotxe') return netejaAdreca(r.llocRecollida);
+  if (t === 'entrada') return netejaAdreca([r.recinte, r.poblacio].filter(Boolean).join(', '));
+  if (t === 'altres') return netejaAdreca(r.llocRecollida);
+  return netejaAdreca(r.adreca);   // allotjament
 }
 
 /* Els camps que mostra el desplegable, en parells [etiqueta, valor]. */
@@ -3969,6 +4034,10 @@ function filtreEtiquetesHTML(totes) {
 /* ── Mapa d'idees (Leaflet + OpenStreetMap, carregat sota demanda) ──
    Leaflet i les tessel·les es baixen només en obrir el mapa; la resta de
    l'app no depèn de xarxa. Cada idea amb zona resoluble és un pin. */
+/* Aquí el vocabulari canvia: aquesta secció es diu «idees» a tot arreu
+   (vista-idees, llista-idees…) però el seu commutador Llista/Mapa es diu
+   «inspiracio», perquè es va afegir després del canvi d'etiqueta. Són la
+   mateixa pantalla. Ho explica el comentari de la secció vista-idees. */
 let inspiracioVista = 'llista';   // 'llista' o 'mapa'
 let leafletCarregat = null;
 let mapaIdees = null;
@@ -4134,6 +4203,34 @@ function pinIcona(L, color) {
    Si hi ha filtre actiu (des de la llegenda), només s'hi dibuixen les
    categories triades. «ajustaVista» només és cert el primer cop: en filtrar no
    es reenquadra, perquè el zoom i la posició de l'usuari no saltin. */
+/* Marge que donem entre una adreça i el seu poble abans de desconfiar del
+   geocodificador. Generós a posta: una illa gran fa vora 80 km de punta a
+   punta, i el punt del «poble» pot ser el centre d'una comarca. El que ha de
+   caçar és l'error gros —l'adreça resolta a un altre país—, no el matís. */
+const MAX_KM_ADRECA = 100;
+
+/* Distància aproximada en km entre dues coordenades. No cal precisió: només
+   serveix per adonar-se que una adreça ha caigut absurdament lluny. */
+function kmEntre(a, b) {
+  const R = 6371, rad = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * rad;
+  const dLon = (b.lon - a.lon) * rad * Math.cos((a.lat + b.lat) / 2 * rad);
+  return Math.sqrt(dLat * dLat + dLon * dLon) * R;
+}
+
+/* Les coordenades d'un element del mapa: primer l'adreça exacta i, si no, el
+   poble. Amb xarxa de seguretat: si l'adreça s'ha resolt molt lluny del poble,
+   es descarta i es fa servir el poble. Sense això, un codi postal que també
+   existeix a un altre país (o un nom de marca que casa amb una altra oficina)
+   posava el pin a l'altra punta d'Europa i res no ho detectava. Val més un pin
+   poc precís que un pin que menteix. */
+function coordsItem(it) {
+  const cz = coordsDe(it.zona);
+  const ca = it.adreca ? coordsAdreca(it.adreca) : null;
+  if (ca && (!cz || kmEntre(ca, cz) <= MAX_KM_ADRECA)) return ca;
+  return cz || null;
+}
+
 function dibuixaPinsViatge(L, capa, v, seves, ajustaVista) {
   const items = [];
   for (const r of seves) {
@@ -4152,7 +4249,7 @@ function dibuixaPinsViatge(L, capa, v, seves, ajustaVista) {
   // Primer l'adreça exacta (pin al lloc real); si no s'ha resolt, el poble.
   const catsPresents = new Set();
   for (const it of items) {
-    it.coords = (it.adreca && coordsAdreca(it.adreca)) || coordsDe(it.zona) || null;
+    it.coords = coordsItem(it);
     if (it.coords) catsPresents.add(it.cat);
   }
   catsMapaPresents = ORDRE_MAPA.filter(c => catsPresents.has(c));
@@ -5692,7 +5789,8 @@ $('fitxer-importa').addEventListener('change', e => {
    sessió perquè, en un ordinador compartit, no en quedi rastre. Al núvol
    les dades hi són intactes i tornen en tornar a entrar. */
 function esborraDadesLocals() {
-  for (const clau of [CLAU, CLAU_IDEES, CLAU_VIATGES, CLAU_SINC, CLAU_JER, CLAU_COORDS, CLAU_VISTA, CLAU_PESTANYA]) {
+  for (const clau of [CLAU, CLAU_IDEES, CLAU_VIATGES, CLAU_SINC, CLAU_JER, CLAU_COORDS,
+                      CLAU_COORDS_ADR, CLAU_VISTA, CLAU_PESTANYA]) {
     try { localStorage.removeItem(clau); } catch (e) {}
   }
 }
