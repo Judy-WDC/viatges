@@ -224,7 +224,6 @@
   }
   textarea {
     width: 100%;
-    min-height: 148px;
     padding: 13px;
     border: 1px solid var(--vora);
     border-radius: 8px;
@@ -235,6 +234,11 @@
     color: var(--tinta);
     resize: vertical;
   }
+  /* L'alçada mínima gran és cosa de la caixa d'enganxar emails, que ha de
+     convidar a abocar-hi un correu sencer. Quan estava a la regla general de
+     «textarea», l'heretaven també la nota d'una idea i la d'una visita, i cap
+     de les dues podia encongir-se: una idea d'una línia ocupava cinc. */
+  #entrada { min-height: 148px; }
   .accions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 
   /* ── Fitxa de revisió ── */
@@ -1005,6 +1009,50 @@
   .acces-botons { display: flex; gap: 8px; margin-top: 18px; }
   .acces-botons button { flex: 1; }
 
+  /* ── Codi d'obertura ──
+     Ull amb el nom: «codi» és sempre aquest codi de 6 xifres. Els «pins» del
+     codi són els del mapa, una altra cosa. Les caselles són decoratives: qui
+     rep el que escrius és un camp de debò, invisible al damunt, perquè el
+     mòbil obri el teclat numèric i el navegador ho tracti com un camp normal. */
+  .bloqueig-icona {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--accent-fons); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+  }
+  .bloqueig-icona.mal { background: var(--vermell-fons); color: var(--vermell); }
+  .bloqueig-centrat { text-align: center; }
+  .codi-zona { position: relative; margin: 4px 0 14px; }
+  .codi-camp {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; border: none; padding: 0; font-size: 16px;   /* 16px: evita que el mòbil faci zoom */
+  }
+  .codi-caselles { display: flex; gap: 8px; justify-content: center; }
+  .casella {
+    width: 38px; height: 46px; flex: none;
+    border: 1px solid var(--vora-forta); border-radius: 8px;
+    background: var(--superficie-clara);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .codi-camp:focus + .codi-caselles .casella.seguent { border-color: var(--accent); }
+  .casella.plena { border-color: var(--accent); }
+  .casella.plena::after {
+    content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--accent);
+  }
+  .casella.mal { border-color: var(--vermell); }
+  .codi-oblidat {
+    display: block; width: 100%; margin-top: 14px;
+    border-color: transparent; background: none; color: var(--tinta-suau); font-size: 12.5px;
+  }
+  .codi-oblidat:hover { background: var(--subtil); color: var(--tinta); }
+  .codi-passa { font-size: 12px; color: var(--tinta-tenue); text-align: center; margin: 0 0 6px; }
+  .codi-exp { background: var(--superficie-clara); border: 1px solid var(--vora); border-radius: 9px; padding: 13px 14px; margin: 16px 0 4px; }
+  .codi-exp h4 { font-size: 11.5px; font-weight: 500; color: var(--tinta-tenue); margin: 0 0 9px; letter-spacing: 0.03em; text-transform: uppercase; }
+  .codi-exp p { font-size: 12.5px; color: var(--tinta-suau); margin: 0 0 8px; line-height: 1.5; }
+  .codi-exp p:last-child { margin: 0; }
+  .codi-estat { font-size: 13.5px; color: var(--verd); margin: 0 0 4px; }
+  .codi-accio { width: 100%; margin-top: 18px; }
+
   .barra-demo {
     background: var(--ambre-fons);
     color: var(--ambre);
@@ -1100,6 +1148,10 @@
     position: relative; width: 100%; max-width: 420px;
     background: var(--superficie-clara); border: 1px solid var(--vora-forta); border-radius: 16px;
     padding: 26px 26px 22px; box-shadow: 0 18px 50px rgba(51, 39, 46, 0.3);
+    /* Amb diverses novetats, el text pot no cabre en una pantalla de mòbil.
+       Que faci scroll la finestra mateixa: si no, el botó «Entesos» queda
+       fora de pantalla i no hi ha manera de tancar-la sense endevinar-ho. */
+    max-height: calc(100vh - 40px); overflow-y: auto;
   }
   .novetats-x {
     position: absolute; top: 12px; right: 12px; width: 32px; height: 32px;
@@ -1108,8 +1160,11 @@
   }
   .novetats-x:hover { background: var(--subtil); color: var(--tinta); }
   .novetats-titol { margin: 0 0 12px; font-size: 20px; font-weight: 600; color: var(--accent); }
+  .novetats-cos h3 { margin: 18px 0 5px; font-size: 14.5px; font-weight: 600; color: var(--accent); }
+  .novetats-cos h3:first-child { margin-top: 0; }
   .novetats-cos p { margin: 0 0 12px; font-size: 14.5px; line-height: 1.5; color: var(--tinta-suau); }
   .novetats-cos p:last-child { margin-bottom: 0; }
+  .novetats-comiat { margin-top: 18px; }
   .novetats-ok { width: 100%; margin-top: 20px; }
 </style>
 </head>
@@ -1126,6 +1181,7 @@
         <p class="menu-compte-correu" id="menu-compte-correu"></p>
         <button class="menu-compte-opcio" id="opc-backup" role="menuitem">Desa una còpia de seguretat<span class="menu-compte-nota">un fitxer JSON amb tot el registre</span></button>
         <button class="menu-compte-opcio" id="opc-restaura" role="menuitem">Recupera una còpia<span class="menu-compte-nota">afegeix el que falti, no esborra res</span></button>
+        <button class="menu-compte-opcio" id="opc-codi" role="menuitem">Codi d'obertura<span class="menu-compte-nota" id="opc-codi-nota">desactivat en aquest aparell</span></button>
         <button class="menu-compte-opcio surt" id="opc-surt" role="menuitem">Surt</button>
       </div>
       <input type="file" id="fitxer-importa" accept=".json">
@@ -1150,6 +1206,38 @@
       <button class="subtil" id="btn-registra">Crea el compte</button>
     </div>
     <div class="avis" id="avis-acces"></div>
+  </div>
+</div>
+
+<!-- Pantalla de bloqueig: surt en obrir l'app quan aquest aparell té codi.
+     Reaprofita la caixa de la pantalla d'accés perquè se senti com un pas més
+     d'entrar-hi, i no com una alarma. -->
+<div class="acces ocult" id="bloqueig">
+  <div class="acces-caixa bloqueig-centrat">
+    <div class="bloqueig-icona" id="bloqueig-icona">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <rect x="4" y="10.5" width="16" height="10" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      </svg>
+    </div>
+    <p class="acces-titol">Els meus viatges</p>
+    <p class="acces-intro" id="bloqueig-intro">Escriu el teu codi de 6 xifres.</p>
+    <div class="codi-zona">
+      <input class="codi-camp" id="bloqueig-camp" type="password" inputmode="numeric"
+        autocomplete="off" maxlength="6" aria-label="Codi d'obertura de 6 xifres">
+      <div class="codi-caselles" id="bloqueig-caselles" aria-hidden="true"></div>
+    </div>
+    <div class="avis" id="avis-bloqueig"></div>
+    <button class="codi-oblidat" id="btn-codi-oblidat">He oblidat el codi</button>
+  </div>
+</div>
+
+<!-- Activar o treure el codi, des del menú Compte. -->
+<div class="novetats-overlay" id="codi-overlay">
+  <div class="novetats" role="dialog" aria-modal="true" aria-labelledby="codi-titol">
+    <button class="novetats-x" id="codi-x" aria-label="Tanca">&times;</button>
+    <h2 class="novetats-titol" id="codi-titol">Codi d'obertura</h2>
+    <div id="codi-cos"></div>
   </div>
 </div>
 
@@ -1344,10 +1432,26 @@
 <div class="novetats-overlay" id="novetats-overlay">
   <div class="novetats" role="dialog" aria-modal="true" aria-labelledby="novetats-titol">
     <button class="novetats-x" id="novetats-x" aria-label="Tanca">&times;</button>
-    <h2 class="novetats-titol" id="novetats-titol">Hola, Carles!</h2>
+    <!-- EN PAUSA · La benvinguda personal que hi havia fins ara. Es guarda
+         perquè es vol recuperar amb un text genèric, que valgui per a
+         qualsevol usuària i no només per a en Carles. Si es torna a posar,
+         cal pujar VERSIO_NOVETATS perquè surti un altre cop. Deia:
+
+         Títol: Hola, Carles!
+         · Com va el viatge? Com va amb l'aplicació?
+         · Recorda que si tens qualsevol dubte, suggeriment, problema,
+           necessitat de nova funcionalitat… li ho pots dir a la Clara!
+           Ella farà… els possibles ;)
+    -->
+    <h2 class="novetats-titol" id="novetats-titol">Novetats!</h2>
     <div class="novetats-cos">
-      <p>Com va el viatge? Com va amb l'aplicació?</p>
-      <p>Recorda que si tens qualsevol dubte, suggeriment, problema, necessitat de nova funcionalitat… li ho pots dir a la Clara! Ella farà… els possibles ;)</p>
+      <h3>Codi de seguretat</h3>
+      <p>Si et fa cosa que algú et pugui obrir el mòbil, pots aplicar un codi de seguretat de 6 xifres que hauràs de clicar cada cop que obris l'aplicació. Això és independent del correu i la contrasenya, i ho pots activar i desactivar al menú Compte, a dalt a la dreta.</p>
+      <h3>Vista més neta</h3>
+      <p>Les reserves passades ara es pleguen al final de la llista, sota el títol «Ja passades». No s'ha esborrat res: clica-hi i hi són totes.</p>
+      <h3>Filtre als mapes de viatge</h3>
+      <p>El mapa d'un viatge es pot filtrar. Clica una categoria de la llegenda i el mapa et mostrarà només aquella: només els allotjaments, només les activitats…</p>
+      <p class="novetats-comiat">Que segueixis gaudint de l'aplicació!</p>
     </div>
     <button class="primari novetats-ok" id="novetats-ok">Entesos</button>
   </div>
@@ -1823,6 +1927,42 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Codi d'obertura: un codi de 6 xifres que es demana en obrir l'app, a
+      més del correu i la contrasenya. OPCIONAL i apagat de sèrie: s'activa i
+      es treu des del menú «Compte», i és PER APARELL (viu en aquest navegador
+      i no puja mai a Supabase, perquè s'ha de poder comprovar sense connexió,
+      que és quan més falta fa l'app). En crear-lo es demana dues vegades: sense
+      confirmació, una errada de dits et deixaria fora del teu propi mòbil. No
+      es desa el codi sinó una empremta (SHA-256 amb sal); el que impedeix
+      provar el milió de combinacions és el límit de 5 intents, que en esgotar-se
+      tanca la sessió. «He oblidat el codi» fa el mateix, amb confirmació. La
+      pantalla de bloqueig reaprofita la caixa de la pantalla d'accés perquè se
+      senti com un pas d'entrar-hi i no com una alarma; l'error diu quants
+      intents queden. Si el navegador no té criptografia (context no segur),
+      l'opció ni surt al menú. En mode demo no es demana mai, i entrar amb
+      correu i contrasenya tampoc hi passa (allà ja t'has identificat amb una
+      cosa més forta). El codi s'esborra en tancar la sessió, com la resta de
+      dades locals. És una CORTINA, no un pany: para els tafaners, però les
+      dades segueixen sense xifrar a localStorage (v82).
+   FET · La finestra d'inici deixa de ser una salutació i passa a explicar les
+      novetats: codi de seguretat, reserves passades plegades i filtre dels
+      mapes. Amb subtítols, i la finestra ja fa scroll si no cap a la pantalla
+      (abans, amb text llarg, el botó «Entesos» hauria quedat fora). Es puja
+      VERSIO_NOVETATS a '2' perquè torni a sortir un cop a tothom. La
+      benvinguda personal queda comentada al costat, en pausa: es vol
+      recuperar amb un text genèric que valgui per a qualsevol usuària.
+      ATENCIÓ: el text anuncia el codi de seguretat, que encara NO està
+      muntat. Aquest fitxer no s'ha de publicar fins que hi sigui (v81).
+   FET · Les notes d'Inspiració ja s'encongeixen: una idea d'una línia tenia
+      un requadre de cinc, mig buit. La culpa era del «min-height: 148px» de
+      la regla general de textarea —pensat per a la caixa d'enganxar emails—,
+      que heretaven també la nota d'una idea i la d'una visita. S'ha mogut a
+      #entrada, que és qui el necessita. De retruc calia arreglar fesGran():
+      amb la secció amagada, el navegador diu que el contingut fa 0 i la caixa
+      quedava arrufada (fins ara el min-height ho tapava). Ara, si la caixa no
+      es veu, no se li toca l'alçada, i mostraSeccio() la remesura en ensenyar
+      Inspiració. La nota d'una visita, dins d'un viatge, també deixa de tenir
+      el requadre gegant (v80).
    FET · Pins al lloc correcte: adreces amb el codi postal al final feien que
       Nominatim no trobés RES, i el pin recaigués en un «poble» que era el
       codi postal pelat («38700» → Baixa Saxònia, Alemanya). Tres canvis:
@@ -3649,7 +3789,12 @@ let visites = [];   // idees convertides en visita d'un viatge (tenen viatgeId)
 // d'esborrar per sincronització mentre l'estàs omplint.
 let esborranyIdea = null;
 
+/* Ajusta l'alçada d'una caixa de text al seu contingut, ni una línia més.
+   Si la caixa està amagada (la secció no és la que es veu) no es pot mesurar
+   —el navegador diu que el contingut fa 0— i mesurar-la la deixaria arrufada.
+   En aquest cas no es toca: ja la remesurarà mostraSeccio() en ensenyar-la. */
 function fesGran(camp) {
+  if (!camp.offsetParent) return;
   camp.style.height = 'auto';
   camp.style.height = (camp.scrollHeight + 2) + 'px';
 }
@@ -4535,6 +4680,10 @@ function mostraSeccio(quina) {
   // El comptador de la capçalera només parla de reserves
   $('comptador').classList.toggle('ocult', quina !== 'reserves');
   if (quina === 'viatges') refrescaViatges();
+  // Les notes d'Inspiració s'ajusten al text, però només es poden mesurar
+  // quan es veuen. Si s'han pintat amb la secció amagada (una sincronització
+  // mentre eres a Reserves), aquest és el moment de donar-los l'alçada bona.
+  if (quina === 'idees') document.querySelectorAll('.idea-text').forEach(fesGran);
   try { localStorage.setItem(CLAU_PESTANYA, quina); } catch (e) {}
 }
 $('tab-reserves').addEventListener('click', () => mostraSeccio('reserves'));
@@ -5608,7 +5757,7 @@ function textErrorAcces(e) {
 /* ── Finestra de novetats ──
    Surt un sol cop en obrir l'app. Si algun dia vols tornar-la a mostrar
    (amb un text nou), canvia VERSIO_NOVETATS i tornarà a aparèixer un cop. */
-const VERSIO_NOVETATS = '1';
+const VERSIO_NOVETATS = '2';
 const CLAU_NOVETATS = 'novetats-vista';
 
 function mostrarNovetats() {
@@ -5790,7 +5939,7 @@ $('fitxer-importa').addEventListener('change', e => {
    les dades hi són intactes i tornen en tornar a entrar. */
 function esborraDadesLocals() {
   for (const clau of [CLAU, CLAU_IDEES, CLAU_VIATGES, CLAU_SINC, CLAU_JER, CLAU_COORDS,
-                      CLAU_COORDS_ADR, CLAU_VISTA, CLAU_PESTANYA]) {
+                      CLAU_COORDS_ADR, CLAU_VISTA, CLAU_PESTANYA, CLAU_CODI]) {
     try { localStorage.removeItem(clau); } catch (e) {}
   }
 }
@@ -5798,6 +5947,267 @@ function esborraDadesLocals() {
 // En recuperar la connexió, el que hi hagi pendent puja tot sol
 window.addEventListener('online', () => Nuvol.demanaSincronitzar());
 window.addEventListener('offline', () => mostraEstat('sense-connexio'));
+
+/* ═══════════════ CODI D'OBERTURA ═══════════════
+   Un codi de 6 xifres que es demana en obrir l'app, a més del correu i la
+   contrasenya. És OPCIONAL i PER APARELL: viu en aquest navegador i no puja
+   mai a Supabase, perquè s'ha de poder comprovar sense connexió (que és
+   justament quan més falta fa l'app, a l'estranger sense dades).
+
+   Què és, sent honestos: una CORTINA, no un pany. Para que algú et remeni el
+   mòbil desbloquejat, que és el cas real i freqüent. No protegeix de qui
+   sàpiga obrir les eines del navegador: les dades segueixen a localStorage
+   sense xifrar. Xifrar-les amb el codi seria seguretat de debò, però sis
+   xifres es proven per força bruta en segons i obligaria a reescriure tot el
+   magatzem local. Es va descartar a posta.
+
+   No es desa el codi sinó una empremta (SHA-256 amb sal). El que de veritat
+   impedeix provar el milió de combinacions és el límit de 5 intents.
+
+   Ull amb el nom: aquí «codi» és sempre això. Els «pins» són els del mapa. */
+
+const CLAU_CODI = 'registre-codi-obertura-v1';
+const CODI_XIFRES = 6;
+const CODI_INTENTS = 5;
+
+let sessioPendent = null;   // la sessió que espera que es desbloquegi
+let intentsCodi = 0;
+let codiPrimer = '';        // la primera entrada, mentre es confirma
+
+/* La criptografia del navegador només existeix en context segur. Sense ella
+   no es pot desar cap empremta, i val més no oferir la funció que oferir-la
+   trencada: en aquest cas l'opció del menú ni surt. */
+function codiDisponible() {
+  return !!(window.crypto && window.crypto.subtle && window.crypto.getRandomValues);
+}
+
+function codiDesat() {
+  try {
+    const d = JSON.parse(localStorage.getItem(CLAU_CODI) || 'null');
+    return (d && d.hash && d.sal) ? d : null;
+  } catch (e) { return null; }
+}
+function codiActiu() { return !!codiDesat(); }
+
+function hexDe(buf) {
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function empremtaCodi(codi, sal) {
+  return hexDe(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(sal + ':' + codi)));
+}
+async function desaCodi(codi) {
+  const sal = hexDe(crypto.getRandomValues(new Uint8Array(16)));
+  const hash = await empremtaCodi(codi, sal);
+  try { localStorage.setItem(CLAU_CODI, JSON.stringify({ sal, hash })); } catch (e) {}
+}
+async function codiCorrecte(codi) {
+  const d = codiDesat();
+  return d ? (await empremtaCodi(codi, d.sal)) === d.hash : false;
+}
+function treuCodiDesat() {
+  try { localStorage.removeItem(CLAU_CODI); } catch (e) {}
+}
+
+/* Les caselles són el reflex del camp invisible: una de plena per xifra. */
+function pintaCaselles(cont, quantes, mal) {
+  if (!cont) return;
+  let html = '';
+  for (let i = 0; i < CODI_XIFRES; i++) {
+    const cl = mal ? ' mal' : (i < quantes ? ' plena' : (i === quantes ? ' seguent' : ''));
+    html += '<span class="casella' + cl + '"></span>';
+  }
+  cont.innerHTML = html;
+}
+
+/* Lliga un camp de codi amb les seves caselles. Només accepta xifres, i
+   quan n'hi ha sis avisa qui l'ha demanat. */
+function lligaCampCodi(camp, caselles, quanEstaPle) {
+  pintaCaselles(caselles, 0, false);
+  camp.addEventListener('input', () => {
+    camp.value = camp.value.replace(/\D/g, '').slice(0, CODI_XIFRES);
+    pintaCaselles(caselles, camp.value.length, false);
+    if (camp.value.length === CODI_XIFRES) quanEstaPle(camp.value);
+  });
+  setTimeout(() => camp.focus(), 60);
+}
+
+/* ── La pantalla de bloqueig, en obrir l'app ── */
+
+function mostraBloqueig(visible) {
+  $('bloqueig').classList.toggle('ocult', !visible);
+  if (!visible) return;
+  const camp = $('bloqueig-camp');
+  camp.value = '';
+  pintaCaselles($('bloqueig-caselles'), 0, false);
+  $('avis-bloqueig').textContent = '';
+  $('bloqueig-icona').classList.remove('mal');
+  setTimeout(() => camp.focus(), 60);
+}
+
+async function provaCodiObertura(codi) {
+  const camp = $('bloqueig-camp');
+  camp.disabled = true;
+  const bo = await codiCorrecte(codi);
+  camp.disabled = false;
+  if (bo) {
+    intentsCodi = 0;
+    mostraBloqueig(false);
+    const s = sessioPendent;
+    sessioPendent = null;
+    if (s) await haEntrat(s.user);
+    return;
+  }
+  intentsCodi++;
+  const queden = CODI_INTENTS - intentsCodi;
+  pintaCaselles($('bloqueig-caselles'), CODI_XIFRES, true);
+  $('bloqueig-icona').classList.add('mal');
+  if (queden <= 0) {
+    avisa($('avis-bloqueig'), 'Massa intents. Es tanca la sessió.', 'mal');
+    await surtDesDelBloqueig();
+    return;
+  }
+  // Dir quants en queden: que el tancament de sessió no agafi per sorpresa.
+  avisa($('avis-bloqueig'), 'El codi no és correcte. '
+    + (queden === 1 ? 'Et queda 1 intent.' : 'Et queden ' + queden + ' intents.'), 'mal');
+  setTimeout(() => {
+    camp.value = '';
+    pintaCaselles($('bloqueig-caselles'), 0, false);
+    $('bloqueig-icona').classList.remove('mal');
+    camp.focus();
+  }, 800);
+}
+
+/* L'única sortida honesta si s'oblida el codi: tancar la sessió. S'esborren
+   les dades d'aquest aparell (el codi inclòs) i es torna a la pantalla
+   d'accés. Al núvol no es perd res. Si la sortida fos més fàcil que el codi,
+   el codi no serviria de res. */
+async function surtDesDelBloqueig() {
+  try { await Nuvol.surt(); } catch (e) {}
+  esborraDadesLocals();
+  location.reload();
+}
+
+lligaCampCodi($('bloqueig-camp'), $('bloqueig-caselles'), provaCodiObertura);
+
+$('btn-codi-oblidat').addEventListener('click', async () => {
+  if (!confirm('Per entrar-hi sense el codi cal tancar la sessió: s’esborraran les dades '
+    + 'd’aquest aparell i hi tornaràs a entrar amb el correu i la contrasenya. '
+    + 'Al núvol no es perd res. Vols continuar?')) return;
+  await surtDesDelBloqueig();
+});
+
+/* ── Activar-lo i treure'l, des del menú Compte ── */
+
+function actualitzaNotaCodi() {
+  const nota = $('opc-codi-nota');
+  if (nota) nota.textContent = codiActiu() ? 'actiu en aquest aparell' : 'desactivat en aquest aparell';
+}
+
+function obreCodiModal() {
+  tancaMenuCompte();
+  codiPrimer = '';
+  pintaCodiModal(codiActiu() ? 'actiu' : 'crear');
+  $('codi-overlay').classList.add('visible');
+}
+function tancaCodiModal() {
+  $('codi-overlay').classList.remove('visible');
+  codiPrimer = '';
+}
+
+const CASELLES_MODAL = '<div class="codi-zona">'
+  + '<input class="codi-camp" id="codi-camp" type="password" inputmode="numeric"'
+  + ' autocomplete="off" maxlength="6" aria-label="Codi de 6 xifres">'
+  + '<div class="codi-caselles" id="codi-caselles" aria-hidden="true"></div></div>';
+
+function pintaCodiModal(estat) {
+  const cos = $('codi-cos');
+
+  if (estat === 'actiu') {
+    cos.innerHTML = '<div class="novetats-cos">'
+      + '<p class="codi-estat">Actiu en aquest aparell.</p>'
+      + '<p>Te’l demanem cada cop que obres l’app aquí. En un altre mòbil o ordinador, no.</p>'
+      + '</div><button class="perill codi-accio" id="codi-treure">Treu el codi</button>';
+    $('codi-treure').addEventListener('click', () => pintaCodiModal('treure'));
+    return;
+  }
+
+  if (estat === 'treure') {
+    cos.innerHTML = '<p class="codi-passa">Escriu el codi actual per treure’l.</p>'
+      + CASELLES_MODAL + '<div class="avis" id="avis-codi"></div>';
+    lligaCampCodi($('codi-camp'), $('codi-caselles'), async valor => {
+      if (await codiCorrecte(valor)) {
+        treuCodiDesat();
+        actualitzaNotaCodi();
+        pintaCodiModal('fora');
+      } else {
+        pintaCaselles($('codi-caselles'), CODI_XIFRES, true);
+        avisa($('avis-codi'), 'El codi no és correcte.', 'mal');
+        setTimeout(() => { $('codi-camp').value = ''; pintaCaselles($('codi-caselles'), 0, false); $('codi-camp').focus(); }, 800);
+      }
+    });
+    return;
+  }
+
+  if (estat === 'fora') {
+    cos.innerHTML = '<div class="novetats-cos"><p>El codi s’ha tret d’aquest aparell. '
+      + 'En obrir l’app ja no te’l demanarem.</p></div>'
+      + '<button class="primari codi-accio" id="codi-fet">Entesos</button>';
+    $('codi-fet').addEventListener('click', tancaCodiModal);
+    return;
+  }
+
+  if (estat === 'posat') {
+    cos.innerHTML = '<div class="novetats-cos"><p>Codi activat. El proper cop que obris '
+      + 'l’app en aquest aparell te’l demanarem.</p></div>'
+      + '<button class="primari codi-accio" id="codi-fet">Entesos</button>';
+    $('codi-fet').addEventListener('click', tancaCodiModal);
+    return;
+  }
+
+  // 'confirma': es demana un segon cop. Sense aquest pas, una errada de dits
+  // en teclejar-lo et deixaria fora del teu propi mòbil fins a tancar sessió.
+  if (estat === 'confirma') {
+    cos.innerHTML = '<p class="codi-passa">Torna a escriure’l per confirmar-lo.</p>'
+      + CASELLES_MODAL + '<div class="avis" id="avis-codi"></div>';
+    lligaCampCodi($('codi-camp'), $('codi-caselles'), async valor => {
+      if (valor === codiPrimer) {
+        await desaCodi(valor);
+        codiPrimer = '';
+        actualitzaNotaCodi();
+        pintaCodiModal('posat');
+      } else {
+        pintaCaselles($('codi-caselles'), CODI_XIFRES, true);
+        avisa($('avis-codi'), 'No coincideix amb el primer. Torna-hi.', 'mal');
+        setTimeout(() => { codiPrimer = ''; pintaCodiModal('crear'); }, 1100);
+      }
+    });
+    return;
+  }
+
+  // 'crear': la primera vegada. Aquí va l'explicació per a qui no l'ha vist mai.
+  cos.innerHTML = '<div class="novetats-cos"><p>Un codi de 6 xifres que et demanarem '
+    + 'cada cop que obris l’app en aquest aparell.</p></div>'
+    + CASELLES_MODAL
+    + '<div class="codi-exp"><h4>Abans d’activar-lo</h4>'
+    + '<p>És només d’aquest aparell. Si entres des d’un altre mòbil o ordinador, allà no '
+    + 'te’l demanarà fins que també l’hi posis, i pot ser un altre codi.</p>'
+    + '<p>El pots treure quan vulguis des del menú «Compte», a dalt a la dreta.</p>'
+    + '<p>Si l’oblides, es tanca la sessió i hi tornes a entrar amb el correu i la '
+    + 'contrasenya. No perds res: les teves dades són al núvol.</p>'
+    + '<p>Serveix perquè ningú no hi tafanegi si et deixes el mòbil obert. No xifra les '
+    + 'dades desades al navegador.</p></div>';
+  lligaCampCodi($('codi-camp'), $('codi-caselles'), valor => {
+    codiPrimer = valor;
+    pintaCodiModal('confirma');
+  });
+}
+
+$('opc-codi').addEventListener('click', obreCodiModal);
+$('codi-x').addEventListener('click', tancaCodiModal);
+$('codi-overlay').addEventListener('click', e => { if (e.target === $('codi-overlay')) tancaCodiModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('codi-overlay').classList.contains('visible')) tancaCodiModal();
+});
 
 /* ── Arrencada ── */
 (async function inicia() {
@@ -5827,8 +6237,19 @@ window.addEventListener('offline', () => mostraEstat('sense-connexio'));
   // dia), l'app segueix funcionant amb la còpia d'aquest navegador.
   if (!Nuvol.init()) { mostraEstat('local'); return; }
 
+  // Sense la criptografia del navegador el codi no es pot comprovar: millor
+  // no oferir-lo que oferir-lo trencat.
+  if (!codiDisponible()) $('opc-codi').classList.add('ocult');
+  actualitzaNotaCodi();
+
   const sessio = await Nuvol.sessio();
   if (!sessio) { mostraAcces(true); return; }
+
+  // Si aquest aparell té codi, es demana ABANS de mostrar res. En desbloquejar,
+  // provaCodiObertura() reprèn amb haEntrat(). Entrar amb correu i contrasenya
+  // no passa per aquí: allà ja t'has identificat amb una cosa més forta.
+  if (codiActiu()) { sessioPendent = sessio; mostraBloqueig(true); return; }
+
   await haEntrat(sessio.user);
 })();
 </script>
