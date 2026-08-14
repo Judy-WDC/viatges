@@ -967,6 +967,53 @@
   .idea-fora { border: none; background: none; color: var(--tinta-tenue); padding: 3px 6px; font-size: 12.5px; }
   .idea-fora:hover { background: var(--vermell-fons); color: var(--vermell); }
 
+  /* El lloc que l'app ha entès d'una zona. Sense ensenyar-lo, un error només
+     es veu mirant el mapa: escrius «Los Sauces» i el pin se'n va a Xile
+     sense dir-ne res. */
+  .idea-lloc {
+    display: flex; align-items: baseline; gap: 6px;
+    margin: 3px 0 0 3px; font-size: 11.5px; color: var(--tinta-tenue);
+  }
+  .idea-lloc-nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* Amb una vora fina: sense ella es llegia com una etiqueta i no com una
+     cosa que es pot clicar. */
+  .idea-lloc button {
+    border: 1px solid var(--vora-forta); background: none; padding: 1px 7px; font-size: 11.5px;
+    font-weight: 400; color: var(--accent); border-radius: 999px; flex: none;
+  }
+  .idea-lloc button:hover { background: var(--accent-fons); }
+  /* La mateixa cosa dins del detall d'una reserva, on hi ha més text al
+     voltant: amb un fons suau perquè es llegeixi com una nota i no com un
+     camp més. Gris, no ambre: sovint el lloc entès serà correcte. */
+  .lloc-fila {
+    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+    background: var(--subtil); border-radius: 8px;
+    padding: 8px 10px; margin-top: 14px;
+    font-size: 12px; color: var(--tinta-suau);
+  }
+  .lloc-fila .idea-lloc-nom { flex: 1; min-width: 160px; white-space: normal; line-height: 1.4; }
+  .lloc-fila strong { font-weight: 500; color: var(--tinta); }
+  .lloc-fila button {
+    border: 1px solid var(--vora-forta); background: var(--superficie); color: var(--accent);
+    font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 999px; flex: none;
+  }
+  .lloc-fila button:hover { background: var(--accent-fons); }
+  .lloc-cerca { display: flex; gap: 8px; margin: 4px 0 12px; }
+  .lloc-cerca input {
+    flex: 1; min-width: 0; padding: 8px 10px;
+    border: 1px solid var(--vora); border-radius: 6px;
+    font-family: inherit; font-size: 14px; color: var(--tinta); background: var(--superficie);
+  }
+  .lloc-cerca button { flex: none; }
+  .lloc-resultats { display: flex; flex-direction: column; gap: 5px; }
+  .lloc-opcio {
+    width: 100%; text-align: left; line-height: 1.4;
+    border: 1px solid var(--vora); background: var(--superficie-clara);
+    border-radius: 8px; padding: 9px 11px; font-size: 13px; font-weight: 400; color: var(--tinta);
+  }
+  .lloc-opcio:hover { border-color: var(--accent); background: var(--accent-fons); }
+  .lloc-nota { font-size: 12.5px; color: var(--tinta-suau); margin: 12px 0 0; }
+
   /* ── Capçalera i estat de la sincronització ── */
   .cap-dreta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .estat-sinc { font-size: 12.5px; color: var(--accent-tenue); }
@@ -1229,6 +1276,26 @@
     </div>
     <div class="avis" id="avis-bloqueig"></div>
     <button class="codi-oblidat" id="btn-codi-oblidat">He oblidat el codi</button>
+  </div>
+</div>
+
+<!-- Triar el lloc d'una zona quan el geocodificador l'ha entès malament.
+     La cerca va amb botó i mai mentre escrius: la política de Nominatim
+     prohibeix l'autocompletat i l'app la respecta. -->
+<div class="novetats-overlay" id="lloc-overlay">
+  <div class="novetats" role="dialog" aria-modal="true" aria-labelledby="lloc-titol">
+    <button class="novetats-x" id="lloc-x" aria-label="Tanca">&times;</button>
+    <h2 class="novetats-titol" id="lloc-titol">On és, exactament?</h2>
+    <div class="novetats-cos">
+      <p id="lloc-ara"></p>
+    </div>
+    <div class="lloc-cerca">
+      <input id="lloc-camp" type="text" autocomplete="off" spellcheck="false"
+        aria-label="Escriu el lloc que busques" placeholder="San Andrés y Sauces">
+      <button class="primari" id="lloc-cerca">Cerca</button>
+    </div>
+    <div class="lloc-resultats" id="lloc-resultats"></div>
+    <p class="lloc-nota" id="lloc-nota"></p>
   </div>
 </div>
 
@@ -1927,6 +1994,62 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · La línia del lloc d'una reserva ara diu PER QUÈ el pin ha acabat al
+      poble, amb tres començaments diferents: no hi ha adreça exacta (un vol),
+      l'adreça no s'ha pogut situar, o s'ha situat tan lluny que el filtre de
+      distància l'ha descartada. És una sola línia i no tres avisos apilats:
+      els tres casos acaben igual (el pin al poble) i l'acció útil és la
+      mateixa. Mentre l'adreça encara no s'ha consultat NO es diu res: es
+      distingeix «he preguntat i no s'ha trobat» (apuntat a la memòria cau)
+      de «encara no ho he mirat», perquè no acusi el geocodificador abans de
+      tenir resposta. El botó passa a dir «No és aquest lloc?» amb
+      interrogant i amb una vora fina: sense això es llegia com una
+      afirmació i no com una cosa clicable (v86).
+   FET · Corregir el lloc ja no és només de les idees: val també per a les
+      VISITES d'un viatge (que tenen zona pròpia i patien exactament el
+      mateix) i per a les RESERVES. A les reserves, però, només quan el pin
+      surt del POBLE: si l'adreça exacta s'ha resolt, el pin és al lloc real i
+      posar-hi una línia a cada allotjament seria soroll. Per decidir-ho hi ha
+      origenCoords(), que diu si les coordenades vénen de l'adreça o de la
+      zona; coordsItem() ara hi passa per sobre, així que el dibuix dels pins
+      i aquesta línia no es poden separar mai. Es desa a la reserva (camp
+      «lloc») i es replanta a la memòria cau en carregar, igual que a les
+      idees. Ull: això NO és l'avís de «no s'ha trobat l'adreça exacta», que
+      és una altra cosa i queda pendent (v85).
+   FET · Es pot corregir el lloc d'una zona. Fins ara el geocodificador es
+      quedava el PRIMER resultat i no deia quin era: amb noms que es
+      repeteixen pel món («Los Sauces» n'hi ha a Xile, Colorado, l'Argentina i
+      Colòmbia, i el de La Palma no surt ni entre els cinc primers) el pin
+      acabava a l'altra punta del planeta sense avisar. I no s'arregla
+      escrivint més: «Los Sauces, La Palma» porta a Cartagena. Dues peces:
+      (1) sota cada idea es veu QUÈ ha entès l'app, amb el nom sencer del lloc
+      («Los Sauces, Provincia de Malleco, Xile»), que és el que fa visible
+      l'error; (2) un botó «No és aquest lloc» obre una cerca —amb botó, mai
+      mentre escrius, que la política de Nominatim prohibeix l'autocompletat—
+      amb fins a cinc candidats amb el nom complet per triar-ne un. El que es
+      tria es desa a dos llocs: a la memòria cau de zones, perquè el pin i el
+      creuament idea-reserva quedin bé sense tocar res més, i dins de la idea
+      (camp «lloc»), perquè la correcció viatgi als altres aparells; en
+      carregar les idees es replanta a la cau (sembraLlocsCorregits). Es desa
+      la jerarquia i no només les coordenades: si no, el pin quedaria bé però
+      el creuament seguiria pensant que la idea és a Xile. Ara es guarda també
+      el nom sencer de cada zona resolta, així que puja CLAU_JER a v3 i les
+      zones es tornen a consultar un cop, en segon pla (v84).
+   FET · El botó enrere del mòbil ja no tanca l'app: desfà l'últim pas. Tanca
+      el que hi hagi obert al damunt (panell d'afegir, fitxa d'una reserva,
+      fitxa d'un viatge, novetats, codi d'obertura), surt del detall d'un
+      viatge cap a la llista, i torna a la pestanya anterior. Amb res obert,
+      surt, com ha de ser. Funciona amb una pila de funcions que desfan un pas
+      cadascuna, més una marca a l'historial; el popstate en desfà tantes com
+      calgui (mantenir premut el botó recula diverses de cop) i anar endavant
+      no en desfà cap. Els botons de tancar passen pel mateix camí
+      (history.back) i els tancaments automàtics —desar una reserva tanca la
+      fitxa i el panell— retiren les seves marques, perquè no quedin pitjades
+      del botó enrere que no fan res. IMPORTANT: la pantalla de bloqueig i la
+      d'accés no hi deixen cap marca, així que enrere no pot servir per
+      saltar-se el codi d'obertura. Queden fora a posta les subpestanyes d'un
+      viatge, el commutador Llista/Mapa i les files desplegades, per no
+      convertir enrere en un laberint (v83).
    FET · Codi d'obertura: un codi de 6 xifres que es demana en obrir l'app, a
       més del correu i la contrasenya. OPCIONAL i apagat de sèrie: s'activa i
       es treu des del menú «Compte», i és PER APARELL (viu en aquest navegador
@@ -2805,7 +2928,12 @@ function obrePanell(obert) {
   if (obert) $('entrada').focus();
 }
 $('btn-afegeix').addEventListener('click', () => {
-  obrePanell($('panell-afegeix').classList.contains('ocult'));
+  if ($('panell-afegeix').classList.contains('ocult')) {
+    obrePanell(true);
+    apuntaEnrere('panell', () => obrePanell(false));
+  } else {
+    tancaEnrere(() => obrePanell(false));
+  }
 });
 
 /* Obre la fitxa buida per a les reserves que no vénen de cap correu:
@@ -2821,6 +2949,7 @@ $('btn-manual').addEventListener('click', () => {
 async function refresca() {
   reserves = await Magatzem.llista();
   reserves.sort(comparaCronologic);
+  sembraLlocsCorregits(reserves, poblacioReserva);
   $('comptador').textContent = reserves.length === 1 ? '1 reserva' : reserves.length + ' reserves';
   pintaLlista();
   pintaTaula();
@@ -2880,6 +3009,7 @@ function mostraFitxa(camps, plataforma, titol) {
   pintaCampsFitxa();
   $('fitxa').classList.add('visible');
   $('fitxa').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  apuntaEnrere('fitxa', () => { $('fitxa').classList.remove('visible'); editantId = null; });
 }
 
 function pintaTriaTipus() {
@@ -2962,8 +3092,7 @@ function pintaCampsFitxa() {
 }
 
 $('btn-descarta').addEventListener('click', () => {
-  $('fitxa').classList.remove('visible');
-  editantId = null;
+  tancaEnrere(() => { $('fitxa').classList.remove('visible'); editantId = null; });
 });
 
 $('btn-desa').addEventListener('click', async () => {
@@ -2994,6 +3123,9 @@ $('btn-desa').addEventListener('click', async () => {
   $('fitxa').classList.remove('visible');
   await refresca();
   if (reserves.length) obrePanell(false);
+  // Desar tanca la fitxa i, si escau, el panell: es retiren les seves marques
+  // perquè enrere no es quedi fent pitjades buides.
+  oblidaEnrere('fitxa', 'panell');
 });
 
 /* ══════════ VISTA DE LLISTA ══════════ */
@@ -3443,6 +3575,7 @@ function filaReservaHTML(r) {
             ${campDetall('Núm. de reserva', r.numReserva)}
             ${campDetall('Notes', r.notes, true)}
           </div>
+          ${llocReservaHTML(r)}
           ${viatgeDeReserva(r) ? `<div class="detall-viatge">
             Dins del viatge <strong>${esc(viatgeDeReserva(r).nom || 'sense nom')}</strong>
           </div>` : ''}
@@ -3855,7 +3988,7 @@ function opcions(llista) {
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const NOMINATIM_APP = 'RegistreDeReserves';   // identificació (User-Agent)
-const CLAU_JER = 'registre-jerarquies-v2';    // memòria cau al navegador
+const CLAU_JER = 'registre-jerarquies-v3';    // memòria cau al navegador
 
 /* Memòria cau de zones ja resoltes, perquè no es repeteixi la consulta ni
    entre sessions. Clau: la zona en minúscules. Valor: objecte
@@ -3969,27 +4102,11 @@ async function jerarquiaDe(zona) {
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const dades = await resp.json();
     if (!Array.isArray(dades) || !dades.length) return { buit: true };
-    const adr = dades[0].address || {};
-    // Nivells LOCALS: el lloc mateix i tot el que implica proximitat real
-    // (ciutat, poble, municipi, comarca, illa). Compten per suggerir.
-    const LOCALS = ['city', 'town', 'village', 'municipality', 'county',
-                    'state_district', 'island'];
-    // Nivells AMPLIS: província, comunitat/regió, arxipèlag i país. Es desen a
-    // la jerarquia però NO compten per suggerir (compartir-los no és proximitat).
-    const AMPLIS = ['province', 'state', 'region', 'archipelago', 'country'];
-    const jer = [], local = [];
-    if (dades[0].name) { const nom = String(dades[0].name).toLowerCase(); jer.push(nom); local.push(nom); }
-    for (const n of LOCALS) if (adr[n]) { const v = String(adr[n]).toLowerCase(); jer.push(v); local.push(v); }
-    for (const n of AMPLIS) if (adr[n]) jer.push(String(adr[n]).toLowerCase());
-    return {
-      jer: [...new Set(jer)],
-      local: [...new Set(local)],
-      lat: parseFloat(dades[0].lat), lon: parseFloat(dades[0].lon)
-    };
+    return jerDeResultat(dades[0]);
   });
 
   if (res && res.jer && res.jer.length) {
-    cauJerarquies[clau] = { jer: res.jer, local: res.local || [] };
+    cauJerarquies[clau] = { jer: res.jer, local: res.local || [], nom: res.nom || '' };
     if (isFinite(res.lat) && isFinite(res.lon)) cauCoords[clau] = { lat: res.lat, lon: res.lon };
     desaCauJerarquies(); desaCauCoords();
     return res.jer;
@@ -3998,6 +4115,31 @@ async function jerarquiaDe(zona) {
   // sessions, i el creuament recau en la comparació de text.
   if (res && res.buit) { cauJerarquies[clau] = { jer: [], local: [] }; desaCauJerarquies(); return []; }
   return null;   // error transitori (xarxa/HTTP): no es cacheja, es reprovarà
+}
+
+/* Converteix un resultat de Nominatim en el que desem d'una zona. A part de
+   la jerarquia, en guardem el NOM SENCER: és el que permet ensenyar-te què ha
+   entès l'app («Los Sauces, Provincia de Malleco, Xile») i adonar-te que no
+   és el lloc que volies. Sense això l'error només es veu mirant el mapa. */
+function jerDeResultat(d) {
+  const adr = d.address || {};
+  // Nivells LOCALS: el lloc mateix i tot el que implica proximitat real
+  // (ciutat, poble, municipi, comarca, illa). Compten per suggerir.
+  const LOCALS = ['city', 'town', 'village', 'municipality', 'county',
+                  'state_district', 'island'];
+  // Nivells AMPLIS: província, comunitat/regió, arxipèlag i país. Es desen a
+  // la jerarquia però NO compten per suggerir (compartir-los no és proximitat).
+  const AMPLIS = ['province', 'state', 'region', 'archipelago', 'country'];
+  const jer = [], local = [];
+  if (d.name) { const nom = String(d.name).toLowerCase(); jer.push(nom); local.push(nom); }
+  for (const n of LOCALS) if (adr[n]) { const v = String(adr[n]).toLowerCase(); jer.push(v); local.push(v); }
+  for (const n of AMPLIS) if (adr[n]) jer.push(String(adr[n]).toLowerCase());
+  return {
+    jer: [...new Set(jer)],
+    local: [...new Set(local)],
+    nom: d.display_name || '',
+    lat: parseFloat(d.lat), lon: parseFloat(d.lon)
+  };
 }
 
 /* Diu si dues zones coincideixen a efectes de suggerir idees. Primer per text
@@ -4369,21 +4511,30 @@ function kmEntre(a, b) {
    existeix a un altre país (o un nom de marca que casa amb una altra oficina)
    posava el pin a l'altra punta d'Europa i res no ho detectava. Val més un pin
    poc precís que un pin que menteix. */
-function coordsItem(it) {
+function origenCoords(it) {
   const cz = coordsDe(it.zona);
   const ca = it.adreca ? coordsAdreca(it.adreca) : null;
-  if (ca && (!cz || kmEntre(ca, cz) <= MAX_KM_ADRECA)) return ca;
-  return cz || null;
+  if (ca && (!cz || kmEntre(ca, cz) <= MAX_KM_ADRECA)) return { coords: ca, de: 'adreca' };
+  return { coords: cz || null, de: cz ? 'zona' : null };
+}
+function coordsItem(it) { return origenCoords(it).coords; }
+
+/* El que el mapa necessita saber d'una reserva: el poble i, si n'aporta més
+   detall, l'adreça exacta. Ho fan servir tant el dibuix dels pins com la
+   línia que diu on s'entén que és, perquè no se separin mai. */
+function itemReserva(r) {
+  const zona = poblacioReserva(r);
+  const adr = adrecaMapa(r);
+  return { zona, adreca: (adr && adr.toLowerCase() !== (zona || '').toLowerCase()) ? adr : '' };
 }
 
 function dibuixaPinsViatge(L, capa, v, seves, ajustaVista) {
   const items = [];
   for (const r of seves) {
     const t = tipusDe(r);
-    const zona = poblacioReserva(r);
-    const adr = adrecaMapa(r);
-    const precisa = (adr && adr.toLowerCase() !== (zona || '').toLowerCase()) ? adr : '';
-    items.push({ zona, adreca: precisa, cat: categoriaMapa('reserva', t), tipus: (TIPUS[t].nom || 'Reserva'), nom: nomReserva(r) });
+    items.push(Object.assign(itemReserva(r), {
+      cat: categoriaMapa('reserva', t), tipus: (TIPUS[t].nom || 'Reserva'), nom: nomReserva(r)
+    }));
   }
   for (const vi of visites.filter(x => x.viatgeId === v.id)) items.push({ zona: vi.zona, adreca: '', cat: 'activitats', tipus: 'Visita', nom: (vi.text || 'Visita').split('\n')[0] });
   for (const i of ideesSuggerides(v, seves)) items.push({ zona: i.zona, adreca: '', cat: 'idea', tipus: 'Idea', nom: (i.text || 'Idea').split('\n')[0] });
@@ -4531,6 +4682,7 @@ function pintaIdees() {
         <span class="idea-data">${esc(faTemps(i.creatA))}</span>
         <button class="idea-fora" data-fora="${esc(i.id)}" aria-label="Esborra la idea">Esborra</button>
       </div>
+      ${llocIdeaHTML(i)}
     </div>`).join('')
     + `<datalist id="zones-conegudes">${opcions(zonesConegudes())}</datalist>`
     + `<datalist id="etiquetes-conegudes">${opcions(etiquetesConegudes())}</datalist>`;
@@ -4553,6 +4705,7 @@ function nomEnllac(url) {
 
 async function refrescaIdees() {
   const totes = await MagatzemIdees.llista();
+  sembraLlocsCorregits(totes);
   // Una idea amb viatgeId és una VISITA d'un viatge: surt de la wishlist
   // i del creuament, i es mostra dins del viatge. La resta són idees
   // lliures, que és el que es veu a la pestanya d'Idees.
@@ -4667,12 +4820,269 @@ $('btn-nova-idea').addEventListener('click', async () => {
   if (camp) camp.focus();
 });
 
+/* ═══════════════ CORREGIR EL LLOC D'UNA ZONA ═══════════════
+   El geocodificador es queda el PRIMER resultat i no diu quin és. Amb noms
+   que es repeteixen pel món («Los Sauces» n'hi ha a Xile, a Colorado, a
+   l'Argentina i a Colòmbia, i el de La Palma no surt ni entre els cinc
+   primers) el pin acaba a l'altra punta del planeta sense avisar.
+
+   I no s'arregla escrivint més: «Los Sauces, La Palma» porta a Cartagena.
+   Cal poder veure què ha entès l'app i dir-li que no.
+
+   Dues peces: la línia que ensenya el lloc entès sota cada idea, i aquesta
+   finestra per triar-ne un altre. El que es tria es desa a DOS llocs:
+   · A la memòria cau de zones, perquè tot el que en depèn —el pin del mapa i
+     el creuament idea–reserva— quedi bé sense tocar cap altra part del codi.
+   · Dins de la idea (camp «lloc»), perquè la correcció viatgi als altres
+     aparells: la memòria cau és d'aquest navegador i no se sincronitza. En
+     carregar les idees es replanta a la memòria cau (sembraLlocsCorregits).
+
+   No n'hi ha prou amb desar les coordenades: cal la jerarquia també. Si no,
+   el pin quedaria bé però el creuament seguiria pensant que la idea és a
+   Xile i te la suggeriria per als viatges equivocats. */
+
+let llocObjectiu = null;    // { tipus: 'idea'|'reserva', id, zona }
+let llocCandidats = [];     // els resultats de l'última cerca
+
+/* El nom sencer del lloc que l'app ha entès d'una zona, o '' si encara no
+   s'ha consultat. Mentre no hi ha resposta no es diu res. */
+function nomLlocDeZona(zona) {
+  const c = cauJerarquies[(zona || '').trim().toLowerCase()];
+  if (!c) return '';
+  return c.nom || (jerBuida(c) ? 'no s’ha trobat aquest lloc' : '');
+}
+
+/* La línia sota una idea o una visita. La zona l'has escrit tu, així que
+   sempre val la pena dir com s'ha entès. */
+function llocIdeaHTML(i) {
+  const text = i.zona ? nomLlocDeZona(i.zona) : '';
+  if (!text) return '';
+  return `<div class="idea-lloc">
+      <span class="idea-lloc-nom" title="${esc(text)}">${esc(text)}</span>
+      <button data-canvia-lloc="idea:${esc(i.id)}">No és aquest lloc?</button>
+    </div>`;
+}
+
+/* La línia dins del detall d'una reserva. Només quan el pin surt del POBLE:
+   si l'adreça exacta s'ha resolt, el pin és al lloc real i dir-hi res seria
+   soroll a cada allotjament. */
+/* Per què el pin ha acabat al poble. No és el mateix que la reserva no tingui
+   adreça, que l'adreça no s'hagi pogut situar, o que s'hagi situat tan lluny
+   que el filtre de distància l'ha descartada: cada cas es diu amb les seves
+   paraules. Torna null si l'adreça encara no s'ha consultat — abans de tenir
+   resposta no s'ha d'acusar ningú d'haver fallat. */
+function motiuPoble(it) {
+  if (!it.adreca) return 'sense-adreca';
+  const v = cauCoordsAdr[it.adreca.trim().toLowerCase()];
+  if (!v) return null;            // encara no s'ha preguntat
+  if (v.buit) return 'no-trobada';
+  return 'descartada';            // trobada, però massa lluny del poble
+}
+
+const MOTIU_TEXT = {
+  'sense-adreca': 'Al mapa s’entén que és a ',
+  'no-trobada': 'No s’ha pogut situar l’adreça. Al mapa, el pin va al poble: ',
+  'descartada': 'L’adreça queia molt lluny del poble i s’ha descartat. El pin va a '
+};
+
+function llocReservaHTML(r) {
+  const it = itemReserva(r);
+  if (!it.zona || origenCoords(it).de !== 'zona') return '';
+  const motiu = motiuPoble(it);
+  if (!motiu) return '';
+  const text = nomLlocDeZona(it.zona);
+  if (!text) return '';
+  return `<div class="lloc-fila">
+      <span class="idea-lloc-nom" title="${esc(text)}">${MOTIU_TEXT[motiu]}<strong>${esc(text)}</strong></span>
+      <button data-canvia-lloc="reserva:${esc(r.id)}">No és aquest lloc?</button>
+    </div>`;
+}
+
+/* clau és «tipus:id»: d'on ve el clic. La zona d'una idea és el text que hi
+   has escrit; la d'una reserva es dedueix dels seus camps. */
+function obreTriaLloc(clau) {
+  const tall = String(clau || '').indexOf(':');
+  const tipus = String(clau).slice(0, tall);
+  const id = String(clau).slice(tall + 1);
+  const obj = tipus === 'reserva'
+    ? reserves.find(x => x.id === id)
+    : (idees.find(x => x.id === id) || visites.find(x => x.id === id));
+  if (!obj) return;
+  const zona = tipus === 'reserva' ? poblacioReserva(obj) : obj.zona;
+  if (!zona) return;
+  llocObjectiu = { tipus, id, zona };
+  llocCandidats = [];
+  const nom = nomLlocDeZona(zona);
+  $('lloc-ara').textContent = nom
+    ? 'Ara «' + zona + '» s’entén com a: ' + nom
+    : 'La zona «' + zona + '» no s’ha pogut situar.';
+  $('lloc-camp').value = zona;
+  $('lloc-resultats').innerHTML = '';
+  $('lloc-nota').textContent = '';
+  $('lloc-overlay').classList.add('visible');
+  apuntaEnrere('lloc', () => tancaTriaLloc());
+  setTimeout(() => $('lloc-camp').focus(), 60);
+}
+
+function tancaTriaLloc() {
+  $('lloc-overlay').classList.remove('visible');
+  llocObjectiu = null;
+  llocCandidats = [];
+}
+
+async function cercaLloc() {
+  const q = $('lloc-camp').value.trim();
+  if (!q) return;
+  $('lloc-resultats').innerHTML = '';
+  $('lloc-nota').textContent = 'Cercant…';
+  let dades = null;
+  try {
+    dades = await encuaGeo(async () => {
+      const url = NOMINATIM_URL + '?format=jsonv2&addressdetails=1&limit=5&accept-language=ca&q=' + encodeURIComponent(q);
+      const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return await resp.json();
+    });
+  } catch (e) { dades = null; }
+  if (!Array.isArray(dades)) {
+    $('lloc-nota').textContent = 'No s’ha pogut consultar. Mira la connexió i torna-ho a provar.';
+    return;
+  }
+  if (!dades.length) {
+    $('lloc-nota').textContent = 'Cap resultat. Prova-ho amb el nom del municipi.';
+    return;
+  }
+  llocCandidats = dades;
+  $('lloc-nota').textContent = 'Tria quin és:';
+  $('lloc-resultats').innerHTML = dades.map((d, n) =>
+    `<button class="lloc-opcio" data-lloc="${n}">${esc(d.display_name || '')}</button>`).join('');
+}
+
+async function triaLloc(n) {
+  const d = llocCandidats[n];
+  if (!d || !llocObjectiu) return;
+  const { tipus, id, zona } = llocObjectiu;
+  const info = jerDeResultat(d);
+  const clau = (zona || '').trim().toLowerCase();
+  if (clau && info.jer && info.jer.length) {
+    cauJerarquies[clau] = { jer: info.jer, local: info.local, nom: info.nom };
+    if (isFinite(info.lat) && isFinite(info.lon)) cauCoords[clau] = { lat: info.lat, lon: info.lon };
+    desaCauJerarquies(); desaCauCoords();
+  }
+  const lloc = { nom: info.nom, lat: info.lat, lon: info.lon, jer: info.jer, local: info.local };
+  if (tipus === 'reserva') await Magatzem.actualitza(id, { lloc });
+  else await MagatzemIdees.actualitza(id, { lloc });
+  tancaEnrere(tancaTriaLloc);
+  await refresca();
+}
+
+/* Les correccions viatgen dins de les idees. En carregar-les es replanten a
+   la memòria cau d'aquest navegador, que és d'on beuen el mapa i el creuament. */
+function sembraLlocsCorregits(llista, zonaDe) {
+  let canvi = false;
+  for (const i of llista) {
+    const l = i && i.lloc;
+    const zona = zonaDe ? zonaDe(i) : (i && i.zona);
+    if (!l || !zona || !isFinite(l.lat)) continue;
+    const clau = zona.trim().toLowerCase();
+    const ja = cauCoords[clau];
+    if (ja && ja.lat === l.lat && ja.lon === l.lon) continue;
+    cauJerarquies[clau] = { jer: l.jer || [], local: l.local || [], nom: l.nom || '' };
+    cauCoords[clau] = { lat: l.lat, lon: l.lon };
+    canvi = true;
+  }
+  if (canvi) { desaCauJerarquies(); desaCauCoords(); }
+}
+
+/* El botó pot sortir a tres llocs: la llista d'Inspiració, una fila de
+   reserva (que viu tant a la llista com dins d'un viatge) i una visita. */
+const clicCanviaLloc = e => {
+  const b = e.target.closest('[data-canvia-lloc]');
+  if (b) obreTriaLloc(b.dataset.canviaLloc);
+};
+$('llista-idees').addEventListener('click', clicCanviaLloc);
+$('cos-llista').addEventListener('click', clicCanviaLloc);
+$('detall-viatge-vista').addEventListener('click', clicCanviaLloc);
+$('lloc-cerca').addEventListener('click', cercaLloc);
+$('lloc-camp').addEventListener('keydown', e => { if (e.key === 'Enter') cercaLloc(); });
+$('lloc-resultats').addEventListener('click', e => {
+  const b = e.target.closest('[data-lloc]');
+  if (b) triaLloc(+b.dataset.lloc);
+});
+const tancaLlocUI = () => tancaEnrere(tancaTriaLloc);
+$('lloc-x').addEventListener('click', tancaLlocUI);
+$('lloc-overlay').addEventListener('click', e => { if (e.target === $('lloc-overlay')) tancaLlocUI(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('lloc-overlay').classList.contains('visible')) tancaLlocUI();
+});
+
+/* ═══════════════ EL BOTÓ ENRERE ═══════════════
+   L'app és una sola pàgina: encara que per dins canviïs de pestanya o entris
+   en un viatge, el navegador no se n'assabenta, i el botó enrere del mòbil fa
+   l'únic que sap fer: sortir. Aquí li ensenyem què vol dir «enrere» aquí.
+
+   Com va: cada cop que s'obre una cosa que enrere hauria de desfer, s'apunta
+   una funció que la desfà i es deixa una marca a l'historial. En pitjar
+   enrere, es desfà l'últim pas i prou.
+
+   Tres decisions:
+   · Els botons de tancar (la creu, «Descarta», «← Tots els viatges») també
+     passen per aquí, amb history.back(). Si tanquessin pel seu compte quedaria
+     una marca morta: una pitjada al botó enrere que no fa res visible.
+   · Quan l'app tanca coses ella sola (en desar una reserva es tanquen la fitxa
+     i el panell alhora), oblidaEnrere() retira les marques corresponents.
+   · La pantalla de bloqueig i la d'accés NO hi entren MAI. El botó enrere no
+     pot servir per saltar-se el codi d'obertura. Com que no hi deixen cap
+     marca, allà enrere surt de l'app, que és el que ha de fer.
+
+   Queden fora a posta, per no convertir enrere en un laberint: les
+   subpestanyes d'un viatge, el commutador Llista/Mapa d'Inspiració i les
+   files desplegades. Obrir una reserva no és canviar de pantalla. */
+
+let pilaEnrere = [];
+let desfentEnrere = false;
+
+function apuntaEnrere(nom, desfes) {
+  if (desfentEnrere) return;
+  pilaEnrere.push({ nom, desfes });
+  try { history.pushState({ passes: pilaEnrere.length }, ''); } catch (e) {}
+}
+
+/* Tanca com si haguessis pitjat enrere. Si no hi ha cap marca (per exemple
+   just en carregar), es tanca directament. */
+function tancaEnrere(tancaDirecte) {
+  if (pilaEnrere.length) { try { history.back(); return; } catch (e) {} }
+  tancaDirecte();
+}
+
+/* Retira les marques de les capes que l'app ja ha tancat pel seu compte. */
+function oblidaEnrere(...noms) {
+  let n = 0;
+  while (pilaEnrere.length && noms.includes(pilaEnrere[pilaEnrere.length - 1].nom)) {
+    pilaEnrere.pop(); n++;
+  }
+  if (n) { try { history.go(-n); } catch (e) {} }
+}
+
+window.addEventListener('popstate', e => {
+  // Quantes passes han de quedar. Recular diverses de cop (mantenint el botó
+  // premut) en desfà diverses; anar endavant no desfà res.
+  const queden = (e.state && e.state.passes) || 0;
+  while (pilaEnrere.length > queden) {
+    const pas = pilaEnrere.pop();
+    desfentEnrere = true;
+    try { pas.desfes(); } catch (err) {} finally { desfentEnrere = false; }
+  }
+});
+
 /* ── Pestanyes ── */
 const CLAU_PESTANYA = 'registre-reserves-pestanya';
+let seccioActual = 'reserves';
 
 function mostraSeccio(quina) {
   const seccions = ['reserves', 'idees', 'viatges'];
   if (!seccions.includes(quina)) quina = 'reserves';
+  seccioActual = quina;
   for (const s of seccions) {
     $('vista-' + s).classList.toggle('ocult', s !== quina);
     $('tab-' + s).setAttribute('aria-current', s === quina ? 'page' : 'false');
@@ -4686,9 +5096,16 @@ function mostraSeccio(quina) {
   if (quina === 'idees') document.querySelectorAll('.idea-text').forEach(fesGran);
   try { localStorage.setItem(CLAU_PESTANYA, quina); } catch (e) {}
 }
-$('tab-reserves').addEventListener('click', () => mostraSeccio('reserves'));
-$('tab-idees').addEventListener('click', () => mostraSeccio('idees'));
-$('tab-viatges').addEventListener('click', () => mostraSeccio('viatges'));
+/* Canviar de pestanya deixa marca: enrere torna a la que miraves abans. */
+function vesASeccio(quina) {
+  if (quina === seccioActual) return;
+  const previa = seccioActual;
+  mostraSeccio(quina);
+  apuntaEnrere('seccio', () => mostraSeccio(previa));
+}
+$('tab-reserves').addEventListener('click', () => vesASeccio('reserves'));
+$('tab-idees').addEventListener('click', () => vesASeccio('idees'));
+$('tab-viatges').addEventListener('click', () => vesASeccio('viatges'));
 
 /* ═══════════════ VIATGES ═══════════════
    Un viatge és un contenidor amb nom i dates que, més endavant, agruparà
@@ -4869,6 +5286,7 @@ function obreFitxaViatge(v) {
   $('btn-desa-viatge').textContent = v ? 'Desa els canvis' : 'Crea el viatge';
   $('fitxa-viatge').classList.add('visible');
   $('camp-viatge-nom').focus();
+  apuntaEnrere('fitxa-viatge', () => tancaFitxaViatge());
 }
 
 function tancaFitxaViatge() {
@@ -4890,6 +5308,7 @@ function obreDetallViatge(id) {
   document.querySelector('#vista-viatges .barra-accions').classList.add('ocult');
   $('detall-viatge-vista').classList.remove('ocult');
   pintaDetallViatge();
+  apuntaEnrere('viatge', () => tancaDetallViatge());
 }
 
 function tancaDetallViatge() {
@@ -5036,6 +5455,7 @@ function filaVisitaHTML(vi) {
           <label class="visita-camp"><span>Etiquetes</span>
             <input data-visita-camp="etiquetes" data-vid="${esc(vi.id)}" value="${esc(etiq)}"></label>
         </div>
+        ${llocIdeaHTML(vi)}
         ${vi.enllac ? `<a class="idea-enllac" href="${esc(vi.enllac)}" target="_blank" rel="noopener noreferrer">${esc(nomEnllac(vi.enllac))}</a>` : ''}
       </div>
       <div class="detall-accions">
@@ -5594,7 +6014,7 @@ function repartimentHTML(ambPreu, participants) {
 }
 
 $('detall-viatge-vista').addEventListener('click', async e => {
-  if (e.target.closest('#btn-tornar-viatges')) { tancaDetallViatge(); return; }
+  if (e.target.closest('#btn-tornar-viatges')) { tancaEnrere(tancaDetallViatge); return; }
   if (e.target.closest('#btn-edita-viatge-detall')) {
     const v = viatges.find(x => x.id === viatgeObert);
     if (v) obreFitxaViatgeDesDeDetall(v);
@@ -5731,10 +6151,11 @@ $('btn-desa-viatge').addEventListener('click', async () => {
     await MagatzemViatges.afegeix({ nom, dataInici: inici, dataFi: fi, pressupost, participants });
   }
   tancaFitxaViatge();
+  oblidaEnrere('fitxa-viatge');
   await refrescaViatges();
 });
 
-$('btn-cancela-viatge').addEventListener('click', tancaFitxaViatge);
+$('btn-cancela-viatge').addEventListener('click', () => tancaEnrere(tancaFitxaViatge));
 
 /* ═══════════════ ACCÉS ═══════════════ */
 
@@ -5764,16 +6185,18 @@ function mostrarNovetats() {
   try { if (localStorage.getItem(CLAU_NOVETATS) === VERSIO_NOVETATS) return; } catch (e) {}
   const ov = $('novetats-overlay');
   if (ov) ov.classList.add('visible');
+  apuntaEnrere('novetats', () => tancarNovetats());
 }
 function tancarNovetats() {
   try { localStorage.setItem(CLAU_NOVETATS, VERSIO_NOVETATS); } catch (e) {}
   const ov = $('novetats-overlay');
   if (ov) ov.classList.remove('visible');
 }
-$('novetats-x').addEventListener('click', tancarNovetats);
-$('novetats-ok').addEventListener('click', tancarNovetats);
-$('novetats-overlay').addEventListener('click', e => { if (e.target === $('novetats-overlay')) tancarNovetats(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('novetats-overlay').classList.contains('visible')) tancarNovetats(); });
+const tancaNovetatsUI = () => tancaEnrere(tancarNovetats);
+$('novetats-x').addEventListener('click', tancaNovetatsUI);
+$('novetats-ok').addEventListener('click', tancaNovetatsUI);
+$('novetats-overlay').addEventListener('click', e => { if (e.target === $('novetats-overlay')) tancaNovetatsUI(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('novetats-overlay').classList.contains('visible')) tancaNovetatsUI(); });
 
 async function haEntrat(usuari) {
   Nuvol.usuari = usuari;
@@ -6108,6 +6531,7 @@ function obreCodiModal() {
   codiPrimer = '';
   pintaCodiModal(codiActiu() ? 'actiu' : 'crear');
   $('codi-overlay').classList.add('visible');
+  apuntaEnrere('codi', () => tancaCodiModal());
 }
 function tancaCodiModal() {
   $('codi-overlay').classList.remove('visible');
@@ -6152,7 +6576,7 @@ function pintaCodiModal(estat) {
     cos.innerHTML = '<div class="novetats-cos"><p>El codi s’ha tret d’aquest aparell. '
       + 'En obrir l’app ja no te’l demanarem.</p></div>'
       + '<button class="primari codi-accio" id="codi-fet">Entesos</button>';
-    $('codi-fet').addEventListener('click', tancaCodiModal);
+    $('codi-fet').addEventListener('click', () => tancaEnrere(tancaCodiModal));
     return;
   }
 
@@ -6160,7 +6584,7 @@ function pintaCodiModal(estat) {
     cos.innerHTML = '<div class="novetats-cos"><p>Codi activat. El proper cop que obris '
       + 'l’app en aquest aparell te’l demanarem.</p></div>'
       + '<button class="primari codi-accio" id="codi-fet">Entesos</button>';
-    $('codi-fet').addEventListener('click', tancaCodiModal);
+    $('codi-fet').addEventListener('click', () => tancaEnrere(tancaCodiModal));
     return;
   }
 
@@ -6202,11 +6626,12 @@ function pintaCodiModal(estat) {
   });
 }
 
+const tancaCodiUI = () => tancaEnrere(tancaCodiModal);
 $('opc-codi').addEventListener('click', obreCodiModal);
-$('codi-x').addEventListener('click', tancaCodiModal);
-$('codi-overlay').addEventListener('click', e => { if (e.target === $('codi-overlay')) tancaCodiModal(); });
+$('codi-x').addEventListener('click', tancaCodiUI);
+$('codi-overlay').addEventListener('click', e => { if (e.target === $('codi-overlay')) tancaCodiUI(); });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && $('codi-overlay').classList.contains('visible')) tancaCodiModal();
+  if (e.key === 'Escape' && $('codi-overlay').classList.contains('visible')) tancaCodiUI();
 });
 
 /* ── Arrencada ── */
