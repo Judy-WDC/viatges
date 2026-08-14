@@ -481,10 +481,22 @@
   }
   .pressupost-resum-titol { font-size: 15px; font-weight: 600; color: var(--tinta); margin-bottom: 6px; }
   .pressupost-fletxa { color: var(--tinta-tenue); font-size: 11px; margin-left: 2px; }
+  /* La línia de despeses soltes és un botó que desplega el seu detall. */
+  .pressupost-linia.desplega {
+    width: 100%; border: none; background: none; font: inherit; color: inherit;
+    text-align: left; border-radius: 0; cursor: pointer;
+  }
+  .pressupost-linia.desplega:hover { background: var(--subtil); }
+  .pressupost-linia.desplega .pressupost-tipus { display: inline-flex; align-items: center; gap: 6px; }
+  .chev-desp { display: inline-flex; color: var(--tinta-tenue); transform: rotate(-90deg); transition: transform 0.15s ease; }
+  .pressupost-linia.desplega[aria-expanded="true"] .chev-desp { transform: rotate(0deg); }
 
   /* Despeses soltes (apuntades a mà dins del pressupost) */
   .despeses-soltes { margin-top: 26px; }
-  .despeses-llista { display: flex; flex-direction: column; margin-bottom: 12px; }
+  /* El formulari d'afegir va A SOBRE de la llista: amb moltes despeses,
+     tenir-lo al final obligava a passar per totes per apuntar-ne una. */
+  .despeses-llista { display: flex; flex-direction: column; margin: 16px 0 0; }
+  .despeses-llista:not(:empty) { padding-top: 14px; border-top: 1px solid var(--vora); }
   .despeses-buida { font-size: 12.5px; color: var(--tinta-suau); margin: 0 0 12px; }
   .despesa {
     display: flex; align-items: baseline; gap: 10px;
@@ -499,6 +511,42 @@
     font-size: 17px; line-height: 1; padding: 0 4px; cursor: pointer; border-radius: 6px; flex: none;
   }
   .despesa-treu:hover { background: var(--subtil); color: var(--vermell); }
+  /* Forma de pagament: dos botons, cap premut vol dir «no dit» */
+  .formes { display: inline-flex; gap: 3px; background: var(--subtil); border-radius: 7px; padding: 3px; }
+  .forma {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: none; background: none; color: var(--tinta-suau);
+    font-size: 12.5px; font-weight: 400; padding: 5px 12px; border-radius: 5px;
+  }
+  .forma:hover { background: var(--superficie-clara); color: var(--tinta); }
+  .forma.activa { background: var(--superficie); color: var(--accent); font-weight: 500; }
+  .forma-icona { width: 15px; height: 15px; flex: none; }
+  .formes.petites .forma { padding: 4px 8px; }
+  .resum-formes { display: flex; gap: 8px 18px; flex-wrap: wrap; margin-top: 12px; }
+  .resum-forma { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--tinta-suau); }
+  .resum-forma strong { font-weight: 500; color: var(--tinta); font-variant-numeric: tabular-nums; }
+  .sense-forma {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: var(--subtil); border-radius: 9px; padding: 9px 11px; margin-top: 12px;
+    font-size: 12.5px; color: var(--tinta-suau);
+  }
+  .sense-forma span { flex: 1; min-width: 140px; }
+  /* Amb vora: sense ella es llegia com a text i no com una cosa clicable,
+     igual que passava amb «No és aquest lloc?». */
+  .sense-forma button {
+    border: 1px solid var(--vora-forta); background: var(--superficie); color: var(--accent);
+    border-radius: 999px; padding: 3px 12px; font-size: 12px; font-weight: 500; flex: none;
+  }
+  .sense-forma button:hover { background: var(--accent-fons); border-color: var(--accent-suau); }
+  .sense-forma-llista { margin-top: 6px; border: 0.5px solid var(--vora); border-radius: 9px; padding: 4px 12px; background: var(--superficie); }
+  .sense-forma-fila {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 7px 0; border-bottom: 1px solid var(--vora); font-size: 13px;
+  }
+  .sense-forma-fila:last-child { border-bottom: none; }
+  .pressupost-linia.menuda-forma .pressupost-tipus { padding-left: 14px; font-size: 12.5px; color: var(--tinta-tenue); }
+  .pressupost-linia.menuda-forma .pressupost-import { font-size: 12.5px; color: var(--tinta-tenue); }
+
   .despesa-nova { display: flex; flex-direction: column; gap: 8px; }
   .despesa-fila { display: flex; gap: 8px; }
   .despesa-accio { display: flex; justify-content: flex-end; }
@@ -2044,6 +2092,86 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · El formulari d'afegir una despesa passa a dalt, abans de la llista:
+      amb moltes despeses, tenir-lo al final obligava a passar per totes per
+      apuntar-ne una de nova. La llista queda separada per una línia fina.
+      I el botó «Completa-les» de les despeses sense forma de pagament passa
+      a tenir vora (píndola, com «No és aquest lloc?»): sense ella es llegia
+      com a text i no com una cosa clicable (v96).
+   FET · Al resum del cost, «Despeses soltes» es desplega. El detall per
+      categoria comença plegat i s'obre clicant la línia: al resum hi véns a
+      veure què costa el viatge, i el desglossament només quan el busques. La
+      fletxa (que abans apuntava a la dreta i no volia dir res clar) passa a
+      ser el chevron que gira, com a «Ja passades». Plegar no repinta el
+      detall del viatge: es toca el DOM, o s'esborraria el que s'estigués
+      escrivint al formulari de despeses.
+      A més, efectiu/targeta SURT del resum del cost: tenir-hi dos
+      desglossaments alhora (per categoria i per forma de pagament) era
+      confús. Ara el resum només desglossa per categoria, i com s'ha pagat es
+      diu al peu de les despeses soltes —«Efectiu 50,50 € · Targeta 62,00 €»—
+      que és on ja hi ha la frase de les que en falten. El resum respon «què
+      costa el viatge»; això respon «quants diners en efectiu hem mogut», que
+      és una pregunta d'una altra mena (v95).
+   FET · Es poden crear categories de despesa noves. El desplegable passa a
+      ser un camp lliure amb suggeriments, com «qui ho paga» al costat i com
+      les zones i etiquetes d'Inspiració: escrius la que vulguis i queda
+      disponible a partir d'aleshores. No cal cap emmagatzematge nou —viuen
+      dins de les despeses i se sincronitzen soles—; els suggeriments són les
+      cinc de sempre més les que ja s'hagin fet servir a qualsevol viatge.
+      Les de sempre segueixen desant-se amb la clau interna («menjar») i les
+      noves amb el text, i normalitzaCategoria() s'encarrega que «Menjar»,
+      «menjar» i «MENJAR» no es parteixin en tres (retalla espais, posa
+      majúscula inicial i reconeix les de sempre per clau o per etiqueta).
+      A més, el resum ja desglossa les despeses soltes PER CATEGORIA, de més
+      gastada a menys: fins ara la categoria era només una etiqueta i no
+      apareixia en cap total, o sigui que etiquetar no servia de res (v94).
+   FET · Les despeses soltes poden dir si s'han pagat en efectiu o amb
+      targeta. És opcional: dos botons en comptes d'un desplegable, perquè
+      «no dit» és naturalment cap dels dos premuts i canviar-ho és un sol toc.
+      Es veu a la fila plegada al costat de la categoria, i al resum hi surten
+      els subtotals «en efectiu» i «amb targeta» sota les despeses soltes
+      (que és el motiu pel qual s'apunta). Al final del bloc de despeses, «N
+      despeses sense forma de pagament» amb un desplegable per resoldre-les
+      d'un toc cadascuna: si només digués el número seria una queixa i no una
+      eina. Aquesta frase NOMÉS surt si el viatge ja té alguna despesa amb
+      forma indicada, perquè als viatges vells no et renyi per una cosa que
+      no vols omplir. Icona nova «monedes» (dues, rodó contra el rectangle de
+      la targeta, que és el que les distingeix a mida de botó; de la del
+      darrere només se'n dibuixa el tros que sobresurt, així no cal cap
+      farciment opac —el fons del botó canvia segons l'estat). Premer una
+      forma no repinta el detall: es toca el DOM directament, o s'esborraria
+      el concepte i l'import a mig escriure (v93).
+   FET · També es pot corregir una adreça JA RESOLTA. Fins ara, si l'adreça
+      exacta es resolia, no es deia res: es donava per fet que resolta volia
+      dir correcta, i no és el mateix — pot caure amb tota confiança al carrer
+      equivocat i no hi havia manera d'adonar-se'n. Ara, al desplegable de la
+      reserva, hi surt «Al mapa, a X» amb el botó de sempre. Es guarda el nom
+      del lloc on cau cada adreça (puja CLAU_COORDS_ADR a v2: es tornen a
+      consultar un cop, en segon pla). El cercador té un tercer mode,
+      «adreca», que a diferència dels altres NO desa jerarquia: les adreces
+      només situen el pin i no entren mai al creuament d'idees. La correcció
+      es desa a la reserva (camp «llocAdreca») i es replanta a la memòria cau
+      en carregar (sembraAdrecesCorregides), com les altres (v92).
+   FET · Una reserva ja no calla quan no se sap on és. Abans, si ni l'adreça
+      ni el poble es podien situar, no sortia cap línia: la reserva
+      desapareixia del mapa en silenci i no te n'assabentaves. Ara hi ha dos
+      avisos nous: si hi ha adreça i no s'ha pogut situar ni ella ni el poble,
+      «No s'ha pogut situar ni l'adreça ni el poble: no surt al mapa» amb el
+      botó «Situa-la»; i si la reserva no té cap dada de lloc, «Encara no té
+      dades de lloc, així que no surt al mapa» sense botó (no hi ha res a
+      corregir: cal omplir l'adreça, i els camps són just a sobre). Es manté
+      el silenci mentre quedi alguna consulta pendent. La decisió de què dir
+      surt d'avisLlocReserva(), que recorre els casos en ordre en comptes
+      d'anar sortint per la porta del darrere quan no sabia què dir (v91).
+   FET · Correcció: quan la zona d'una idea no es trobava, sortia «no s'ha
+      trobat aquest lloc» seguit del botó «No és aquest lloc?». No tenia cap
+      sentit: si no s'ha trobat res, no hi ha cap lloc amb què estar en
+      desacord. Ara són dos estats separats: si s'ha trobat un lloc, se'n diu
+      el nom i el botó pregunta si no és aquell; si s'ha consultat i no s'ha
+      trobat, diu «No s'ha trobat «X» al mapa» i el botó és «Situa-la», que
+      obre la mateixa cerca. Si encara s'està consultant, no es diu res.
+      nomLlocDeZona() torna només el nom o cadena buida, i la distinció la fa
+      zonaNoTrobada(), en comptes de barrejar un nom amb una frase (v90).
    FET · Es pot afegir una idea des d'un web. L'app llegeix de l'adreça els
       paràmetres «titol», «text» i «enllac» i obre una targeta ja emplenada:
       d'on ve, el text de la idea (editable), la zona (buida, amb les zones
@@ -2563,7 +2691,13 @@ const ICONES = {
   cotxe: '<path d="M4 16v-3.5L5.7 8A2 2 0 0 1 7.6 6.7h8.8A2 2 0 0 1 18.3 8L20 12.5V16M4 12.5h16M4 16v1.5M20 16v1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="14.2" r="0.7" fill="currentColor"/><circle cx="16.5" cy="14.2" r="0.7" fill="currentColor"/>',
   tiquet: '<path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H6a2 2 0 0 1-2-2 2 2 0 0 0 0-4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 6.5v11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="1.5 2"/>',
   paquet: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM4 7.5l8 4.5 8-4.5M12 12v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
-  estrella: '<path d="M12 4.5l2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7-3.4-3.3 4.7-.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>'
+  estrella: '<path d="M12 4.5l2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7-3.4-3.3 4.7-.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
+  // Efectiu: dues monedes. Rodó contra el rectangle de la targeta, que és el
+  // que les distingeix a mida de botó. De la del darrere només se'n dibuixa
+  // el tros que sobresurt (calculat on es creuen), així no cal cap farciment
+  // opac —el fons del botó canvia segons si està premut o no.
+  monedes: '<path d="M12.25 7.44A5.6 5.6 0 1 1 12.25 16.56" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="9" cy="12" r="5.6" fill="none" stroke="currentColor" stroke-width="1.7"/>',
+  targeta: '<rect x="2.5" y="5.5" width="19" height="13" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M2.5 10h19" stroke="currentColor" stroke-width="1.7"/>'
 };
 
 function iconaSVG(clau, classe) {
@@ -2643,6 +2777,18 @@ const CATEGORIES_DESPESA = [
   ['souvenirs', 'Souvenirs'],
   ['altres', 'Altres']
 ];
+
+/* La forma de pagament d'una despesa solta. És OPCIONAL: cadena buida vol
+   dir «no dit», i per això són dos botons i no un desplegable —«no dit» és
+   naturalment cap dels dos premuts, i canviar-ho és un sol toc. */
+const FORMES_PAGAMENT = [
+  ['efectiu', 'Efectiu', 'monedes'],
+  ['targeta', 'Targeta', 'targeta']
+];
+function nomFormaPagament(k) {
+  const f = FORMES_PAGAMENT.find(([c]) => c === k);
+  return f ? f[1] : '';
+}
 
 /* Els camps d'un tipus, seguits dels comuns. */
 function campsDe(tipus) {
@@ -3039,6 +3185,7 @@ async function refresca() {
   reserves = await Magatzem.llista();
   reserves.sort(comparaCronologic);
   sembraLlocsCorregits(reserves, poblacioReserva);
+  sembraAdrecesCorregides(reserves);
   $('comptador').textContent = reserves.length === 1 ? '1 reserva' : reserves.length + ' reserves';
   pintaLlista();
   pintaTaula();
@@ -4129,7 +4276,7 @@ function coordsDe(zona) {
   return (k && cauCoords[k]) || null;
 }
 
-const CLAU_COORDS_ADR = 'registre-coords-adreca-v1';
+const CLAU_COORDS_ADR = 'registre-coords-adreca-v2';
 /* Coordenades exactes d'adreces concretes (allotjaments, recintes, punts de
    recollida…), per posar el pin al lloc real i no al centre del poble. Clau:
    l'adreça en minúscules. Valor: {lat,lon} si s'ha trobat, o {buit:true} si
@@ -4271,10 +4418,12 @@ async function coordsDeAdrecaRemot(adreca) {
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const dades = await resp.json();
     if (!Array.isArray(dades) || !dades.length) return { buit: true };
-    return { lat: parseFloat(dades[0].lat), lon: parseFloat(dades[0].lon) };
+    // El nom sencer també: una adreça es pot resoldre amb tota confiança al
+    // carrer equivocat, i sense el nom no hi ha manera d'adonar-se'n.
+    return { lat: parseFloat(dades[0].lat), lon: parseFloat(dades[0].lon), nom: dades[0].display_name || '' };
   });
   if (res && isFinite(res.lat) && isFinite(res.lon)) {
-    cauCoordsAdr[clau] = { lat: res.lat, lon: res.lon };
+    cauCoordsAdr[clau] = { lat: res.lat, lon: res.lon, nom: res.nom || '' };
     desaCauCoordsAdr();
     return cauCoordsAdr[clau];
   }
@@ -5056,19 +5205,44 @@ let llocCandidats = [];     // els resultats de l'última cerca
    s'ha consultat. Mentre no hi ha resposta no es diu res. */
 function nomLlocDeZona(zona) {
   const c = cauJerarquies[(zona || '').trim().toLowerCase()];
-  if (!c) return '';
-  return c.nom || (jerBuida(c) ? 'no s’ha trobat aquest lloc' : '');
+  return (c && c.nom) || '';
+}
+
+/* Si la zona s'ha consultat i el geocodificador no ha trobat res. És
+   diferent de «no s'ha consultat encara» (llavors no en sabem res) i de
+   «s'ha trobat però no és el lloc bo» (llavors sí que hi ha un nom). */
+/* El nom sencer del lloc on ha caigut una adreça resolta, o ''. */
+function nomAdreca(adreca) {
+  const v = cauCoordsAdr[(adreca || '').trim().toLowerCase()];
+  return (v && v.nom) || '';
+}
+
+function zonaNoTrobada(zona) {
+  const c = cauJerarquies[(zona || '').trim().toLowerCase()];
+  return !!c && !c.nom && jerBuida(c);
 }
 
 /* La línia sota una idea o una visita. La zona l'has escrit tu, així que
    sempre val la pena dir com s'ha entès. */
 function llocIdeaHTML(i) {
-  const text = i.zona ? nomLlocDeZona(i.zona) : '';
-  if (!text) return '';
-  return `<div class="idea-lloc">
-      <span class="idea-lloc-nom" title="${esc(text)}">${esc(text)}</span>
+  if (!i.zona) return '';
+  const nom = nomLlocDeZona(i.zona);
+  // S'ha trobat un lloc: es diu quin, i pots dir que no és aquell.
+  if (nom) {
+    return `<div class="idea-lloc">
+      <span class="idea-lloc-nom" title="${esc(nom)}">${esc(nom)}</span>
       <button data-canvia-lloc="idea:${esc(i.id)}">No és aquest lloc?</button>
     </div>`;
+  }
+  // No s'ha trobat res: preguntar-te si «és aquest lloc» no tindria sentit,
+  // perquè no n'hi ha cap. El que pots fer és buscar-lo tu.
+  if (zonaNoTrobada(i.zona)) {
+    return `<div class="idea-lloc">
+      <span class="idea-lloc-nom">No s’ha trobat «${esc(i.zona)}» al mapa</span>
+      <button data-canvia-lloc="idea:${esc(i.id)}">Situa-la</button>
+    </div>`;
+  }
+  return '';   // encara s'està consultant: no es diu res
 }
 
 /* La línia dins del detall d'una reserva. Només quan el pin surt del POBLE:
@@ -5093,16 +5267,58 @@ const MOTIU_TEXT = {
   'descartada': 'L’adreça queia molt lluny del poble i s’ha descartat. El pin va a '
 };
 
-function llocReservaHTML(r) {
+/* Què s'ha de dir del lloc d'una reserva, o null si no cal dir res. Els
+   casos, en ordre:
+   · Cap dada de lloc → no pot sortir al mapa, i val més dir-ho que callar.
+   · El pin és a l'adreça exacta → tot correcte, silenci.
+   · El pin és al poble → es diu per què (MOTIU_TEXT) i es pot corregir.
+   · No s'ha pogut situar res → avís, i es pot situar a mà.
+   Mentre quedi alguna consulta pendent, silenci: no s'acusa el geocodificador
+   abans que hagi respost. */
+function avisLlocReserva(r) {
   const it = itemReserva(r);
-  if (!it.zona || origenCoords(it).de !== 'zona') return '';
+
+  if (!it.zona && !it.adreca) {
+    return { text: 'Encara no té dades de lloc, així que no surt al mapa.', boto: '' };
+  }
+
+  const o = origenCoords(it);
+
+  // El pin és a l'adreça exacta. Que s'hagi resolt no vol dir que sigui
+  // correcta: pot haver caigut amb tota confiança al carrer equivocat, i si
+  // no diem on ha anat a parar no hi ha manera d'adonar-se'n.
+  if (o.de === 'adreca') {
+    const nom = nomAdreca(it.adreca);
+    if (!nom) return null;   // resolta abans que en guardéssim el nom
+    return { text: 'Al mapa, a <strong>' + esc(nom) + '</strong>',
+             boto: 'No és aquest lloc?', mode: 'adreca' };
+  }
+
   const motiu = motiuPoble(it);
-  if (!motiu) return '';
-  const text = nomLlocDeZona(it.zona);
-  if (!text) return '';
+  if (!motiu) return null;               // l'adreça encara s'està consultant
+
+  if (o.de === 'zona') {
+    const nom = nomLlocDeZona(it.zona);
+    if (!nom) return null;
+    return { text: MOTIU_TEXT[motiu] + '<strong>' + esc(nom) + '</strong>', boto: 'No és aquest lloc?' };
+  }
+
+  // Res situat. Abans d'avisar, el poble també ha d'haver estat consultat.
+  if (it.zona && !zonaNoTrobada(it.zona)) return null;
+  return {
+    text: it.adreca
+      ? 'No s’ha pogut situar ni l’adreça ni el poble: no surt al mapa.'
+      : 'No s’ha trobat «' + esc(it.zona) + '» al mapa.',
+    boto: it.zona ? 'Situa-la' : ''
+  };
+}
+
+function llocReservaHTML(r) {
+  const a = avisLlocReserva(r);
+  if (!a) return '';
   return `<div class="lloc-fila">
-      <span class="idea-lloc-nom" title="${esc(text)}">${MOTIU_TEXT[motiu]}<strong>${esc(text)}</strong></span>
-      <button data-canvia-lloc="reserva:${esc(r.id)}">No és aquest lloc?</button>
+      <span class="idea-lloc-nom">${a.text}</span>
+      ${a.boto ? `<button data-canvia-lloc="${a.mode || 'reserva'}:${esc(r.id)}">${a.boto}</button>` : ''}
     </div>`;
 }
 
@@ -5112,19 +5328,22 @@ function obreTriaLloc(clau) {
   const tall = String(clau || '').indexOf(':');
   const tipus = String(clau).slice(0, tall);
   const id = String(clau).slice(tall + 1);
-  const obj = tipus === 'reserva'
+  const obj = (tipus === 'reserva' || tipus === 'adreca')
     ? reserves.find(x => x.id === id)
     : (idees.find(x => x.id === id) || visites.find(x => x.id === id));
   if (!obj) return;
-  const zona = tipus === 'reserva' ? poblacioReserva(obj) : obj.zona;
-  if (!zona) return;
-  llocObjectiu = { tipus, id, zona };
+  // El text que estem situant: l'adreça exacta d'una reserva, el poble que
+  // se n'ha deduït, o la zona que has escrit tu en una idea.
+  const text = tipus === 'adreca' ? adrecaMapa(obj)
+    : (tipus === 'reserva' ? poblacioReserva(obj) : obj.zona);
+  if (!text) return;
+  llocObjectiu = { tipus, id, text };
   llocCandidats = [];
-  const nom = nomLlocDeZona(zona);
+  const nom = tipus === 'adreca' ? nomAdreca(text) : nomLlocDeZona(text);
   $('lloc-ara').textContent = nom
-    ? 'Ara «' + zona + '» s’entén com a: ' + nom
-    : 'La zona «' + zona + '» no s’ha pogut situar.';
-  $('lloc-camp').value = zona;
+    ? 'Ara «' + text + '» s’entén com a: ' + nom
+    : '«' + text + '» no s’ha pogut situar.';
+  $('lloc-camp').value = text;
   $('lloc-resultats').innerHTML = '';
   $('lloc-nota').textContent = '';
   $('lloc-overlay').classList.add('visible');
@@ -5169,17 +5388,28 @@ async function cercaLloc() {
 async function triaLloc(n) {
   const d = llocCandidats[n];
   if (!d || !llocObjectiu) return;
-  const { tipus, id, zona } = llocObjectiu;
+  const { tipus, id, text } = llocObjectiu;
   const info = jerDeResultat(d);
-  const clau = (zona || '').trim().toLowerCase();
-  if (clau && info.jer && info.jer.length) {
-    cauJerarquies[clau] = { jer: info.jer, local: info.local, nom: info.nom };
-    if (isFinite(info.lat) && isFinite(info.lon)) cauCoords[clau] = { lat: info.lat, lon: info.lon };
-    desaCauJerarquies(); desaCauCoords();
+  const clau = (text || '').trim().toLowerCase();
+
+  if (tipus === 'adreca') {
+    // Les adreces no entren mai al creuament d'idees: només situen el pin,
+    // així que amb les coordenades i el nom n'hi ha prou. Sense jerarquia.
+    if (clau && isFinite(info.lat)) {
+      cauCoordsAdr[clau] = { lat: info.lat, lon: info.lon, nom: info.nom };
+      desaCauCoordsAdr();
+    }
+    await Magatzem.actualitza(id, { llocAdreca: { nom: info.nom, lat: info.lat, lon: info.lon } });
+  } else {
+    if (clau && info.jer && info.jer.length) {
+      cauJerarquies[clau] = { jer: info.jer, local: info.local, nom: info.nom };
+      if (isFinite(info.lat) && isFinite(info.lon)) cauCoords[clau] = { lat: info.lat, lon: info.lon };
+      desaCauJerarquies(); desaCauCoords();
+    }
+    const lloc = { nom: info.nom, lat: info.lat, lon: info.lon, jer: info.jer, local: info.local };
+    if (tipus === 'reserva') await Magatzem.actualitza(id, { lloc });
+    else await MagatzemIdees.actualitza(id, { lloc });
   }
-  const lloc = { nom: info.nom, lat: info.lat, lon: info.lon, jer: info.jer, local: info.local };
-  if (tipus === 'reserva') await Magatzem.actualitza(id, { lloc });
-  else await MagatzemIdees.actualitza(id, { lloc });
   tancaEnrere(tancaTriaLloc);
   await refresca();
 }
@@ -5200,6 +5430,24 @@ function sembraLlocsCorregits(llista, zonaDe) {
     canvi = true;
   }
   if (canvi) { desaCauJerarquies(); desaCauCoords(); }
+}
+
+/* El mateix per a les adreces exactes corregides a mà, que viuen en una
+   memòria cau pròpia i sense jerarquia. */
+function sembraAdrecesCorregides(llista) {
+  let canvi = false;
+  for (const r of llista) {
+    const l = r && r.llocAdreca;
+    if (!l || !isFinite(l.lat)) continue;
+    const adr = adrecaMapa(r);
+    if (!adr) continue;
+    const clau = adr.trim().toLowerCase();
+    const ja = cauCoordsAdr[clau];
+    if (ja && ja.lat === l.lat && ja.lon === l.lon) continue;
+    cauCoordsAdr[clau] = { lat: l.lat, lon: l.lon, nom: l.nom || '' };
+    canvi = true;
+  }
+  if (canvi) desaCauCoordsAdr();
 }
 
 /* El botó pot sortir a tres llocs: la llista d'Inspiració, una fila de
@@ -5941,10 +6189,26 @@ function pressupostHTML(v, seves) {
   for (const r of ambPreu) { const t = tipusDe(r); perTipus[t] = (perTipus[t] || 0) + importNum(r.preu); }
   let files = ORDRE_TIPUS.filter(t => perTipus[t]).map(t => liniaPressupost(TIPUS[t].plural || TIPUS[t].nom, perTipus[t])).join('');
   if (totalDespeses) {
-    files += `<div class="pressupost-linia">
-      <span class="pressupost-tipus">Despeses soltes <span class="pressupost-fletxa" aria-hidden="true">\u203a</span></span>
-      <span class="pressupost-import">${esc(formataImport(totalDespeses))}</span>
-    </div>`;
+    // El detall per categoria comen\u00e7a PLEGAT: la fletxa ara vol dir \u00abaix\u00f2
+    // s'obre\u00bb, que \u00e9s el que ja semblava que volia dir.
+    // Desglossament per categoria: és el que dona sentit a etiquetar-les.
+    // De més gastat a menys, que és l'ordre en què es mira.
+    const perCat = new Map();
+    for (const d of despesesAmbImport) {
+      const nom = nomCategoria(d.categoria);
+      perCat.set(nom, (perCat.get(nom) || 0) + importNum(d.import));
+    }
+    const detall = [...perCat.entries()].sort((a, b) => b[1] - a[1]).map(([nom, suma]) =>
+      `<div class="pressupost-linia menuda-forma">
+        <span class="pressupost-tipus">${esc(nom)}</span>
+        <span class="pressupost-import">${esc(formataImport(suma))}</span>
+      </div>`).join('');
+    files += `<button class="pressupost-linia desplega" data-plega-despeses
+        aria-expanded="${despesesObertes ? 'true' : 'false'}" aria-controls="detall-despeses">
+        <span class="pressupost-tipus"><span class="chev-desp">${CHEVRON}</span>Despeses soltes</span>
+        <span class="pressupost-import">${esc(formataImport(totalDespeses))}</span>
+      </button>
+      <div id="detall-despeses"${despesesObertes ? '' : ' class="ocult"'}>${detall}</div>`;
   }
 
   let resum;
@@ -6015,22 +6279,74 @@ function barraPrevist(previst, total) {
    sincronització i la còpia sense cap taula nova. Sumen al total i a la barra
    de previst-contra-real, i compten al repartiment igual que les reserves. */
 let despesaEnEdicio = null;   // id de la despesa que s'està editant en línia, o null
+let formaNova = '';           // forma de pagament triada al formulari d'afegir
+let formaEdicio = '';         // ídem al formulari d'edició
 
-/* Les opcions de categoria per a un <select>, amb la triada marcada. */
-function opcionsCategoria(sel) {
-  return CATEGORIES_DESPESA.map(([k, label]) => `<option value="${esc(k)}"${k === sel ? ' selected' : ''}>${esc(label)}</option>`).join('');
+/* Prémer una forma la tria; tornar-la a prémer la desmarca (és opcional).
+   Es toca el DOM directament en comptes de repintar: repintar el detall del
+   viatge esborraria el concepte i l'import que s'estiguessin escrivint. */
+function alternaForma(prefix, k) {
+  const nou = (prefix === 'nova' ? formaNova : formaEdicio) === k ? '' : k;
+  if (prefix === 'nova') formaNova = nou; else formaEdicio = nou;
+  for (const b of document.querySelectorAll('[data-forma^="' + prefix + ':"]')) {
+    const seva = b.dataset.forma.split(':')[1];
+    b.classList.toggle('activa', seva === nou);
+    b.setAttribute('aria-pressed', seva === nou ? 'true' : 'false');
+  }
+}
+
+/* El commutador de forma de pagament. «on» és la triada, o buit si no n'hi
+   ha cap. Tornar a prémer la que ja hi és la desmarca. */
+function formaPagamentHTML(on, prefix) {
+  return `<div class="formes" role="group" aria-label="Forma de pagament">`
+    + FORMES_PAGAMENT.map(([k, nom, ic]) =>
+        `<button type="button" class="forma${k === on ? ' activa' : ''}"
+          data-forma="${prefix}:${k}" aria-pressed="${k === on ? 'true' : 'false'}">`
+        + iconaSVG(ic, 'forma-icona') + esc(nom) + '</button>').join('')
+    + `</div>`;
+}
+
+/* La categoria és text lliure amb suggeriments, com «qui ho paga» o les
+   zones d'Inspiració: pots escriure'n de noves i queden disponibles a partir
+   d'aleshores, sense cap emmagatzematge nou —viuen dins de les despeses, i
+   per tant se sincronitzen soles. Les cinc de sempre es desen amb la seva
+   clau interna («menjar»); les teves, amb el text tal com l'escrius. */
+function nomCategoria(valor) {
+  if (!valor) return 'Altres';
+  const b = CATEGORIES_DESPESA.find(([k]) => k === valor);
+  return b ? b[1] : valor;
+}
+
+/* Neteja el que s'escriu i, si coincideix amb una de les de sempre, hi torna
+   la clau interna: així «menjar» i «Menjar» no es parteixen en dues. La
+   majúscula inicial evita que «souvenirs» i «Souvenirs» tampoc ho facin. */
+function normalitzaCategoria(text) {
+  const t = (text || '').trim().replace(/\s+/g, ' ');
+  if (!t) return '';
+  const baixa = t.toLowerCase();
+  const b = CATEGORIES_DESPESA.find(([k, nom]) => k === baixa || nom.toLowerCase() === baixa);
+  return b ? b[0] : t.charAt(0).toUpperCase() + t.slice(1);
+}
+
+/* Les cinc de sempre més les que ja s'hagin fet servir a qualsevol viatge. */
+function categoriesConegudes() {
+  const vistes = new Set(CATEGORIES_DESPESA.map(([, nom]) => nom));
+  for (const v of viatges) for (const d of (v.despeses || [])) {
+    if (d.categoria) vistes.add(nomCategoria(d.categoria));
+  }
+  return [...vistes].sort((a, b) => a.localeCompare(b, 'ca'));
 }
 
 /* Una despesa plegada: es clica per obrir-la i editar-la; la × la treu. */
 function filaDespesaHTML(d) {
-  const cat = (CATEGORIES_DESPESA.find(([k]) => k === d.categoria) || ['', 'Altres'])[1];
+  const cat = nomCategoria(d.categoria);
   const imp = importNum(d.import) != null ? formataImport(importNum(d.import)) : (d.import || '');
   const paga = (d.quiPaga || '').trim();
   return `<div class="despesa">
     <button class="despesa-obre" data-edita-despesa="${esc(d.id)}">
       <span class="despesa-info">
         <span class="despesa-concepte">${esc(d.concepte || cat)}</span>
-        <span class="despesa-meta">${esc(cat)}${paga ? ' · ' + esc(paga) : ''}</span>
+        <span class="despesa-meta">${esc(cat)}${paga ? ' · ' + esc(paga) : ''}${d.forma ? ' · ' + esc(nomFormaPagament(d.forma)) : ''}</span>
       </span>
       <span class="despesa-import">${esc(imp)}</span>
     </button>
@@ -6046,9 +6362,11 @@ function formEdicioDespesaHTML(d) {
       <input id="edita-despesa-import" class="despesa-camp import" value="${esc(d.import || '')}" placeholder="Import" inputmode="decimal">
     </div>
     <div class="despesa-fila">
-      <select id="edita-despesa-categoria" class="despesa-camp categoria">${opcionsCategoria(d.categoria)}</select>
+      <input id="edita-despesa-categoria" class="despesa-camp categoria" value="${esc(nomCategoria(d.categoria))}"
+        list="categories-conegudes" placeholder="Categoria" autocomplete="off">
       <input id="edita-despesa-paga" class="despesa-camp paga" value="${esc(d.quiPaga || '')}" placeholder="Qui ho paga (opcional)" list="noms-pagadors" autocomplete="off">
     </div>
+    ${formaPagamentHTML(d.forma || '', 'edita')}
     <div class="despesa-edicio-accions">
       <button class="despesa-elimina" data-treu-despesa="${esc(d.id)}">Elimina</button>
       <span class="despesa-edicio-spacer"></span>
@@ -6066,22 +6384,78 @@ function despesesSoltesHTML(despeses) {
   return `
     <div class="despeses-soltes">
       <h4 class="agenda-titol">Despeses soltes · el detall</h4>
-      <div class="despeses-llista">${llista}</div>
       <div class="despesa-nova">
         <div class="despesa-fila">
           <input id="nova-despesa-concepte" class="despesa-camp concepte" placeholder="Concepte (sopar, benzina…)">
           <input id="nova-despesa-import" class="despesa-camp import" placeholder="Import" inputmode="decimal">
         </div>
         <div class="despesa-fila">
-          <select id="nova-despesa-categoria" class="despesa-camp categoria">${opcionsCategoria('')}</select>
+          <input id="nova-despesa-categoria" class="despesa-camp categoria"
+            list="categories-conegudes" placeholder="Categoria" autocomplete="off">
           <input id="nova-despesa-paga" class="despesa-camp paga" placeholder="Qui ho paga (opcional)" list="noms-pagadors" autocomplete="off">
         </div>
+        ${formaPagamentHTML(formaNova, 'nova')}
         <div class="despesa-accio">
           <button class="primari mini" data-afegeix-despesa>Afegeix</button>
         </div>
       </div>
       <div class="avis" id="avis-despesa"></div>
+      <div class="despeses-llista">${llista}</div>
+      ${resumFormesHTML(despeses)}
+      ${senseFormaHTML(despeses)}
+      <datalist id="categories-conegudes">${opcions(categoriesConegudes())}</datalist>
     </div>`;
+}
+
+let senseFormaObert = false;
+let despesesObertes = false;   // el detall per categoria del resum, plegat de sèrie
+
+/* Resum de com s'ha pagat, al peu de les despeses. Va aquí i no al resum del
+   cost: el resum respon «què costa el viatge», i això respon «quants diners
+   en efectiu hem mogut», que és una pregunta de treballar amb les despeses.
+   A més, així tot el que té a veure amb la forma de pagament queda junt. */
+function resumFormesHTML(despeses) {
+  const ambImport = despeses.filter(d => importNum(d.import) != null);
+  const trossos = FORMES_PAGAMENT.map(([k, nom]) => {
+    const suma = ambImport.filter(d => d.forma === k).reduce((s, d) => s + importNum(d.import), 0);
+    return suma ? `<span class="resum-forma">${iconaSVG(k === 'efectiu' ? 'monedes' : 'targeta', 'forma-icona')}${esc(nom)} <strong>${esc(formataImport(suma))}</strong></span>` : '';
+  }).filter(Boolean);
+  return trossos.length ? `<div class="resum-formes">${trossos.join('')}</div>` : '';
+}
+
+/* La frase del final: quantes despeses s'han quedat sense forma de pagament,
+   i un desplegable per resoldre-les d'un toc cadascuna.
+   Només surt si en aquest viatge JA n'hi ha alguna amb forma indicada: als
+   viatges vells, on no vols omplir res, no ha de renyar-te. */
+function senseFormaHTML(despeses) {
+  const ambImport = despeses.filter(d => importNum(d.import) != null);
+  if (!ambImport.some(d => d.forma)) return '';
+  const falten = ambImport.filter(d => !d.forma);
+  if (!falten.length) return '';
+  const detall = senseFormaObert
+    ? '<div class="sense-forma-llista">' + falten.map(d => {
+        const imp = importNum(d.import) != null ? formataImport(importNum(d.import)) : '';
+        return `<div class="sense-forma-fila">
+          <span>${esc(d.concepte || 'Despesa')}${imp ? ' · ' + esc(imp) : ''}</span>
+          <span class="formes petites">` + FORMES_PAGAMENT.map(([k, nom, ic]) =>
+            `<button type="button" class="forma" data-forma-rapida="${esc(d.id)}:${k}"
+              title="${esc(nom)}" aria-label="${esc(nom)}">` + iconaSVG(ic, 'forma-icona') + '</button>').join('')
+        + `</span></div>`;
+      }).join('') + '</div>'
+    : '';
+  return `<div class="sense-forma">
+      <span>${falten.length === 1 ? '1 despesa sense forma de pagament' : falten.length + ' despeses sense forma de pagament'}</span>
+      <button class="subtil mini" data-obre-sense-forma>${senseFormaObert ? 'Amaga' : 'Completa-les'}</button>
+    </div>${detall}`;
+}
+
+/* Posa la forma de pagament d'una despesa des de la frase del final. */
+async function posaFormaDespesa(id, forma) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const despeses = (v.despeses || []).map(d => d.id === id ? { ...d, forma } : d);
+  await MagatzemViatges.actualitza(v.id, { despeses });
+  await refresca();
 }
 
 /* Afegeix la despesa que hi ha al formulari al viatge obert. */
@@ -6090,7 +6464,7 @@ async function afegeixDespesa() {
   if (!v) return;
   const concepte = $('nova-despesa-concepte').value.trim();
   const importText = $('nova-despesa-import').value.trim();
-  const categoria = $('nova-despesa-categoria').value;
+  const categoria = normalitzaCategoria($('nova-despesa-categoria').value);
   const quiPaga = $('nova-despesa-paga').value.trim();
   if (importNum(importText) == null) {
     avisa($('avis-despesa'), 'Posa un import (per exemple, 38,50 €).', 'mal');
@@ -6098,7 +6472,8 @@ async function afegeixDespesa() {
     return;
   }
   const despeses = Array.isArray(v.despeses) ? [...v.despeses] : [];
-  despeses.push({ id: nouId(), concepte, import: importText, categoria, quiPaga });
+  despeses.push({ id: nouId(), concepte, import: importText, categoria, quiPaga, forma: formaNova });
+  formaNova = '';
   await MagatzemViatges.actualitza(v.id, { despeses });
   await refresca();
 }
@@ -6114,10 +6489,11 @@ async function desaDespesa(id) {
     return;
   }
   const concepte = $('edita-despesa-concepte').value.trim();
-  const categoria = $('edita-despesa-categoria').value;
+  const categoria = normalitzaCategoria($('edita-despesa-categoria').value);
   const quiPaga = $('edita-despesa-paga').value.trim();
-  const despeses = (v.despeses || []).map(d => d.id === id ? { ...d, concepte, import: importText, categoria, quiPaga } : d);
+  const despeses = (v.despeses || []).map(d => d.id === id ? { ...d, concepte, import: importText, categoria, quiPaga, forma: formaEdicio } : d);
   despesaEnEdicio = null;
+  formaEdicio = '';
   await MagatzemViatges.actualitza(v.id, { despeses });
   await refresca();
 }
@@ -6339,11 +6715,34 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   if (e.target.closest('[data-afegeix-idea-viatge]')) { await afegeixIdeaViatge(); return; }
   // Despeses soltes del pressupost
   if (e.target.closest('[data-afegeix-despesa]')) { await afegeixDespesa(); return; }
+  // Plegar i desplegar el detall per categoria. No repinta: repintar
+  // esborraria el que s'estigui escrivint al formulari de despeses.
+  const plegaD = e.target.closest('[data-plega-despeses]');
+  if (plegaD) {
+    despesesObertes = !despesesObertes;
+    const cont = $('detall-despeses');
+    if (cont) cont.classList.toggle('ocult', !despesesObertes);
+    plegaD.setAttribute('aria-expanded', despesesObertes ? 'true' : 'false');
+    return;
+  }
+  const forma = e.target.closest('[data-forma]');
+  if (forma) { const [p, k] = forma.dataset.forma.split(':'); alternaForma(p, k); return; }
   const edita = e.target.closest('[data-edita-despesa]');
-  if (edita) { despesaEnEdicio = edita.dataset.editaDespesa; pintaDetallViatge(); return; }
+  if (edita) {
+    despesaEnEdicio = edita.dataset.editaDespesa;
+    const v0 = viatges.find(x => x.id === viatgeObert);
+    const d0 = ((v0 && v0.despeses) || []).find(x => x.id === despesaEnEdicio);
+    formaEdicio = (d0 && d0.forma) || '';
+    pintaDetallViatge();
+    return;
+  }
   const desa = e.target.closest('[data-desa-despesa]');
   if (desa) { await desaDespesa(desa.dataset.desaDespesa); return; }
-  if (e.target.closest('[data-cancela-edicio]')) { despesaEnEdicio = null; pintaDetallViatge(); return; }
+  if (e.target.closest('[data-cancela-edicio]')) { despesaEnEdicio = null; formaEdicio = ''; pintaDetallViatge(); return; }
+  // Resoldre-les des de la frase del final
+  const rap = e.target.closest('[data-forma-rapida]');
+  if (rap) { const [id, k] = rap.dataset.formaRapida.split(':'); await posaFormaDespesa(id, k); return; }
+  if (e.target.closest('[data-obre-sense-forma]')) { senseFormaObert = !senseFormaObert; pintaDetallViatge(); return; }
   const trd = e.target.closest('[data-treu-despesa]');
   if (trd) { await treuDespesa(trd.dataset.treuDespesa); return; }
 });
