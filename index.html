@@ -651,6 +651,12 @@
   .suggerida-text { font-size: 14px; color: var(--tinta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .suggerida-meta { font-size: 12px; color: var(--tinta-suau); }
   .idea-suggerida .primari.mini { flex: none; }
+  .idea-suggerida .subtil.mini { flex: none; color: var(--tinta-tenue); }
+  .idea-suggerida .subtil.mini:hover { color: var(--tinta); }
+  .descartades-peu {
+    margin: 14px 0 0; font-size: 12.5px; color: var(--tinta-tenue);
+    display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+  }
 
   /* Crear una idea des de dins del viatge (pestanya Idees) */
   .idea-nova-viatge { display: flex; gap: 8px; margin-bottom: 16px; }
@@ -998,6 +1004,26 @@
     font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 999px; flex: none;
   }
   .lloc-fila button:hover { background: var(--accent-fons); }
+  /* Targeta d'arribada d'una idea compartida */
+  .compartit-font { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--tinta-tenue); margin: 0 0 16px; }
+  .compartit-camp { display: block; margin-bottom: 13px; }
+  .compartit-camp > span { display: block; font-size: 12px; font-weight: 500; color: var(--tinta-tenue); margin-bottom: 4px; }
+  .compartit-camp textarea, .compartit-camp input {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--vora); border-radius: 6px;
+    background: var(--superficie-clara); font-family: inherit; font-size: 14px;
+    color: var(--tinta); line-height: 1.4; resize: vertical;
+  }
+  .compartit-camp textarea:focus, .compartit-camp input:focus { border-color: var(--accent); outline: none; }
+  .compartit-pista { font-size: 11px; color: var(--tinta-tenue); margin: -8px 0 13px; line-height: 1.4; }
+  .compartit-cadena {
+    display: inline-flex; align-items: center; gap: 5px; max-width: 100%;
+    background: var(--subtil); border-radius: 999px; padding: 4px 10px;
+    font-size: 11.5px; color: var(--tinta-suau);
+  }
+  .compartit-cadena span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .compartit-botons { display: flex; gap: 8px; margin-top: 18px; }
+  .compartit-botons button { flex: 1; }
+
   .lloc-cerca { display: flex; gap: 8px; margin: 4px 0 12px; }
   .lloc-cerca input {
     flex: 1; min-width: 0; padding: 8px 10px;
@@ -1279,6 +1305,29 @@
   </div>
 </div>
 
+<!-- La targeta que s'obre en compartir una pàgina cap a l'app, i també en
+     prémer «Des d'un enllaç». Cap camp no s'enfoca sol: al mòbil el teclat
+     taparia la targeta abans de poder llegir què ha arribat. -->
+<div class="novetats-overlay" id="compartit-overlay">
+  <div class="novetats" role="dialog" aria-modal="true" aria-labelledby="compartit-titol">
+    <button class="novetats-x" id="compartit-x" aria-label="Tanca">&times;</button>
+    <h2 class="novetats-titol" id="compartit-titol">Nova idea</h2>
+    <p class="compartit-font" id="compartit-font"></p>
+    <label class="compartit-camp"><span>La idea</span>
+      <textarea id="compartit-text" rows="2" spellcheck="false"></textarea></label>
+    <label class="compartit-camp"><span>Zona</span>
+      <input id="compartit-zona" list="zones-compartir" autocomplete="off" placeholder="on és?"></label>
+    <p class="compartit-pista">Sense zona no sortirà al mapa ni es creuarà amb els teus viatges.</p>
+    <div id="compartit-enllac"></div>
+    <div class="avis" id="avis-compartit"></div>
+    <div class="compartit-botons">
+      <button class="subtil" id="compartit-cancela">Cancel·la</button>
+      <button class="primari" id="compartit-desa">Desa la idea</button>
+    </div>
+    <datalist id="zones-compartir"></datalist>
+  </div>
+</div>
+
 <!-- Triar el lloc d'una zona quan el geocodificador l'ha entès malament.
      La cerca va amb botó i mai mentre escrius: la política de Nominatim
      prohibeix l'autocompletat i l'app la respecta. -->
@@ -1417,6 +1466,7 @@
     <div class="barra-accions">
       <span class="compta" id="compta-idees"></span>
       <span class="separa"></span>
+      <button class="subtil" id="btn-idea-enllac">Des d'un enllaç</button>
       <button class="primari" id="btn-nova-idea">Afegeix una idea</button>
     </div>
 
@@ -1994,6 +2044,45 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Es pot afegir una idea des d'un web. L'app llegeix de l'adreça els
+      paràmetres «titol», «text» i «enllac» i obre una targeta ja emplenada:
+      d'on ve, el text de la idea (editable), la zona (buida, amb les zones
+      que ja fas servir) i l'enllaç. La SELECCIÓ mana sobre el títol: si
+      l'article parla de deu platges, seleccionant-ne una abans de compartir
+      arriba només aquella; sense selecció, arriba el títol. Alguns navegadors
+      fiquen l'adreça dins del text en compartir una selecció: se separa
+      (separaEnllac) perquè no acabi formant part de la idea. Cap camp no
+      s'enfoca sol, que al mòbil el teclat taparia la targeta. Es demana la
+      zona en comptes de desar en silenci perquè és l'únic camp que el
+      compartir no pot omplir i el que decideix si la idea serà útil. Si
+      encara no has entrat, el que has compartit espera i s'obre just després
+      d'entrar-hi (i aquell cop no surten les novetats, per no apilar dues
+      finestres). El botó «Des d'un enllaç» d'Inspiració obre la mateixa
+      targeta buida, amb l'enllaç editable. L'adreça es neteja després de
+      llegir-la, perquè recarregar no repeteixi la targeta.
+      PENDENT: per a Android cal declarar-ho al manifest.webmanifest, que és
+      un fitxer a part; per a iPhone cal una Drecera d'Apple que obri
+      …/viatges/?text=…&enllac=… (v89).
+   FET · Es pot dir «aquí no» a una idea suggerida. Cada idea de la
+      subpestanya Idees d'un viatge té ara un botó «No la suggereixis»: la
+      idea es queda a la Inspiració tal com està, però deixa de sortir en
+      AQUEST viatge. Es desa dins de la idea la llista de viatges on no s'ha
+      de suggerir (camp «noSuggerir»), així que descartar-la a Lisboa no
+      l'afecta a Girona, i no cal tocar la base de dades. El filtre passa per
+      ideesSuggerides(), que és per on passen també el mapa (com a idea
+      candidata) i el comptador d'avisos: dir «aquí no» la treu de tot.
+      No es descarta en silenci: al peu hi ha «N idees descartades · torna-les
+      a mostrar», perquè d'aquí a mesos no et preguntis per què una idea no
+      surt mai en aquell viatge. El nom del botó NO és «Torna a Inspiració»
+      a posta: aquest ja existeix al detall d'una visita i allà vol dir una
+      altra cosa (desassignar-la del viatge) (v88).
+   FET · El títol d'una reserva de cotxe passa a ser «Lloguer de cotxe» en
+      comptes del nom de l'empresa: diu QUÈ és, no de qui és. Perquè la
+      companyia no es perdi de la fila, passa al subtítol al costat del lloc
+      de recollida («Europcar · Aeroport de La Palma»), que és el mateix
+      patró dels vols (títol el trajecte, subtítol la companyia). A
+      l'exportació a Excel no canvia res: la companyia ja hi tenia columna
+      pròpia (v87).
    FET · La línia del lloc d'una reserva ara diu PER QUÈ el pin ha acabat al
       poble, amb tres començaments diferents: no hi ha adreça exacta (un vol),
       l'adreça no s'ha pogut situar, o s'ha situat tan lluny que el filtre de
@@ -3447,7 +3536,9 @@ function nomReserva(r) {
     if (r.origen && r.desti) return `${r.origen} → ${r.desti}`;
     return r.desti || r.origen || r.companyia || 'Vol sense detalls';
   }
-  if (t === 'cotxe') return r.companyia || 'Cotxe de lloguer';
+  // El títol diu QUÈ és, no de qui és: la companyia passa al subtítol, com
+  // als vols (títol el trajecte, subtítol la companyia).
+  if (t === 'cotxe') return 'Lloguer de cotxe';
   return r.allotjament || (t === 'altres' ? 'Reserva' : 'Reserva sense nom');
 }
 
@@ -3455,7 +3546,7 @@ function nomReserva(r) {
 function subtitolReserva(r) {
   const t = tipusDe(r);
   if (t === 'vol') return [r.companyia, r.numVol].filter(Boolean).join(' ');
-  if (t === 'cotxe') return r.llocRecollida || '';
+  if (t === 'cotxe') return [r.companyia, r.llocRecollida].filter(Boolean).join(' · ');
   if (t === 'entrada') return [r.recinte, r.poblacio].filter(Boolean).join(' · ');
   if (t === 'altres') return r.llocRecollida || '';
   return poblacio(r.adreca);
@@ -4820,6 +4911,123 @@ $('btn-nova-idea').addEventListener('click', async () => {
   if (camp) camp.focus();
 });
 
+/* ═══════════════ AFEGIR UNA IDEA DES D'UN WEB ═══════════════
+   Estàs llegint un blog i vols que allò acabi a la Inspiració sense copiar,
+   canviar d'app i escriure-ho tot. L'app s'obre amb el que has compartit
+   enganxat a l'adreça, i n'ofereix una targeta ja emplenada.
+
+   Hi arriben per camins diferents segons el mòbil, però l'app no ho sap ni
+   li importa: tots li deixen el mateix a l'adreça.
+   · Android: el compartir del sistema (cal declarar-ho al manifest).
+   · iPhone: una Drecera d'Apple, que també surt a la safata de compartir.
+   · Ordinador: un marcador amb instruccions, o el botó «Des d'un enllaç».
+
+   La gràcia és el TEXT SELECCIONAT. Si l'article parla de deu platges, el
+   títol («10 platges verges de Menorca») no serveix de res; seleccionant-ne
+   una abans de compartir, arriba només aquella. Per això la selecció mana
+   sobre el títol.
+
+   La zona és l'únic camp que el compartir no pot omplir mai, i és el que
+   decideix si la idea serà útil o es quedarà morta a la llista. Per això la
+   targeta, en comptes de desar en silenci. */
+
+let compartitPendent = null;   // el que s'ha compartit, esperant que entris
+let compartitDeFora = false;   // ve d'una compartició (l'enllaç no s'edita)
+
+/* Compartint una selecció, alguns navegadors fiquen l'adreça dins del text.
+   Se'n separa perquè no acabi formant part de la idea. */
+function separaEnllac(text, enllac) {
+  if (enllac || !text) return { text: (text || '').trim(), enllac: enllac || '' };
+  const m = text.match(/https?:\/\/\S+/);
+  if (!m) return { text: text.trim(), enllac: '' };
+  return { text: text.replace(m[0], '').trim(), enllac: m[0] };
+}
+
+/* Llegeix el que hagi arribat per l'adreça i la neteja, perquè recarregar la
+   pàgina no torni a obrir la mateixa targeta. */
+function llegeixCompartit() {
+  let p;
+  try { p = new URLSearchParams(location.search); } catch (e) { return null; }
+  const titol = (p.get('titol') || '').trim();
+  const brut = (p.get('text') || '').trim();
+  const { text, enllac } = separaEnllac(brut, (p.get('enllac') || '').trim());
+  if (!titol && !text && !enllac) return null;
+  try { history.replaceState(history.state, '', location.pathname); } catch (e) {}
+  return { text: text || titol, enllac };   // la selecció mana sobre el títol
+}
+
+function dominiDe(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return ''; }
+}
+
+function obreCompartit(dades, deFora) {
+  compartitDeFora = !!deFora;
+  const domini = dominiDe(dades.enllac || '');
+  $('compartit-font').innerHTML = deFora && domini
+    ? '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 3v13M8 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      + 'compartit des de ' + esc(domini)
+    : 'Apunta una idea amb el seu enllaç.';
+  $('compartit-text').value = dades.text || '';
+  $('compartit-zona').value = '';
+  $('zones-compartir').innerHTML = opcions(zonesConegudes());
+  $('avis-compartit').textContent = '';
+  // Ve de fora: l'enllaç ja el tens capturat i no l'has de tocar mai. L'obres
+  // tu a mà: llavors sí que l'has de poder escriure.
+  $('compartit-enllac').innerHTML = deFora
+    ? (dades.enllac
+        ? `<span class="compartit-cadena"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>${esc(dades.enllac)}</span></span>`
+        : '')
+    : `<label class="compartit-camp"><span>Enllaç</span>
+        <input id="compartit-url" inputmode="url" autocomplete="off" spellcheck="false"
+          placeholder="https://…" value="${esc(dades.enllac || '')}"></label>`;
+  $('compartit-overlay').classList.add('visible');
+  apuntaEnrere('compartit', () => tancaCompartit());
+}
+
+function tancaCompartit() {
+  $('compartit-overlay').classList.remove('visible');
+  compartitPendent = null;
+}
+
+async function desaCompartit() {
+  const text = $('compartit-text').value.trim();
+  if (!text) {
+    avisa($('avis-compartit'), 'Escriu de què va la idea abans de desar-la.', 'mal');
+    $('compartit-text').focus();
+    return;
+  }
+  const camp = $('compartit-url');
+  const enllac = compartitDeFora
+    ? ((compartitPendent && compartitPendent.enllac) || '')
+    : (camp ? camp.value.trim() : '');
+  await MagatzemIdees.afegeix({ text, zona: $('compartit-zona').value.trim(), etiquetes: [], enllac });
+  tancaEnrere(tancaCompartit);
+  filtreEtiquetes.clear();   // que es vegi encara que hi hagués filtre actiu
+  await refresca();
+  vesASeccio('idees');       // et deixa on ha anat a parar
+}
+
+/* Si encara no has entrat, el que has compartit espera: seria absurd
+   perdre-ho i fer-te tornar al blog a buscar-ho. */
+function atenCompartitPendent() {
+  if (!compartitPendent) return false;
+  obreCompartit(compartitPendent, true);
+  return true;
+}
+
+$('btn-idea-enllac').addEventListener('click', () => {
+  compartitPendent = null;
+  obreCompartit({ text: '', enllac: '' }, false);
+});
+$('compartit-desa').addEventListener('click', desaCompartit);
+const tancaCompartitUI = () => tancaEnrere(tancaCompartit);
+$('compartit-x').addEventListener('click', tancaCompartitUI);
+$('compartit-cancela').addEventListener('click', tancaCompartitUI);
+$('compartit-overlay').addEventListener('click', e => { if (e.target === $('compartit-overlay')) tancaCompartitUI(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('compartit-overlay').classList.contains('visible')) tancaCompartitUI();
+});
+
 /* ═══════════════ CORREGIR EL LLOC D'UNA ZONA ═══════════════
    El geocodificador es queda el PRIMER resultat i no diu quin és. Amb noms
    que es repeteixen pel món («Los Sauces» n'hi ha a Xile, a Colorado, a
@@ -5384,7 +5592,14 @@ function ideesViatgeHTML(v, seves) {
     ? `<p class="agenda-nota">Idees de la teva llista que encaixen amb la zona del viatge. Converteix-les en visites.</p>`
       + suggerides.map(ideaSuggeridaHTML).join('')
     : `<p class="agenda-nota">Encara no hi ha idees per a aquest viatge. Apunta la primera aquí dalt: neix marcada amb la zona del viatge i la trobaràs també a la Inspiració.</p>`;
-  return `<div class="idees-viatge">${form}<div class="agenda-bloc">${cos}</div></div>`;
+  // Les descartades no desapareixen en silenci: si no, d'aquí a mesos et
+  // preguntaries per què una idea no surt mai en aquest viatge.
+  const fora = v ? ideesDescartades(v, seves) : [];
+  const peu = fora.length
+    ? `<p class="descartades-peu">${fora.length === 1 ? '1 idea descartada' : fora.length + ' idees descartades'}`
+      + ` · <button class="subtil mini" data-recupera-descartades>torna-les a mostrar</button></p>`
+    : '';
+  return `<div class="idees-viatge">${form}<div class="agenda-bloc">${cos}</div>${peu}</div>`;
 }
 
 /* Crea una idea de la wishlist des de dins del viatge, marcada amb la zona
@@ -5414,6 +5629,8 @@ function ideaSuggeridaHTML(i) {
       <span class="suggerida-meta">${esc(i.zona || '')}${etiquetes ? ' · ' : ''}${etiquetes}</span>
     </div>
     <button class="primari mini" data-converteix="${esc(i.id)}">Afegeix al viatge</button>
+    <button class="subtil mini" data-no-suggerir="${esc(i.id)}"
+      title="No la tornis a suggerir en aquest viatge">No la suggereixis</button>
   </div>`;
 }
 
@@ -5477,10 +5694,29 @@ function zonesDelViatge(v, seves) {
 
 /* Les idees lliures que encaixen amb la zona del viatge i que encara no
    són visites de cap viatge. */
-function ideesSuggerides(v, seves) {
+/* Les idees que encaixen amb la zona del viatge, descartades incloses. */
+function ideesQueEncaixen(v, seves) {
   const zones = zonesDelViatge(v, seves);
   if (!zones.length) return [];
   return idees.filter(i => i.zona && zones.some(z => zonesCoincideixen(i.zona, z)));
+}
+
+/* Una idea es pot descartar per a UN viatge sense sortir de la Inspiració ni
+   afectar els altres viatges: es desa la llista de viatges on no s'ha de
+   suggerir dins de la mateixa idea. */
+function descartadaDelViatge(i, viatgeId) {
+  return Array.isArray(i.noSuggerir) && i.noSuggerir.includes(viatgeId);
+}
+
+/* Les que es mostren. Passar el filtre per aquí fa que una idea descartada
+   desaparegui també del mapa (com a idea candidata) i del comptador d'avisos,
+   que és el que s'espera d'haver dit «aquí no». */
+function ideesSuggerides(v, seves) {
+  return ideesQueEncaixen(v, seves).filter(i => !descartadaDelViatge(i, v.id));
+}
+
+function ideesDescartades(v, seves) {
+  return ideesQueEncaixen(v, seves).filter(i => descartadaDelViatge(i, v.id));
 }
 
 /* ── Vista «activitats del dia» de l'agenda ──
@@ -6061,6 +6297,29 @@ $('detall-viatge-vista').addEventListener('click', async e => {
     await refresca();
     return;
   }
+  // Descartar un suggeriment: la idea es queda a la Inspiració tal com està,
+  // però deixa de sortir en AQUEST viatge. Els altres no s'hi veuen afectats.
+  const noSug = e.target.closest('[data-no-suggerir]');
+  if (noSug) {
+    const idea = idees.find(x => x.id === noSug.dataset.noSuggerir);
+    if (idea) {
+      const llista = Array.isArray(idea.noSuggerir) ? [...idea.noSuggerir] : [];
+      if (!llista.includes(viatgeObert)) llista.push(viatgeObert);
+      await MagatzemIdees.actualitza(idea.id, { noSuggerir: llista });
+      await refresca();
+    }
+    return;
+  }
+  // Tornar a mostrar totes les descartades d'aquest viatge
+  if (e.target.closest('[data-recupera-descartades]')) {
+    const v = viatges.find(x => x.id === viatgeObert);
+    const seves = reserves.filter(r => r.viatgeId === viatgeObert);
+    for (const i of (v ? ideesDescartades(v, seves) : [])) {
+      await MagatzemIdees.actualitza(i.id, { noSuggerir: i.noSuggerir.filter(x => x !== viatgeObert) });
+    }
+    await refresca();
+    return;
+  }
   // Treure una visita del viatge: torna a ser idea lliure de la wishlist
   const treu = e.target.closest('[data-treu-visita]');
   if (treu) {
@@ -6202,7 +6461,9 @@ async function haEntrat(usuari) {
   Nuvol.usuari = usuari;
   mostraAcces(false);
   await refresca();
-  mostrarNovetats();
+  // Si has arribat compartint alguna cosa, això mana: les novetats ja
+  // sortiran el proper cop. Dues finestres apilades no s'entendrien.
+  if (!atenCompartitPendent()) mostrarNovetats();
   await Nuvol.sincronitza();
 }
 
@@ -6647,6 +6908,9 @@ document.addEventListener('keydown', e => {
   let vista = 'llista';
   try { vista = localStorage.getItem(CLAU_VISTA) || 'llista'; } catch (e) {}
   aplicaVista(vista);
+
+  // Es llegeix abans de res: si encara no has entrat, espera fins que ho facis.
+  compartitPendent = llegeixCompartit();
 
   let pestanya = 'reserves';
   try { pestanya = localStorage.getItem(CLAU_PESTANYA) || 'reserves'; } catch (e) {}
