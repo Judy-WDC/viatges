@@ -689,6 +689,51 @@
   }
   .visita-camp input:focus, .visita-camp textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
 
+  /* ── La maleta ── */
+  .maleta-qui { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .maleta-persona {
+    font-size: 12.5px; padding: 5px 13px; border-radius: 999px;
+    border: 1px solid var(--vora-forta); background: none; color: var(--tinta-suau); font-weight: 400;
+  }
+  .maleta-persona:hover { background: var(--subtil); color: var(--tinta); }
+  .maleta-persona.activa { background: var(--accent-fons); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+  .maleta-nova { display: flex; gap: 8px; margin-bottom: 4px; }
+  .maleta-nova .primari.mini { flex: none; }
+  .maleta-llista { display: flex; flex-direction: column; margin-top: 10px; }
+  .maleta-item { display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--vora); }
+  .maleta-item:last-child { border-bottom: none; }
+  .maleta-marca {
+    flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px;
+    border: none; background: none; padding: 10px 2px; text-align: left;
+    font-size: 13.5px; font-weight: 400; color: var(--tinta); border-radius: 0;
+  }
+  .maleta-marca:hover { background: var(--superficie-clara); }
+  .maleta-casella {
+    width: 18px; height: 18px; flex: none; border-radius: 5px;
+    border: 1.5px solid var(--vora-forta); background: none;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .maleta-item.fet .maleta-casella { background: var(--accent); border-color: var(--accent); }
+  .maleta-item.fet .maleta-casella::after {
+    content: ''; width: 9px; height: 5px; margin-top: -2px;
+    border-left: 2px solid var(--superficie-clara); border-bottom: 2px solid var(--superficie-clara);
+    transform: rotate(-45deg);
+  }
+  .maleta-item.fet .maleta-text { color: var(--tinta-tenue); text-decoration: line-through; }
+  .maleta-treu { border: none; background: none; color: var(--tinta-tenue); font-size: 16px; padding: 4px 8px; flex: none; }
+  .maleta-treu:hover { background: var(--vermell-fons); color: var(--vermell); }
+  .maleta-compte { font-size: 11.5px; color: var(--tinta-tenue); margin: 12px 0 0; }
+  .maleta-sugs { margin-top: 20px; border-top: 1px solid var(--vora); padding-top: 16px; }
+  .maleta-sug-titol { font-size: 12px; font-weight: 500; color: var(--tinta-tenue); margin: 0 0 3px; letter-spacing: 0.03em; text-transform: uppercase; }
+  .maleta-sug-motiu { font-size: 11.5px; color: var(--tinta-tenue); margin: 0 0 10px; line-height: 1.4; }
+  .maleta-xips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .maleta-sug {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 1px solid var(--vora-forta); background: var(--superficie);
+    color: var(--accent); font-size: 12.5px; font-weight: 400; padding: 5px 11px; border-radius: 999px;
+  }
+  .maleta-sug:hover { background: var(--accent-fons); border-color: var(--accent-suau); }
+
   /* Idea suggerida dins del viatge */
   .idea-suggerida {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -2095,6 +2140,78 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · A la taula de la maleta, TOTS els grups són simètrics: cada ítem
+      suggerit també dispara el seu grup. Abans hi havia paraules «màgiques»
+      (les de la llista de disparadors) i paraules mudes, i no hi havia manera
+      de saber quines eren: escrivint «xancletes» no passava res, i escrivint
+      «banyador» sí. Ara tant se val per on entris.
+      Els ítems que surten a més d'un grup es converteixen en ponts —la crema
+      solar uneix platja i esquí, els guants uneixen esquí i fred—; s'accepta
+      a posta, perquè gairebé tots són ponts raonables i el sostre de cinc
+      xips ho manté a ratlla.
+      Per reconèixer una frase dins d'un text hi han de ser totes les seves
+      paraules, descartant només les de dues lletres. El llindar importa: amb
+      tres, «Ulleres de neu» es quedava demanant només «ulleres» i les de sol
+      disparaven el grup d'esquí (v102).
+   FET · Més grups a la taula de la maleta: ball (sabates de ballar, roba
+      per ballar, taps per a les orelles, que es disparen entre ells i també
+      amb «concert» o «festival») i fred (guants, gorro, bufanda, buf,
+      samarreta tèrmica, malles tèrmiques, tots disparant-se entre ells). El
+      grup de muntanya guanya bastons de caminar i funda de motxilla, el de
+      càmping la màrfega, i el bàsic la roba interior.
+      Fora els grups de «nadó/bebè» i «gos/gat»: el disparador era una cosa
+      que no es fica a la maleta, o sigui que no s'escriuria mai a la llista.
+      Ull amb el català a l'hora d'afegir disparadors: «tèrmica» i
+      «tèrmiques» no tenen la mateixa arrel (la ce es torna qu), per això hi
+      són totes dues. Passa el mateix amb altres paraules; en dubte, provar
+      el singular i el plural (v101).
+   FET · Més ítems a la taula de la maleta. En comptes d'inflar el bàsic
+      —que surt a TOTS els viatges i es paga a cada un—, s'han penjat d'on
+      toca: la higiene (raspall i pasta de dents, xampú, sabó de cos,
+      desodorant, kleenex) penja del «Necesser», que ja era al bàsic; els
+      medicaments (paracetamol, termòmetre, esparadrap) de la «Farmaciola»;
+      les sabatilles del «Pijama»; la gorra va amb el banyador i amb les
+      botes. Al bàsic només s'hi han afegit «Pijama» i «Diners en efectiu».
+      Parelles bidireccionals: moneder ↔ diners en efectiu, raspall ↔ pasta
+      de dents, tovallola ↔ xancletes. I un disparador ja no es suggereix a
+      si mateix (v100).
+   FET · La maleta suggereix companys del que acabes de posar-hi: escrius
+      «banyador» i t'ofereix crema solar, tovallola, xancletes. Surten de dues
+      fonts, i en aquest ordre: primer el que TU has demostrat que va junt
+      (coses que han sortit a la mateixa maleta que aquella en altres
+      viatges, de més repetides a menys), i després una taula d'associacions
+      escrita a mà (una quinzena d'entrades: banyador, botes, esquí, portàtil,
+      càmera, bici, nadó, animal, documents, medicaments, tenda…). El teu va
+      davant perquè és el teu vocabulari i no s'equivoca d'una manera
+      estranya; la taula són suposicions meves i serveix el primer dia, quan
+      encara no hi ha historial.
+      Per comparar el que escrius cal treure-hi el soroll: majúscules,
+      accents, puntuació i plurals. I es comparen ARRELS, no paraules: el
+      plural català no és només afegir una essa («bota» fa «botes»), i sense
+      això la meitat dels disparadors no lligaven. Amb això, «Bota», «Botes»
+      i «BOTES DE TREKKING» disparen igual.
+      Es suggereixen només els companys de l'ÚLTIM ítem afegit, no de tota la
+      llista, i com a molt cinc: si cada cosa que hi poses en dispara tres, el
+      bloc creix i s'acaba ignorant. Tot és càlcul dins de l'app: cap servei
+      extern, cap IA, funciona sense connexió (v99).
+   FET · Subpestanya nova «Maleta» dins del viatge (Idees · Agenda ·
+      Pressupost · Mapa · Maleta). Una llista per viatge i PER PERSONA, amb
+      selector de participants a dalt; si el viatge no en té cap de definit,
+      una llista i prou, sense selector. Es desa dins del viatge (v.maleta),
+      sense taula nova. Marcar i desmarcar no repinta —toca el DOM i desa—,
+      o s'esborraria el que hi hagués al camp d'afegir.
+      Els suggeriments surten NOMÉS del que l'app sap del cert: les menes de
+      reserva del viatge (vol → documentació, targeta d'embarcament i líquids;
+      cotxe → carnet; entrades → tiquets), la durada («Roba per a 5 dies»), un
+      bàsic fix, i el que has posat a maletes d'altres viatges, del més
+      repetit al menys i primer les d'aquesta mateixa persona. A POSTA no
+      s'endevina el temps que farà, ni per coordenades ni per les etiquetes de
+      les visites: a la muntanya no sempre hi fa fred i a la platja s'hi pot
+      anar a l'hivern. Cada grup porta el seu motiu escrit («Perquè aquest
+      viatge té un vol, un cotxe de lloguer i dura 5 dies»), que és el que
+      fa que no semblin aleatoris i deixa veure quan s'equivoquen. No suggereix
+      el que ja tens, i no només per text exacte: si has escrit «Passaport»,
+      «DNI o passaport» desapareix (v98).
    FET · Correcció: el «qui ho paga» de les despeses soltes no suggeria noms.
       Dues causes. (1) El desplegable de noms es creava dins de la llista de
       Reserves, i aquella funció se'n va abans d'arribar-hi quan no hi ha cap
@@ -5785,6 +5902,7 @@ function obreDetallViatge(id) {
   viatgeObert = id;
   subvistaViatge = 'agenda';
   filtreMapa = null;   // cada viatge comença ensenyant-ho tot al mapa
+  ultimMaleta = '';    // els companys suggerits són del que acabes d'afegir
   $('llista-viatges').classList.add('ocult');
   $('viatges-buida').classList.add('ocult');
   $('fitxa-viatge').classList.remove('visible');
@@ -5830,6 +5948,8 @@ function pintaDetallViatge() {
     ? ideesViatgeHTML(v, seves)
     : subvistaViatge === 'mapa'
     ? mapaViatgeHTML(v)
+    : subvistaViatge === 'maleta'
+    ? maletaHTML(v, seves)
     : agendaHTML(seves);
 
   cont.innerHTML = `
@@ -5846,6 +5966,7 @@ function pintaDetallViatge() {
       <button class="subpestanya${subvistaViatge === 'agenda' ? ' activa' : ''}" data-subvista="agenda">Agenda</button>
       <button class="subpestanya${subvistaViatge === 'pressupost' ? ' activa' : ''}" data-subvista="pressupost">Pressupost</button>
       <button class="subpestanya${subvistaViatge === 'mapa' ? ' activa' : ''}" data-subvista="mapa">Mapa</button>
+      <button class="subpestanya${subvistaViatge === 'maleta' ? ' activa' : ''}" data-subvista="maleta">Maleta</button>
     </div>
     <div class="subvista subvista-${subvistaViatge}">${cos}</div>`;
 
@@ -6535,6 +6656,330 @@ async function treuDespesa(id) {
   await refresca();
 }
 
+/* ═══════════════ LA MALETA ═══════════════
+   Una llista per viatge i per persona, desada dins del viatge (v.maleta),
+   així que viatja amb la sincronització sense cap taula nova. Cada ítem és
+   { id, text, fet, persona }; persona buida vol dir la llista única d'un
+   viatge sense participants.
+
+   Els suggeriments surten NOMÉS del que l'app sap del cert: quines menes de
+   reserva té el viatge, quants dies dura, i què vas posar a maletes
+   anteriors. A posta NO s'endevina el temps que farà —ni per coordenades ni
+   per les etiquetes de les visites—: a la muntanya no sempre hi fa fred i a
+   la platja s'hi pot anar a l'hivern. Val més suggerir de menys que
+   suggerir malament.
+
+   Cada grup porta el seu MOTIU escrit. Sense això semblen aleatoris; amb
+   això s'entén d'on surten i es veu quan s'equivoquen. */
+
+let personaMaleta = '';   // de qui és la llista que s'està mirant
+let ultimMaleta = '';     // l'últim ítem afegit, per suggerir-ne els companys
+
+/* El bàsic surt a TOTS els viatges, així que ha de ser curt: cada afegit
+   aquí es paga a cada viatge. La resta de coses de sempre (pasta de dents,
+   xampú…) pengen del «Necesser», que ja hi és. */
+const MALETA_BASE = ['Carregador del mòbil', 'Necesser', 'Pijama', 'Roba interior', 'Diners en efectiu'];
+
+/* Per comparar el que escrius amb el que sabem, cal treure-hi el soroll:
+   majúscules, accents, puntuació i plurals. Així «Banyadors», «banyador» i
+   «el banyador nou» es reconeixen com la mateixa cosa. El singular és
+   aproximat (treure la essa final de les paraules llargues); no cal filar
+   més prim per a una llista de maleta. */
+function clauMaleta(text) {
+  return (text || '').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/).filter(Boolean)
+    .map(p => (p.length > 4 && p.endsWith('s')) ? p.slice(0, -1) : p)
+    .join(' ');
+}
+
+/* L'arrel d'una paraula: sense essa final i sense la vocal final. Cal perquè
+   el plural català no és només afegir una essa —«bota» fa «botes»—, i
+   comparar el text pelat deixaria fora la meitat dels casos. Sobra precisió
+   per a una llista de maleta: que «bota», «botes» i «bot» topin no fa cap mal. */
+function arrel(paraula) {
+  let a = paraula;
+  if (a.length > 4 && a.endsWith('s')) a = a.slice(0, -1);
+  if (a.length > 3 && /[aeiou]$/.test(a)) a = a.slice(0, -1);
+  return a;
+}
+
+/* Si un text conté una paraula clau, comparant arrels. */
+function conteParaula(clau, paraula) {
+  const objectiu = arrel(paraula);
+  return clau.split(' ').some(p => arrel(p) === objectiu);
+}
+
+/* Si un text conté una frase sencera («crema solar»): hi han de ser totes
+   les seves paraules amb pes. Només es descarten les partícules de dues
+   lletres («de», «el»). El llindar importa: amb tres, «Ulleres de neu» es
+   quedava demanant només «ulleres» i les de sol disparaven l'esquí. */
+function textConte(clau, frase) {
+  const mots = clauMaleta(frase).split(' ').filter(p => p.length > 2);
+  return mots.length > 0 && mots.every(m => conteParaula(clau, m));
+}
+
+/* Coses que solen anar juntes. Són SUPOSICIONS meves, i per això van
+   després del que hagis après tu mateixa amb les teves maletes: si tens
+   historial, mana el teu. Els disparadors van en singular i sense accents,
+   que és com queden després de clauMaleta(). */
+const COMPANYS_MALETA = [
+  [['banyador', 'biquini'], ['Crema solar', 'Tovallola de platja', 'Xancletes', 'Ulleres de sol', 'Gorra']],
+  [['bota', 'senderisme', 'muntanya', 'baston', 'motxilla'],
+    ['Mitjons gruixuts', 'Cantimplora', 'Bastons de caminar', 'Funda de motxilla', 'Farmaciola', 'Impermeable', 'Gorra']],
+  [['esqui', 'neu'], ['Guants', 'Gorro', 'Crema solar', 'Ulleres de neu']],
+  // El fred el dispares TU escrivint-hi una peça, no l'endevina l'app pel
+  // destí: a la muntanya no sempre hi fa fred.
+  // El tercer camp són paraules que ANUL·LEN el grup: un «gorro de dutxa»
+  // porta la paraula gorro però no és roba d'abric.
+  [['guant', 'gorro', 'bufanda', 'buf', 'termica', 'termiques'],
+    ['Guants', 'Gorro', 'Bufanda', 'Buf', 'Samarreta tèrmica', 'Malles tèrmiques'],
+    ['dutxa']],
+  [['ballar', 'ball', 'concert', 'festival', 'orella'],
+    ['Sabates de ballar', 'Roba per ballar', 'Taps per a les orelles']],
+  [['portatil', 'ordinador'], ['Carregador del portàtil', 'Auriculars', 'Ratolí']],
+  [['camera', 'reflex'], ['Bateria de recanvi', 'Targeta de memòria', 'Carregador de la càmera']],
+  [['bicicleta', 'bici'], ['Casc', 'Cadenat', 'Kit de punxades']],
+  [['passaport', 'dni'], ['Assegurança de viatge', 'Còpia dels documents']],
+  // El necesser és el calaix de la higiene: d'aquí pengen totes les
+  // menudalles, en comptes d'inflar el bàsic de cada viatge.
+  [['necesser', 'sabo', 'xampu', 'desodorant'],
+    ['Raspall de dents', 'Pasta de dents', 'Xampú', 'Sabó de cos', 'Desodorant', 'Kleenex']],
+  [['raspall', 'dent'], ['Pasta de dents', 'Fil dental']],
+  [['medicament', 'farmaciola', 'paracetamol'],
+    ['Paracetamol', 'Termòmetre', 'Esparadrap', 'Tiretes', 'Recepta']],
+  [['pijama'], ['Sabatilles']],
+  [['moneder', 'cartera'], ['Diners en efectiu', 'Targeta de crèdit']],
+  [['diner', 'efectiu'], ['Moneder', 'Targeta de crèdit']],
+  [['ulleres'], ['Funda de les ulleres', 'Líquid de lentilles']],
+  [['tenda', 'sac'], ['Llanterna', 'Màrfega', 'Matalàs inflable', 'Encenedor']],
+  [['americana', 'vestit'], ['Sabates de vestir', 'Cinturó']],
+  [['carregador'], ['Adaptador d’endoll', 'Bateria externa']],
+  [['llibre'], ['Auriculars']],
+  [['tovallola'], ['Xancletes']]
+];
+
+/* Els companys que TU has demostrat que van junts: coses que han sortit a la
+   mateixa maleta que aquesta en altres viatges, de més repetides a menys.
+   Compta per maleta (viatge + persona), que és el que de debò va junt. */
+function companysApresos(clau) {
+  const compta = new Map();
+  for (const v of viatges) {
+    if (v.id === viatgeObert) continue;   // l'historial, no el viatge d'ara
+    const perPersona = new Map();
+    for (const it of (v.maleta || [])) {
+      const p = it.persona || '';
+      if (!perPersona.has(p)) perPersona.set(p, []);
+      perPersona.get(p).push(it);
+    }
+    for (const llista of perPersona.values()) {
+      if (!llista.some(it => clauMaleta(it.text) === clau)) continue;
+      for (const it of llista) {
+        const t = (it.text || '').trim();
+        if (!t || clauMaleta(t) === clau) continue;
+        compta.set(t, (compta.get(t) || 0) + 1);
+      }
+    }
+  }
+  return [...compta.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ca')).map(([t]) => t);
+}
+
+/* El que sol acompanyar una cosa: primer el que has fet tu, després el que
+   suposo jo. Sense duplicats i amb sostre, que un bloc que creix sense
+   aturador s'acaba ignorant. */
+function companysDe(text) {
+  const clau = clauMaleta(text);
+  if (!clau) return [];
+  const taula = [];
+  for (const [disparadors, sugs] of COMPANYS_MALETA) {
+    // Els disparadors escrits, i A MÉS qualsevol ítem del propi grup: així
+    // no hi ha paraules «màgiques» i paraules mudes, i tant se val per on
+    // entris. Alguns ítems surten a dos grups (la crema solar, a platja i a
+    // esquí) i llavors en disparen els dos; el sostre de cinc xips ho manté
+    // a ratlla.
+    const hi = disparadors.some(d => conteParaula(clau, d))
+            || sugs.some(s => textConte(clau, s));
+    if (hi) taula.push(...sugs);
+  }
+  // Ni duplicats ni el mateix ítem que ha disparat la cerca.
+  const vistos = new Set([clau]);
+  return [...companysApresos(clau), ...taula].filter(t => {
+    const k = clauMaleta(t);
+    if (!k || vistos.has(k)) return false;
+    vistos.add(k);
+    return true;
+  });
+}
+
+/* El que suggerim mirant el viatge, i per què. */
+function suggerimentsDelViatge(seves) {
+  const menes = new Set(seves.map(tipusDe));
+  const items = [], motius = [];
+  if (menes.has('vol')) {
+    items.push('DNI o passaport', 'Targeta d’embarcament', 'Líquids de menys de 100 ml');
+    motius.push('un vol');
+  }
+  if (menes.has('cotxe')) { items.push('Carnet de conduir'); motius.push('un cotxe de lloguer'); }
+  if (menes.has('entrada')) { items.push('Entrades'); motius.push('entrades comprades'); }
+  const dies = diesDelViatge().length;
+  if (dies) {
+    items.push('Roba per a ' + dies + (dies === 1 ? ' dia' : ' dies'));
+    motius.push('dura ' + dies + (dies === 1 ? ' dia' : ' dies'));
+  }
+  return { items: [...items, ...MALETA_BASE], motius };
+}
+
+/* El que suggerim mirant les maletes d'altres viatges, del més repetit al
+   menys. Primer les d'aquesta mateixa persona; si no en té cap (perquè als
+   altres viatges hi anava altra gent), es mira el de tothom. */
+function suggerimentsAnteriors(v, persona) {
+  const compta = (filtraPersona) => {
+    const c = new Map();
+    for (const altre of viatges) {
+      if (altre.id === v.id) continue;
+      const seus = new Set();
+      for (const it of (altre.maleta || [])) {
+        if (filtraPersona && (it.persona || '') !== (persona || '')) continue;
+        const t = (it.text || '').trim();
+        if (t) seus.add(t);
+      }
+      for (const t of seus) c.set(t, (c.get(t) || 0) + 1);   // un cop per viatge
+    }
+    return c;
+  };
+  let c = compta(true);
+  if (!c.size) c = compta(false);
+  return [...c.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ca'))
+    .map(([t]) => t);
+}
+
+/* No suggereix el que ja tens. A part del text exacte, mira si un conté
+   l'altre: si has escrit «Passaport», suggerir-te «DNI o passaport» és
+   soroll. Es demana un mínim de 4 lletres perquè un ítem molt curt no
+   se n'endugui mitja llista per davant. */
+function jaHiEs(text, meus) {
+  const t = text.trim().toLowerCase();
+  return meus.some(m => {
+    const a = (m.text || '').trim().toLowerCase();
+    if (!a) return false;
+    if (a === t) return true;
+    return a.length >= 4 && (t.includes(a) || a.includes(t));
+  });
+}
+
+function xipsMaleta(llista, meus) {
+  return llista
+    .filter(t => !jaHiEs(t, meus))
+    .map(t => `<button class="maleta-sug" data-posa-maleta="${esc(t)}">
+        <span aria-hidden="true">+</span>${esc(t)}</button>`).join('');
+}
+
+function maletaHTML(v, seves) {
+  const tots = Array.isArray(v.maleta) ? v.maleta : [];
+  const gent = (v.participants || []).filter(Boolean);
+  // Sense participants definits, una sola llista i cap selector: és el cas
+  // d'un viatge que et fas sol.
+  if (!gent.length) personaMaleta = '';
+  else if (!gent.includes(personaMaleta)) personaMaleta = gent[0];
+
+  const meus = tots.filter(it => (it.persona || '') === (personaMaleta || ''));
+  const fets = meus.filter(it => it.fet).length;
+
+  const selector = gent.length
+    ? `<div class="maleta-qui">` + gent.map(p =>
+        `<button class="maleta-persona${p === personaMaleta ? ' activa' : ''}" data-maleta-persona="${esc(p)}">${esc(p)}</button>`
+      ).join('') + `</div>`
+    : '';
+
+  const llista = meus.length
+    ? meus.map(it => `<div class="maleta-item${it.fet ? ' fet' : ''}">
+        <button class="maleta-marca" data-maleta-toggle="${esc(it.id)}"
+          aria-pressed="${it.fet ? 'true' : 'false'}">
+          <span class="maleta-casella" aria-hidden="true"></span>
+          <span class="maleta-text">${esc(it.text || '')}</span>
+        </button>
+        <button class="maleta-treu" data-maleta-treu="${esc(it.id)}" aria-label="Treu de la maleta">×</button>
+      </div>`).join('')
+    : `<p class="despeses-buida">Encara no hi ha res a la maleta. Escriu-hi el primer, o toca un suggeriment.</p>`;
+
+  // Companys de l'ÚLTIM que has afegit, no de tota la llista: si cada ítem
+  // en dispara tres, el bloc creix i s'acaba ignorant. Cinc com a màxim.
+  const xipsC = ultimMaleta ? xipsMaleta(companysDe(ultimMaleta).slice(0, 5), meus) : '';
+
+  const sugV = suggerimentsDelViatge(seves);
+  const xipsV = xipsMaleta(sugV.items, meus);
+  const xipsA = xipsMaleta(suggerimentsAnteriors(v, personaMaleta).slice(0, 12), meus);
+  const motiu = sugV.motius.length
+    ? 'Perquè aquest viatge té ' + sugV.motius.slice(0, -1).join(', ')
+      + (sugV.motius.length > 1 ? ' i ' : '') + sugV.motius[sugV.motius.length - 1] + '.'
+    : 'El bàsic de sempre.';
+
+  const suggeriments = (xipsC || xipsV || xipsA) ? `<div class="maleta-sugs">
+      ${xipsC ? `<h5 class="maleta-sug-titol">Amb això sol anar-hi</h5>
+        <p class="maleta-sug-motiu">Perquè acabes de posar-hi «${esc(ultimMaleta)}».</p>
+        <div class="maleta-xips">${xipsC}</div>` : ''}
+      ${xipsV ? `<h5 class="maleta-sug-titol"${xipsC ? ' style="margin-top:16px"' : ''}>Et pot faltar</h5>
+        <p class="maleta-sug-motiu">${esc(motiu)}</p>
+        <div class="maleta-xips">${xipsV}</div>` : ''}
+      ${xipsA ? `<h5 class="maleta-sug-titol"${(xipsC || xipsV) ? ' style="margin-top:16px"' : ''}>De les teves maletes anteriors</h5>
+        <div class="maleta-xips">${xipsA}</div>` : ''}
+    </div>` : '';
+
+  return `<div class="maleta">
+      ${selector}
+      <div class="maleta-nova">
+        <input id="nou-item-maleta" class="idea-nova-camp" placeholder="Afegeix a la maleta…" autocomplete="off">
+        <button class="primari mini" data-afegeix-maleta>Afegeix</button>
+      </div>
+      <div class="avis" id="avis-maleta"></div>
+      <div class="maleta-llista">${llista}</div>
+      ${meus.length ? `<p class="maleta-compte" id="maleta-compte">${fets} de ${meus.length} ${meus.length === 1 ? 'preparat' : 'preparades'}</p>` : ''}
+      ${suggeriments}
+    </div>`;
+}
+
+async function afegeixItemMaleta(text) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const t = (text || '').trim();
+  if (!t) { avisa($('avis-maleta'), 'Escriu què hi vols posar.', 'mal'); $('nou-item-maleta').focus(); return; }
+  const maleta = [...(v.maleta || []), { id: nouId(), text: t, fet: false, persona: personaMaleta || '' }];
+  ultimMaleta = t;   // per suggerir-ne els companys
+  await MagatzemViatges.actualitza(v.id, { maleta });
+  await refresca();
+  const camp = $('nou-item-maleta');
+  if (camp) camp.focus();
+}
+
+/* Marcar i desmarcar no repinta: es toca el DOM i es desa. Repintar
+   esborraria el que hi hagués al camp d'afegir. */
+async function alternaItemMaleta(id) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const maleta = (v.maleta || []).map(it => it.id === id ? { ...it, fet: !it.fet } : it);
+  const jo = maleta.find(it => it.id === id);
+  const boto = document.querySelector('[data-maleta-toggle="' + id + '"]');
+  if (boto) {
+    boto.setAttribute('aria-pressed', jo && jo.fet ? 'true' : 'false');
+    const fila = boto.closest('.maleta-item');
+    if (fila) fila.classList.toggle('fet', !!(jo && jo.fet));
+  }
+  const meus = maleta.filter(it => (it.persona || '') === (personaMaleta || ''));
+  const compte = $('maleta-compte');
+  if (compte) compte.textContent = meus.filter(it => it.fet).length + ' de ' + meus.length
+    + (meus.length === 1 ? ' preparat' : ' preparades');
+  await MagatzemViatges.actualitza(v.id, { maleta });
+}
+
+async function treuItemMaleta(id) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  await MagatzemViatges.actualitza(v.id, { maleta: (v.maleta || []).filter(it => it.id !== id) });
+  await refresca();
+}
+
 /* ── Repartiment: qui deu a qui ──
    A partir del «qui ho paga» de cada reserva o despesa solta, reparteix el
    cost del viatge a parts iguals entre els participants i calcula les
@@ -6740,6 +7185,16 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   }
   // Crear una idea des de dins del viatge (pestanya Idees)
   if (e.target.closest('[data-afegeix-idea-viatge]')) { await afegeixIdeaViatge(); return; }
+  // Maleta
+  const qui = e.target.closest('[data-maleta-persona]');
+  if (qui) { personaMaleta = qui.dataset.maletaPersona; ultimMaleta = ''; pintaDetallViatge(); return; }
+  const marca = e.target.closest('[data-maleta-toggle]');
+  if (marca) { await alternaItemMaleta(marca.dataset.maletaToggle); return; }
+  const treuM = e.target.closest('[data-maleta-treu]');
+  if (treuM) { await treuItemMaleta(treuM.dataset.maletaTreu); return; }
+  const posaM = e.target.closest('[data-posa-maleta]');
+  if (posaM) { await afegeixItemMaleta(posaM.dataset.posaMaleta); return; }
+  if (e.target.closest('[data-afegeix-maleta]')) { await afegeixItemMaleta($('nou-item-maleta').value); return; }
   // Despeses soltes del pressupost
   if (e.target.closest('[data-afegeix-despesa]')) { await afegeixDespesa(); return; }
   // Plegar i desplegar el detall per categoria. No repinta: repintar
@@ -6778,6 +7233,7 @@ $('detall-viatge-vista').addEventListener('click', async e => {
 $('detall-viatge-vista').addEventListener('keydown', e => {
   if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
   if (e.target.id === 'nova-idea-viatge') { e.preventDefault(); afegeixIdeaViatge(); }
+  else if (e.target.id === 'nou-item-maleta') { e.preventDefault(); afegeixItemMaleta(e.target.value); }
   else if (e.target.closest('.despesa-nova')) { e.preventDefault(); afegeixDespesa(); }
   else if (e.target.closest('.despesa-edicio') && despesaEnEdicio) { e.preventDefault(); desaDespesa(despesaEnEdicio); }
 });
