@@ -1306,6 +1306,9 @@
         <button class="menu-compte-opcio surt" id="opc-surt" role="menuitem">Surt</button>
       </div>
       <input type="file" id="fitxer-importa" accept=".json">
+      <!-- Els noms coneguts viuen aquí, en un lloc fix: els fan servir tant
+           les reserves com les despeses soltes, que són pantalles diferents. -->
+      <datalist id="noms-pagadors"></datalist>
     </div>
   </div>
 </header>
@@ -2092,6 +2095,18 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Correcció: el «qui ho paga» de les despeses soltes no suggeria noms.
+      Dues causes. (1) El desplegable de noms es creava dins de la llista de
+      Reserves, i aquella funció se'n va abans d'arribar-hi quan no hi ha cap
+      reserva: el camp de les despeses, que és en una altra pantalla, es
+      quedava sense res. Ara el datalist viu en un lloc fix del document i es
+      refresca a cada càrrega. (2) Els noms només sortien del «qui ho paga»
+      de les reserves: s'ignoraven els PARTICIPANTS dels viatges i els
+      pagadors de les despeses. Hi havia dues funcions de «noms coneguts» amb
+      abasts diferents i les despeses feien servir la pobra; ara n'hi ha una
+      de sola que mira les tres fonts. Nota: a l'iPhone els datalist es
+      mostren diferent (només en començar a escriure), i això no depèn de
+      l'app (v97).
    FET · El formulari d'afegir una despesa passa a dalt, abans de la llista:
       amb moltes despeses, tenir-lo al final obligava a passar per totes per
       apuntar-ne una de nova. La llista queda separada per una línia fina.
@@ -3191,6 +3206,8 @@ async function refresca() {
   pintaTaula();
   await refrescaIdees();
   await refrescaViatges();
+  // Al final: els noms surten també dels viatges, que s'acaben de carregar.
+  actualitzaNomsConeguts();
 }
 
 function dataBonica(iso) {
@@ -3660,11 +3677,13 @@ function campQuiPaga(r) {
   </div>`;
 }
 
-function llistaPagadors() {
-  const noms = new Set();
-  for (const r of reserves) if (r.quiPaga) noms.add(r.quiPaga.trim());
-  return [...noms].sort((a, b) => a.localeCompare(b, 'ca'))
-    .map(n => `<option value="${esc(n)}"></option>`).join('');
+/* El desplegable de noms viu en un lloc fix del document i es refresca a cada
+   càrrega. Abans es creava dins de la llista de Reserves, i per tant no
+   existia si no tenies cap reserva: el camp «qui ho paga» de les despeses
+   soltes, que és en una altra pantalla, es quedava sense suggerir res. */
+function actualitzaNomsConeguts() {
+  const dl = $('noms-pagadors');
+  if (dl) dl.innerHTML = opcions(nomsConeguts());
 }
 
 function campDetall(etiqueta, valor, ample, extra) {
@@ -3869,7 +3888,7 @@ function pintaLlista() {
       <div id="llista-passades"${passadesObertes ? '' : ' class="ocult"'}>${hp}</div>`;
   }
 
-  cos.innerHTML = html + `<datalist id="noms-pagadors">${llistaPagadors()}</datalist>`;
+  cos.innerHTML = html;
   // Una fila esborrada o sincronitzada des d'un altre lloc ja no existeix
   for (const id of [...filesObertes]) if (!reserves.some(r => r.id === id)) filesObertes.delete(id);
 }
@@ -5682,10 +5701,18 @@ let participantsFitxa = [];
 
 /* Noms coneguts per suggerir: els de «qui ho paga» de les reserves i els
    participants dels altres viatges. */
+/* Tots els noms que l'app coneix, d'on siguin: qui paga reserves, els
+   participants dels viatges i qui paga despeses soltes. Abans n'hi havia dues
+   versions amb abasts diferents, i la que feien servir les despeses era la
+   pobra —només mirava les reserves—, així que un viatge amb participants i
+   despeses pagades no suggeria cap nom. */
 function nomsConeguts() {
   const noms = new Set();
   for (const r of reserves) if (r.quiPaga) noms.add(r.quiPaga.trim());
-  for (const vi of viatges) for (const p of (vi.participants || [])) if (p) noms.add(p.trim());
+  for (const v of viatges) {
+    for (const p of (v.participants || [])) if (p) noms.add(p.trim());
+    for (const d of (v.despeses || [])) if (d.quiPaga) noms.add(d.quiPaga.trim());
+  }
   return [...noms].filter(Boolean).sort((a, b) => a.localeCompare(b, 'ca'));
 }
 
