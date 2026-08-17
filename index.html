@@ -2140,6 +2140,37 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · En afegir des d'un suggeriment, els xips es queden on eren. En
+      afegir un ítem la llista creix i empeny el bloc de suggeriments cap
+      avall, o sigui que se't movien sota el dit mentre en tocaves uns quants
+      seguits. Es mesura on és el bloc abans de repintar i on queda després, i
+      es compensa amb window.scrollBy. Escrivint a mà no s'aplica: allà mires
+      el camp, no els xips. Hi ha una protecció (offsetParent) perquè, si el
+      bloc no estigués maquetat, no es compensi amb un salt absurd.
+      ATENCIÓ: això NO s'ha pogut verificar. Al navegador de proves el detall
+      del viatge no s'arriba a maquetar (alçades a zero) i el problema no s'hi
+      reprodueix, així que només se sap que no fa cap mal, no que arregli res.
+      Cal comprovar-ho al mòbil (v105).
+   FET · Tocar un suggeriment de la maleta ja no obre el teclat. Abans, en
+      acabar d'afegir es posava SEMPRE el cursor al camp d'escriure, i al
+      mòbil això obria el teclat i tapava justament els suggeriments que
+      estaves tocant: havies d'amagar-lo per tocar-ne un altre. Ara el cursor
+      hi torna només quan l'ítem l'has escrit tu (llavors sí que vols seguir
+      teclejant); venint d'un suggeriment, no es toca el focus i pots
+      encadenar-ne tants com vulguis (v104).
+   FET · Al necesser s'hi afegeixen suavitzant, gorro de dutxa i fil dental.
+      Dues coses que això ha destapat:
+      (1) L'arrel de les paraules fusionava masculí i femení: treia la vocal
+      final, i «gorro» i «gorra» quedaven iguals. Un gorro d'abric arrossegava
+      la gorra de la platja. Ara, en comptes de treure la vocal, la e final es
+      converteix en a: «bota» i «botes» segueixen topant (que és el que
+      calia) i «gorro» i «gorra» ja no.
+      (2) Els grups poden tenir BLOQUEJADORS: paraules que els anul·len encara
+      que hi hagi coincidència. Un «gorro de dutxa» porta la paraula gorro
+      però no és roba d'abric, així que «dutxa» anul·la els grups de fred i
+      d'esquí. Cal posar-lo a TOTS els grups on surti la paraula, no només al
+      que sembla evident: la primera versió només bloquejava el fred i
+      l'esquí seguia colant-s'hi (v103).
    FET · A la taula de la maleta, TOTS els grups són simètrics: cada ítem
       suggerit també dispara el seu grup. Abans hi havia paraules «màgiques»
       (les de la llista de disparadors) i paraules mudes, i no hi havia manera
@@ -6701,7 +6732,11 @@ function clauMaleta(text) {
 function arrel(paraula) {
   let a = paraula;
   if (a.length > 4 && a.endsWith('s')) a = a.slice(0, -1);
-  if (a.length > 3 && /[aeiou]$/.test(a)) a = a.slice(0, -1);
+  // La essa sola no basta: el femení fa «bota → botes», que queda «bote».
+  // Convertint la e final en a, «bota» i «botes» topen. Abans es treia la
+  // vocal i això fusionava masculí i femení: «gorro» i «gorra» eren la
+  // mateixa cosa, i un gorro d'abric arrossegava la gorra de la platja.
+  if (a.length > 3 && a.endsWith('e')) a = a.slice(0, -1) + 'a';
   return a;
 }
 
@@ -6728,7 +6763,7 @@ const COMPANYS_MALETA = [
   [['banyador', 'biquini'], ['Crema solar', 'Tovallola de platja', 'Xancletes', 'Ulleres de sol', 'Gorra']],
   [['bota', 'senderisme', 'muntanya', 'baston', 'motxilla'],
     ['Mitjons gruixuts', 'Cantimplora', 'Bastons de caminar', 'Funda de motxilla', 'Farmaciola', 'Impermeable', 'Gorra']],
-  [['esqui', 'neu'], ['Guants', 'Gorro', 'Crema solar', 'Ulleres de neu']],
+  [['esqui', 'neu'], ['Guants', 'Gorro', 'Crema solar', 'Ulleres de neu'], ['dutxa']],
   // El fred el dispares TU escrivint-hi una peça, no l'endevina l'app pel
   // destí: a la muntanya no sempre hi fa fred.
   // El tercer camp són paraules que ANUL·LEN el grup: un «gorro de dutxa»
@@ -6744,8 +6779,9 @@ const COMPANYS_MALETA = [
   [['passaport', 'dni'], ['Assegurança de viatge', 'Còpia dels documents']],
   // El necesser és el calaix de la higiene: d'aquí pengen totes les
   // menudalles, en comptes d'inflar el bàsic de cada viatge.
-  [['necesser', 'sabo', 'xampu', 'desodorant'],
-    ['Raspall de dents', 'Pasta de dents', 'Xampú', 'Sabó de cos', 'Desodorant', 'Kleenex']],
+  [['necesser', 'sabo', 'xampu', 'desodorant', 'suavitzant', 'dutxa'],
+    ['Raspall de dents', 'Pasta de dents', 'Fil dental', 'Xampú', 'Suavitzant',
+     'Sabó de cos', 'Desodorant', 'Gorro de dutxa', 'Kleenex']],
   [['raspall', 'dent'], ['Pasta de dents', 'Fil dental']],
   [['medicament', 'farmaciola', 'paracetamol'],
     ['Paracetamol', 'Termòmetre', 'Esparadrap', 'Tiretes', 'Recepta']],
@@ -6792,7 +6828,9 @@ function companysDe(text) {
   const clau = clauMaleta(text);
   if (!clau) return [];
   const taula = [];
-  for (const [disparadors, sugs] of COMPANYS_MALETA) {
+  for (const [disparadors, sugs, bloquejadors] of COMPANYS_MALETA) {
+    // Paraules que anul·len el grup encara que hi hagi coincidència.
+    if (bloquejadors && bloquejadors.some(b => conteParaula(clau, b))) continue;
     // Els disparadors escrits, i A MÉS qualsevol ítem del propi grup: així
     // no hi ha paraules «màgiques» i paraules mudes, i tant se val per on
     // entris. Alguns ítems surten a dos grups (la crema solar, a platja i a
@@ -6940,17 +6978,40 @@ function maletaHTML(v, seves) {
     </div>`;
 }
 
-async function afegeixItemMaleta(text) {
+/* «tornaAlCamp» només quan l'has escrit tu: llavors vols seguir teclejant.
+   Si véns de tocar un suggeriment, NO s'hi torna el cursor, perquè al mòbil
+   obriria el teclat i taparia justament els suggeriments que estàs tocant. */
+async function afegeixItemMaleta(text, tornaAlCamp) {
   const v = viatges.find(x => x.id === viatgeObert);
   if (!v) return;
   const t = (text || '').trim();
   if (!t) { avisa($('avis-maleta'), 'Escriu què hi vols posar.', 'mal'); $('nou-item-maleta').focus(); return; }
   const maleta = [...(v.maleta || []), { id: nouId(), text: t, fet: false, persona: personaMaleta || '' }];
   ultimMaleta = t;   // per suggerir-ne els companys
+
+  // En afegir des d'un suggeriment, la llista creix i empeny els xips cap
+  // avall: se't mourien sota el dit mentre en vas tocant. Es mesura on eren
+  // abans de repintar i es compensa desplaçant la pàgina, així es queden
+  // visualment al mateix lloc. Escrivint a mà no cal: allà mires el camp.
+  // Es demana offsetParent per assegurar que el bloc està maquetat de debò:
+  // si estigués amagat, mesuraríem zero i el compensaríem amb un salt absurd.
+  const bloc = tornaAlCamp ? null : document.querySelector('.maleta-sugs');
+  const abans = (bloc && bloc.offsetParent) ? bloc.getBoundingClientRect().top : null;
+
   await MagatzemViatges.actualitza(v.id, { maleta });
   await refresca();
-  const camp = $('nou-item-maleta');
-  if (camp) camp.focus();
+
+  if (abans != null) {
+    const ara = document.querySelector('.maleta-sugs');
+    if (ara) {
+      const salt = ara.getBoundingClientRect().top - abans;
+      if (salt) window.scrollBy(0, salt);
+    }
+  }
+  if (tornaAlCamp) {
+    const camp = $('nou-item-maleta');
+    if (camp) camp.focus();
+  }
 }
 
 /* Marcar i desmarcar no repinta: es toca el DOM i es desa. Repintar
@@ -7193,8 +7254,8 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   const treuM = e.target.closest('[data-maleta-treu]');
   if (treuM) { await treuItemMaleta(treuM.dataset.maletaTreu); return; }
   const posaM = e.target.closest('[data-posa-maleta]');
-  if (posaM) { await afegeixItemMaleta(posaM.dataset.posaMaleta); return; }
-  if (e.target.closest('[data-afegeix-maleta]')) { await afegeixItemMaleta($('nou-item-maleta').value); return; }
+  if (posaM) { await afegeixItemMaleta(posaM.dataset.posaMaleta, false); return; }
+  if (e.target.closest('[data-afegeix-maleta]')) { await afegeixItemMaleta($('nou-item-maleta').value, true); return; }
   // Despeses soltes del pressupost
   if (e.target.closest('[data-afegeix-despesa]')) { await afegeixDespesa(); return; }
   // Plegar i desplegar el detall per categoria. No repinta: repintar
@@ -7233,7 +7294,7 @@ $('detall-viatge-vista').addEventListener('click', async e => {
 $('detall-viatge-vista').addEventListener('keydown', e => {
   if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
   if (e.target.id === 'nova-idea-viatge') { e.preventDefault(); afegeixIdeaViatge(); }
-  else if (e.target.id === 'nou-item-maleta') { e.preventDefault(); afegeixItemMaleta(e.target.value); }
+  else if (e.target.id === 'nou-item-maleta') { e.preventDefault(); afegeixItemMaleta(e.target.value, true); }
   else if (e.target.closest('.despesa-nova')) { e.preventDefault(); afegeixDespesa(); }
   else if (e.target.closest('.despesa-edicio') && despesaEnEdicio) { e.preventDefault(); desaDespesa(despesaEnEdicio); }
 });
