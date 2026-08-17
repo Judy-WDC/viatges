@@ -339,6 +339,39 @@
     font-size: 16px; line-height: 1; padding: 0 3px; cursor: pointer; border-radius: 999px;
   }
   .chip-treu:hover { background: var(--accent-suau); color: var(--superficie); }
+  /* El nom de la pastilla fa de botó per canviar-ne el color. No es disfressa
+     de botó: la pastilla ja es veu tocable i posar-hi més vores l'embrutaria.
+     El color el posa l'estil en línia, d'aquí el «color: inherit». */
+  .chip-color {
+    border: none; background: none; color: inherit; font: inherit;
+    padding: 0; cursor: pointer; border-radius: 999px;
+  }
+  .chip-color:hover { text-decoration: underline; text-underline-offset: 2px; }
+  /* Dins de .chips, que és flex: ocupen tota l'amplada i van a sota. */
+  .chips-nota { flex-basis: 100%; margin: 2px 0 0; font-size: 11.5px; color: var(--tinta-tenue); }
+  .tria-color { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 9px; margin-top: 8px; }
+  .tria-color-punt {
+    width: 26px; height: 26px; border-radius: 50%; border: none;
+    padding: 0; cursor: pointer;
+  }
+  /* L'anell de fora marca el triat. Va amb dues ombres: la primera fa de
+     separació del color del botó, o l'anell quedaria enganxat. */
+  .tria-color-punt.actiu { box-shadow: 0 0 0 2px var(--superficie), 0 0 0 3.5px currentColor; }
+  /* Apagat vol dir «ja el té algú altre», no «no es pot». Es pot triar igual:
+     avisar sí, prohibir no. */
+  .tria-color-punt.pres { opacity: 0.35; }
+  /* El punt de color de les files del pressupost i del menú d'assignar.
+     La fila del pressupost va alineada per la base del text i pot passar a
+     dues línies, o sigui que el punt s'hi alinea igual i es puja un pèl. */
+  .repart-punt {
+    width: 8px; height: 8px; border-radius: 50%; flex: none;
+    align-self: baseline; position: relative; top: -1px;
+  }
+  /* .menu-assigna-opcio va en columna perquè el menú d'assignar a un viatge
+     hi posa nom i dates. El de les persones és d'una línia: es gira aquí i
+     prou, sense tocar la classe de base. */
+  .menu-assigna-opcio.amb-punt { flex-direction: row; align-items: center; gap: 8px; }
+  .menu-assigna-opcio .repart-punt { align-self: center; top: 0; }
   .viatges { display: flex; flex-direction: column; gap: 9px; }
   .viatge {
     position: relative;
@@ -2201,6 +2234,30 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Cada persona d'un viatge té el seu color, i el seu nom surt d'aquell
+      color a tot arreu dins d'aquell viatge: pestanyes de la maleta, menú
+      d'assignar-hi ítems, files i moviments del pressupost, i pastilles de la
+      fitxa. Els reparteix l'app tota sola per ordre alfabètic; es canvien
+      tocant el nom a «Qui farà aquest viatge?», amb una nota que ho diu (si
+      els reparteix l'app i no es diu enlloc, ningú no ho endevina).
+      Paleta TANCADA, de vuit. Amb color lliure no en surt un de sol: la
+      pastilla necessita farciment clar i lletra fosca del mateix to, i els
+      llampants no en tenen (un groc viu demana una lletra tan fosca que ja
+      no sembla groga).
+      Es desa l'ID del color dins del viatge (colorsGent), no el codi: si es
+      retoquen els tons, els viatges vells se n'aprofiten. Clau en minúscules,
+      com fa gentDelViatge(), o «Pepita» i «pepita» tindrien colors diferents.
+      Al pressupost els noms NO es tornen pastilles —allà són files amb el
+      saldo, i el que ha de cridar l'atenció és qui deu diners, no de quin
+      color és cadascú—: hi va un punt i avall.
+      Tres coses que van sortir provant-ho: albergínia era la primera de la
+      paleta i, sent el color de l'app, la primera persona de tot viatge
+      semblava que no en tingués (ara va l'última); amb més de vuit persones
+      totes les extres sortien del mateix color, perquè el comptador dels
+      sobrants era el de colors gastats i amb els vuit plens ja no creixia;
+      i la fitxa repartia per ordre d'escriptura i la resta per ordre
+      alfabètic, o sigui que el color depenia de quina pantalla tocava el
+      viatge primer (v116).
    FET · Arreglat: dins d'un viatge, «Tots els viatges» no tornava a la llista
       de viatges sinó a la pantalla anterior. tancaEnrere() demanava enrere al
       navegador a cegues i desfeia l'últim pas apuntat, fos quin fos. Si
@@ -6065,6 +6122,7 @@ function pintaViatges() {
    deia «entre qui es reparteixen les despeses» quan només servia per al
    pressupost; ara també decideix de qui és cada maleta. */
 let participantsFitxa = [];
+let coloursFitxa = {};   // els colors mentre s'edita, encara sense desar
 
 /* Noms coneguts per suggerir: els de «qui ho paga» de les reserves i els
    participants dels altres viatges. */
@@ -6083,10 +6141,52 @@ function nomsConeguts() {
   return [...noms].filter(Boolean).sort((a, b) => a.localeCompare(b, 'ca'));
 }
 
+/* Els colors de la fitxa NO es desen fins que no es prem «Desa»: aquí només
+   es reparteixen perquè la pastilla surti del seu color de seguida.
+   El nom fa de botó: és l'únic lloc de l'app on es pot canviar el color, i
+   si l'app els reparteix sola ningú no endevinaria que es poden tocar. Per
+   això hi ha la nota a sota; sense ella, la funció seria invisible. */
 function pintaChipsParticipants() {
-  $('viatge-persones-chips').innerHTML = participantsFitxa.map((nom, i) =>
-    `<span class="chip">${esc(nom)}<button type="button" class="chip-treu" data-treu-persona="${i}" aria-label="Treu ${esc(nom)}">×</button></span>`
+  // Es reparteix per ordre alfabètic, igual que fa gentDelViatge(): si aquí
+  // fos per ordre d'escriptura, el color de cadascú dependria de quina
+  // pantalla ha tocat el viatge primer.
+  coloursFitxa = reparteixColors(coloursFitxa,
+    [...participantsFitxa].sort((a, b) => a.localeCompare(b, 'ca'))).mapa;
+  $('viatge-persones-chips').innerHTML = participantsFitxa.map((nom, i) => {
+    const c = colorDe(coloursFitxa, nom);
+    return `<span class="chip"${estilGent(c, true)}>`
+      + `<button type="button" class="chip-color" data-color-persona="${i}"`
+      + ` aria-label="Canvia el color de ${esc(nom)}"`
+      + ` title="Canvia el color">${esc(nom)}</button>`
+      + `<button type="button" class="chip-treu" data-treu-persona="${i}" aria-label="Treu ${esc(nom)}">×</button></span>`;
+  }).join('')
+    + (participantsFitxa.length ? `<p class="chips-nota">Toca un nom per canviar-li el color.</p>` : '');
+}
+
+/* El selector de colors. Els que ja té algú altre surten apagats, però es
+   poden triar igualment: no és feina de l'app prohibir-ho, només avisar. */
+function obreTriaColor(i) {
+  tancaTriaColor();
+  const nom = participantsFitxa[i];
+  if (!nom) return;
+  const meu = coloursFitxa[clauGent(nom)];
+  const presos = new Set(participantsFitxa
+    .filter((_, j) => j !== i)
+    .map(n => coloursFitxa[clauGent(n)]));
+  const caixa = document.createElement('div');
+  caixa.className = 'tria-color';
+  caixa.id = 'tria-color';
+  caixa.innerHTML = COLORS_GENT.map(c =>
+    `<button type="button" class="tria-color-punt${c.id === meu ? ' actiu' : ''}${presos.has(c.id) ? ' pres' : ''}"`
+    + ` style="background:${c.tinta};color:${c.tinta}" data-tria-color="${c.id}" data-per="${i}"`
+    + ` aria-label="${esc(c.nom)}${presos.has(c.id) ? ' (ja el té algú altre)' : ''}" title="${esc(c.nom)}"></button>`
   ).join('');
+  $('viatge-persones-chips').appendChild(caixa);
+}
+
+function tancaTriaColor() {
+  const c = $('tria-color');
+  if (c) c.remove();
 }
 
 /* Afegeix un o més noms (accepta text amb comes), sense duplicar i sense
@@ -6114,11 +6214,25 @@ $('camp-viatge-persones-input').addEventListener('keydown', e => {
   }
 });
 
-// Treure un participant amb la seva «×»
 $('viatge-persones-chips').addEventListener('click', e => {
+  // Triar un color de la paleta
+  const punt = e.target.closest('[data-tria-color]');
+  if (punt) {
+    const nom = participantsFitxa[+punt.dataset.per];
+    if (nom) coloursFitxa[clauGent(nom)] = punt.dataset.triaColor;
+    tancaTriaColor();
+    pintaChipsParticipants();
+    return;
+  }
+  // Obrir la paleta tocant el nom
+  const col = e.target.closest('[data-color-persona]');
+  if (col) { obreTriaColor(+col.dataset.colorPersona); return; }
+  // Treure un participant amb la seva «×». El color se li guarda: si el
+  // tornes a posar, recupera el mateix i no ballen tots els altres.
   const btn = e.target.closest('[data-treu-persona]');
   if (!btn) return;
   participantsFitxa.splice(+btn.dataset.treuPersona, 1);
+  tancaTriaColor();
   pintaChipsParticipants();
 });
 
@@ -6130,6 +6244,8 @@ function obreFitxaViatge(v) {
   $('camp-viatge-fi').value = v ? (v.dataFi || '') : '';
   $('camp-viatge-pressupost').value = v ? (v.pressupost || '') : '';
   participantsFitxa = v && Array.isArray(v.participants) ? [...v.participants] : [];
+  coloursFitxa = (v && v.colorsGent) ? { ...v.colorsGent } : {};
+  tancaTriaColor();
   pintaChipsParticipants();
   $('camp-viatge-persones-input').value = '';
   $('persones-conegudes').innerHTML = nomsConeguts().map(n => `<option value="${esc(n)}"></option>`).join('');
@@ -6713,7 +6829,7 @@ function pressupostHTML(v, seves) {
   // Dues columnes: a l'esquerra el que es mira (resum + qui deu a qui), a la
   // dreta el que s'edita (les despeses soltes). Al mòbil s'apilen (CSS).
   return `<div class="pressupost-columnes">
-    <div class="pressupost-col">${resum}${repartimentHTML(itemsRepart, v.participants)}</div>
+    <div class="pressupost-col">${resum}${repartimentHTML(itemsRepart, v.participants, colorsDelViatge(v, gentDelViatge(v, seves)))}</div>
     <div class="pressupost-col">${detall}</div>
   </div>`;
 }
@@ -7226,6 +7342,80 @@ function xipsMaleta(llista, meus, amagats) {
    també hi han de sortir. Abans la maleta només mirava els participants
    explícits, i qui havia omplert «qui ho paga» però no les píndoles es
    trobava una llista sola sense saber per què. */
+/* ── El color de cadascú ────────────────────────────────────────────────
+   Cada persona d'un viatge té un color i el seu nom surt sempre d'aquell
+   color DINS D'AQUEST VIATGE: la mateixa persona pot ser gerd a Roma i oliva
+   a Lisboa. Es desa dins del viatge, amb la clau en minúscules igual que fa
+   gentDelViatge(), que si no «Pepita» i «pepita» tindrien colors diferents.
+
+   Es desa l'ID del color, no el codi hexadecimal. Si algun dia es retoquen
+   els tons, els viatges vells se n'aprofiten sols; amb el codi desat es
+   quedarien congelats amb el to vell per sempre.
+
+   La paleta és tancada a posta. Una pastilla no necessita un color sinó dos
+   —el farciment clar i la lletra fosca del mateix to— i amb color lliure els
+   llampants no en tenen: un groc viu demana una lletra tan fosca que ja no
+   sembla groga. Vuit n'hi ha de sobres per a un viatge. */
+/* L'ordre és l'ordre en què es reparteixen, i per això albergínia va l'ÚLTIMA
+   encara que sigui el color de la casa: és justament el color de l'app, i qui
+   la rebés semblaria que no en té cap. Sent la primera, la primera persona de
+   tot viatge sortia «sense color». */
+const COLORS_GENT = [
+  { id: 'gerd',       nom: 'Gerd',       tinta: '#9B3355', fons: '#F8E2E9', vora: '#EDC5D2' },
+  { id: 'alga',       nom: 'Alga',       tinta: '#2E6B66', fons: '#DFEEEC', vora: '#BDDAD6' },
+  { id: 'mostassa',   nom: 'Mostassa',   tinta: '#8A6410', fons: '#F7ECD0', vora: '#E9D8A6' },
+  { id: 'blaunit',    nom: 'Blau nit',   tinta: '#3B5A7D', fons: '#E3EAF3', vora: '#C4D3E5' },
+  { id: 'terracota',  nom: 'Terracota',  tinta: '#A04A32', fons: '#F9E5DD', vora: '#F0CBBC' },
+  { id: 'oliva',      nom: 'Oliva',      tinta: '#566B33', fons: '#EAF0DD', vora: '#D3E0BC' },
+  { id: 'lila',       nom: 'Lila',       tinta: '#6B4E9B', fons: '#ECE6F6', vora: '#D6C9EC' },
+  { id: 'alberginia', nom: 'Albergínia', tinta: '#5E3352', fons: '#EFE3EC', vora: '#DCC7D6' }
+];
+const clauGent = nom => (nom || '').trim().toLowerCase();
+const colorPerId = id => COLORS_GENT.find(c => c.id === id) || null;
+
+/* Reparteix color als qui encara no en tinguin i torna el mapa sencer.
+   Es crida en pintar. Si n'ha hagut de repartir cap, ho desa pel seu compte
+   i NO repinta: qui pinta ja té els valors bons a la mà. També ho posa al
+   viatge que hi ha a memòria, o a cada repintada tornaria a creure que no hi
+   ha res desat i escriuria un altre cop. */
+function reparteixColors(previ, gent) {
+  const mapa = { ...(previ || {}) };
+  const presos = new Set(Object.values(mapa));
+  let canvis = false;
+  for (const nom of gent) {
+    const clau = clauGent(nom);
+    if (!clau || mapa[clau]) continue;
+    // Quan s'acaben els lliures es reparteix igualment: val més que dues
+    // persones comparteixin color que no pas deixar-ne una de grisa. Es
+    // torna a començar per la paleta comptant QUANTA GENT hi ha repartida,
+    // no quants colors s'han fet servir: amb els vuit plens, el compte de
+    // colors ja no creix i tothom acabava del mateix color.
+    const lliure = COLORS_GENT.find(c => !presos.has(c.id));
+    const tria = lliure ? lliure.id : COLORS_GENT[Object.keys(mapa).length % COLORS_GENT.length].id;
+    mapa[clau] = tria; presos.add(tria); canvis = true;
+  }
+  return { mapa, canvis };
+}
+
+/* La versió que desa. La fitxa del viatge fa servir reparteixColors() a
+   pèl, que allà encara no s'ha de desar res fins que no es prem «Desa». */
+function colorsDelViatge(v, gent) {
+  const { mapa, canvis } = reparteixColors(v && v.colorsGent, gent);
+  if (canvis && v && v.id) { v.colorsGent = mapa; MagatzemViatges.actualitza(v.id, { colorsGent: mapa }); }
+  return mapa;
+}
+
+const colorDe = (mapa, nom) => colorPerId(mapa[clauGent(nom)]);
+
+/* L'estil en línia és a posta: els colors surten de les dades, no del full
+   d'estil, o caldria una regla CSS per color i per lloc on es fa servir. */
+function estilGent(c, ple) {
+  if (!c) return '';
+  return ple
+    ? ` style="background:${c.fons};border-color:${c.tinta};color:${c.tinta}"`
+    : ` style="color:${c.tinta}"`;
+}
+
 function gentDelViatge(v, seves) {
   const noms = new Map();   // clau en minúscules, per no duplicar Pepita/pepita
   const posa = n => {
@@ -7254,10 +7444,15 @@ function maletaHTML(v, seves) {
   const meus = tots.filter(it => (it.persona || '') === (personaMaleta || ''));
   const fets = meus.filter(it => it.fet).length;
 
+  // «Sense assignar» no és ningú, o sigui que no té color: es queda grisa.
+  const colors = colorsDelViatge(v, gent.filter(Boolean));
   const selector = gent.length > 1 || (gent.length === 1 && gent[0] !== '')
-    ? `<div class="maleta-qui">` + gent.map(p =>
-        `<button class="maleta-persona${p === personaMaleta ? ' activa' : ''}" data-maleta-persona="${esc(p)}">${p ? esc(p) : 'Sense assignar'}</button>`
-      ).join('') + `</div>`
+    ? `<div class="maleta-qui">` + gent.map(p => {
+        const c = p ? colorDe(colors, p) : null;
+        return `<button class="maleta-persona${p === personaMaleta ? ' activa' : ''}"`
+          + estilGent(c, p === personaMaleta)
+          + ` data-maleta-persona="${esc(p)}">${p ? esc(p) : 'Sense assignar'}</button>`;
+      }).join('') + `</div>`
     : '';
 
   const llista = meus.length
@@ -7418,8 +7613,9 @@ function obreMenuPersona(boto, id) {
   const menu = document.createElement('div');
   menu.className = 'menu-assigna';
   menu.id = 'menu-persona';
+  const colors = colorsDelViatge(v, gent);
   menu.innerHTML = gent.map(p =>
-      `<button class="menu-assigna-opcio${p === seva ? ' actiu' : ''}" data-posa-persona="${esc(id)}" data-persona="${esc(p)}">${esc(p)}</button>`
+      `<button class="menu-assigna-opcio amb-punt${p === seva ? ' actiu' : ''}" data-posa-persona="${esc(id)}" data-persona="${esc(p)}"><span class="repart-punt" aria-hidden="true" style="background:${(colorDe(colors, p) || {}).tinta || 'transparent'}"></span>${esc(p)}</button>`
     ).join('')
     + `<button class="menu-assigna-opcio treure${!seva ? ' actiu' : ''}" data-posa-persona="${esc(id)}" data-persona="">Sense assignar</button>`;
   boto.parentNode.insertBefore(menu, boto.nextSibling);
@@ -7534,7 +7730,11 @@ async function treuItemMaleta(id) {
      fora del repartiment i s'avisa del total que representen.
    · Es treballa en cèntims (enters) perquè els saldos quadrin exactes.
    · Com a la resta del pressupost, se suposa una sola moneda (euros). */
-function repartimentHTML(ambPreu, participants) {
+/* «colors» ve de fora perquè aquí no arriba el viatge sencer, només la seva
+   llista de participants. Aquí els noms NO es tornen pastilles: són files amb
+   el saldo a la dreta, i el que ha de cridar l'atenció és qui deu diners, no
+   qui és de color verd. Un punt i avall. */
+function repartimentHTML(ambPreu, participants, colors) {
   const explicits = Array.isArray(participants) ? participants : [];
   const ambPagador = ambPreu.filter(r => (r.quiPaga || '').trim());
   const senseP = ambPreu.filter(r => !(r.quiPaga || '').trim());
@@ -7606,7 +7806,9 @@ function repartimentHTML(ambPreu, participants) {
     const nota = s.saldo > 0 ? `li'n deuen ${formataImport(s.saldo / 100)}`
               : s.saldo < 0 ? `deu ${formataImport(-s.saldo / 100)}`
               : 'en paus';
+    const c = colorDe(colors || {}, s.nom);
     return `<div class="repart-persona">
+      ${c ? `<span class="repart-punt" aria-hidden="true" style="background:${c.tinta}"></span>` : ''}
       <span class="repart-nom">${esc(s.nom)}</span>
       <span class="repart-detall">ha pagat ${esc(formataImport(s.pagat / 100))} · li'n toquen ${esc(formataImport(s.part / 100))}</span>
       <span class="repart-saldo ${signe}">${esc(nota)}</span>
@@ -7615,9 +7817,9 @@ function repartimentHTML(ambPreu, participants) {
 
   const filesMov = moviments.length
     ? moviments.map(m => `<div class="repart-moviment">
-        <span class="repart-de">${esc(m.de)}</span>
+        <span class="repart-de"${estilGent(colorDe(colors || {}, m.de), false)}>${esc(m.de)}</span>
         <span class="repart-fletxa" aria-hidden="true">→</span>
-        <span class="repart-a">${esc(m.a)}</span>
+        <span class="repart-a"${estilGent(colorDe(colors || {}, m.a), false)}>${esc(m.a)}</span>
         <span class="repart-import">${esc(formataImport(m.cents / 100))}</span>
       </div>`).join('')
     : `<p class="repart-nota">Ja esteu en paus: ningú deu res a ningú.</p>`;
@@ -7835,10 +8037,15 @@ $('btn-desa-viatge').addEventListener('click', async () => {
   $('camp-viatge-inici').value = inici;
   $('camp-viatge-fi').value = fi;
 
+  // Els noms escrits a última hora encara no tenen color: se'ls reparteix ara,
+  // per ordre alfabètic com a tot arreu.
+  const colorsGent = reparteixColors(coloursFitxa,
+    [...participants].sort((a, b) => a.localeCompare(b, 'ca'))).mapa;
+
   if (editantViatge) {
-    await MagatzemViatges.actualitza(editantViatge, { nom, dataInici: inici, dataFi: fi, pressupost, participants });
+    await MagatzemViatges.actualitza(editantViatge, { nom, dataInici: inici, dataFi: fi, pressupost, participants, colorsGent });
   } else {
-    await MagatzemViatges.afegeix({ nom, dataInici: inici, dataFi: fi, pressupost, participants });
+    await MagatzemViatges.afegeix({ nom, dataInici: inici, dataFi: fi, pressupost, participants, colorsGent });
   }
   tancaFitxaViatge();
   oblidaEnrere('fitxa-viatge');
