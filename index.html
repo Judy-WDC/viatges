@@ -773,11 +773,13 @@
 
   /* Idea suggerida dins del viatge */
   .idea-suggerida {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
     background: var(--superficie); border: 0.5px solid var(--vora);
-    border-radius: 10px; padding: 11px 14px; margin-bottom: 8px;
+    border-radius: 10px; padding: 11px 14px; margin-bottom: 8px; flex-wrap: wrap;
   }
-  .suggerida-cos { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .suggerida-cos { min-width: 0; flex: 1 1 190px; display: flex; flex-direction: column; gap: 2px; }
+  .suggerida-camps { display: flex; flex-wrap: wrap; gap: 2px; margin: 2px 0 0 -8px; }
+  .suggerida-accions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .suggerida-text { font-size: 14px; color: var(--tinta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .suggerida-meta { font-size: 12px; color: var(--tinta-suau); }
   .idea-suggerida .primari.mini { flex: none; }
@@ -1451,6 +1453,10 @@
     <label class="compartit-camp"><span>Zona</span>
       <input id="compartit-zona" list="zones-compartir" autocomplete="off" placeholder="on és?"></label>
     <p class="compartit-pista">Sense zona no sortirà al mapa ni es creuarà amb els teus viatges.</p>
+    <label class="compartit-camp"><span>Etiquetes</span>
+      <input id="compartit-etiquetes" list="etiquetes-compartir" autocomplete="off"
+        spellcheck="false" placeholder="platja, museu… (separades per comes)"></label>
+    <datalist id="etiquetes-compartir"></datalist>
     <div id="compartit-enllac"></div>
     <div class="avis" id="avis-compartit"></div>
     <div class="compartit-botons">
@@ -1599,7 +1605,6 @@
     <div class="barra-accions">
       <span class="compta" id="compta-idees"></span>
       <span class="separa"></span>
-      <button class="subtil" id="btn-idea-enllac">Des d'un enllaç</button>
       <button class="primari" id="btn-nova-idea">Afegeix una idea</button>
     </div>
 
@@ -1651,11 +1656,11 @@
         </div>
       </div>
       <div class="camp ample">
-        <label for="camp-viatge-persones-input">Entre qui es reparteixen les despeses (opcional)</label>
+        <label for="camp-viatge-persones-input">Qui farà aquest viatge? (opcional)</label>
         <div class="chips" id="viatge-persones-chips"></div>
         <input id="camp-viatge-persones-input" placeholder="Escriu un nom i prem Enter…" list="persones-conegudes" autocomplete="off" spellcheck="false">
         <datalist id="persones-conegudes"></datalist>
-        <p class="camp-ajuda">Si ho deixes buit, es reparteix entre qui hagi pagat alguna cosa.</p>
+        <p class="camp-ajuda">Serveix per repartir les despeses i per tenir una maleta per a cadascú. Si ho deixes buit, les despeses es reparteixen entre qui hagi pagat alguna cosa.</p>
       </div>
       <div class="fitxa-peu">
         <button class="primari" id="btn-desa-viatge">Crea el viatge</button>
@@ -2177,6 +2182,64 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · L'Agenda té porta pròpia. Fins ara només s'hi arribava convertint
+      una idea, o sigui que una cosa que ja saps que faràs («excursió al
+      Teide») havia de passar per la porta dels desitjos. Ara hi ha un camp
+      «Afegeix una activitat» a dalt de l'itinerari complet, que crea una idea
+      ja assignada al viatge —això és una visita— i sense data, així que cau a
+      «Per encaixar» just a sota, on la despleguen per posar-li dia.
+      NO es demana la data en crear-la a posta: sovint encara no la saps, i
+      «Per encaixar» existeix justament per no haver-la de decidir abans
+      d'hora. El camp només surt a l'itinerari complet: a «Activitats del
+      dia» el que afegissis aniria a un lloc que allà no es veu.
+      La divisió queda explicable en una frase: Idees són coses que
+      t'agradaria fer; Agenda, coses que faràs.
+      A més, les files de la subpestanya Idees passen a ser editables (zona,
+      etiquetes i enllaç) reaprofitant el mecanisme de les visites: abans, per
+      posar un enllaç a una idea creada des del viatge, calia convertir-la en
+      visita, canviar a l'Agenda i buscar-la. El TEXT no s'hi edita a posta:
+      una idea pot tenir més d'una línia i un camp d'una línia se n'enduria la
+      resta; per reescriure-la, la Inspiració (v112).
+   FET · Una sola porta per afegir una idea. Hi havia dos botons a Inspiració
+      («Afegeix una idea» i «Des d'un enllaç») amb dues maneres de funcionar
+      ben diferents: el primer obria una fila buida a la llista i el segon una
+      targeta. Calia triar-ne una abans de començar a escriure, i la tria no
+      aportava res. Ara queda un sol botó i tots tres camins —el botó,
+      l'enllaç i el compartir des del mòbil— acaben a la mateixa targeta.
+      La targeta guanya el camp d'ETIQUETES, que ara és imprescindible: si és
+      l'única entrada, sense ell hauries de tornar sempre a la fila per
+      posar-les. (Quan la targeta era només per al compartir, es van deixar
+      fora a posta per no allargar-la; aquell argument ja no val.)
+      De retruc, la idea neix ja escrita: abans se'n creava una de BUIDA a la
+      base de dades i calia maquinària (esborranyIdea) perquè no s'esborrés
+      sola ni desaparegués si arribava una sincronització mentre l'omplies.
+      Aquella protecció es manté per a l'edició en línia, però la creació ja
+      no la necessita.
+      Crear és amb targeta i editar segueix sent a la fila: és una diferència
+      volguda, perquè la llista conservi la sensació de bloc de notes (v111).
+   FET · El camp «Entre qui es reparteixen les despeses» passa a dir-se «Qui
+      farà aquest viatge?». El nom antic era d'quan només servia per al
+      pressupost; ara aquests mateixos noms decideixen també de qui és cada
+      maleta. NOMÉS canvia el text: la lògica és compartida i no s'ha tocat
+      res (v.participants, la unió amb els pagadors, tot igual). Els llocs
+      afectats són cinc, no un: l'etiqueta, el text d'ajuda de sota (que ara
+      explica que serveix per a les dues coses), els dos missatges de «qui deu
+      a qui» quan encara no hi ha ningú, i la columna de l'exportació a Excel,
+      que passa de «Entre qui» a «Qui hi va» (v110).
+   FET · Correcció: prement Intro als formularis de dins d'un viatge semblava
+      que no passés res. L'ítem SÍ que es desava; el que no passava és que es
+      repintés la llista, i el camp es quedava amb el text escrit. La causa és
+      la protecció de pintaDetallViatge(), que es nega a repintar mentre hi ha
+      el cursor dins d'un camp perquè una sincronització en segon pla no
+      s'endugui el que s'estigui escrivint: prement Intro el cursor hi és,
+      mentre que clicant el botó el clic ja l'havia tret, i per això aquell
+      camí sí que funcionava. Ara, abans de refrescar, un afegit demanat per
+      l'usuària treu el cursor del camp (treuElCursorDelDetall) i qui vulgui
+      ja el torna a posar. Afecta els tres formularis: la maleta, les idees de
+      dins del viatge i les despeses soltes —d'afegir i d'editar.
+      Nota de mètode: la prova anterior comprovava que l'ítem es DESÉS, i
+      passava. El que fallava era que es VEIÉS. Comprovar les dades no és
+      comprovar la pantalla (v109).
    FET · Dues coses a la maleta.
       (1) Els suggeriments es poden AMAGAR: cada xip porta una × al costat
       del text. El xip passa a ser un contenidor amb dos botons (afegir i
@@ -4324,7 +4387,7 @@ const COLUMNES_VIATGES = [
   ['Inici', v => dataBonica(v.dataInici)],
   ['Fi', v => dataBonica(v.dataFi)],
   ['Pressupost previst', v => v.pressupost],
-  ['Entre qui', v => (v.participants || []).join(', ')]
+  ['Qui hi va', v => (v.participants || []).join(', ')]
 ];
 
 /* Afegeix un full al llibre amb les amplades de columna calculades. */
@@ -5299,18 +5362,17 @@ $('inspiracio-mode').addEventListener('click', e => {
   pintaIdees();
 });
 
-/* Afegir no obre cap formulari: crea la idea buida i hi posa el cursor */
-$('btn-nova-idea').addEventListener('click', async () => {
-  const nova = await MagatzemIdees.afegeix({ text: '', zona: '', etiquetes: [], enllac: '' });
-  filtreEtiquetes.clear();   // que la idea nova es vegi encara que hi hagués filtre actiu
-  // Una idea acabada de crear és buida, i el repintat en segon pla (per
-  // una sincronització, per exemple) l'esborraria com si fos una idea
-  // buidada expressament. Es marca com a esborrany fins que s'hi escriu:
-  // mentrestant, ni s'esborra sola ni desapareix en repintar.
-  esborranyIdea = nova.id;
-  await refrescaIdees();
-  const camp = $('llista-idees').querySelector(`[data-idea="${nova.id}"] .idea-text`);
-  if (camp) camp.focus();
+/* Afegir una idea obre la targeta, la mateixa que el compartir des del mòbil
+   i que enganxar un enllaç. Abans hi havia dues portes d'entrada amb dues
+   maneres de funcionar (una obria una fila buida a la llista, l'altra una
+   targeta) i calia triar-ne una abans de començar a escriure, sense que la
+   tria aportés res. Ara els tres camins acaben al mateix formulari.
+   De retruc, la idea neix ja escrita: no cal crear-la buida a la base de
+   dades i protegir-la perquè no s'esborri mentre l'omples. */
+$('btn-nova-idea').addEventListener('click', () => {
+  compartitPendent = null;
+  filtreEtiquetes.clear();   // que la idea nova es vegi encara que hi hagi filtre
+  obreCompartit({ text: '', enllac: '' }, false);
 });
 
 /* ═══════════════ AFEGIR UNA IDEA DES D'UN WEB ═══════════════
@@ -5368,10 +5430,12 @@ function obreCompartit(dades, deFora) {
   $('compartit-font').innerHTML = deFora && domini
     ? '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 3v13M8 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
       + 'compartit des de ' + esc(domini)
-    : 'Apunta una idea amb el seu enllaç.';
+    : 'Apunta un lloc, una activitat, el que sigui.';
   $('compartit-text').value = dades.text || '';
   $('compartit-zona').value = '';
+  $('compartit-etiquetes').value = '';
   $('zones-compartir').innerHTML = opcions(zonesConegudes());
+  $('etiquetes-compartir').innerHTML = opcions(etiquetesConegudes());
   $('avis-compartit').textContent = '';
   // Ve de fora: l'enllaç ja el tens capturat i no l'has de tocar mai. L'obres
   // tu a mà: llavors sí que l'has de poder escriure.
@@ -5402,7 +5466,8 @@ async function desaCompartit() {
   const enllac = compartitDeFora
     ? ((compartitPendent && compartitPendent.enllac) || '')
     : (camp ? camp.value.trim() : '');
-  await MagatzemIdees.afegeix({ text, zona: $('compartit-zona').value.trim(), etiquetes: [], enllac });
+  const etiquetes = $('compartit-etiquetes').value.split(',').map(s => s.trim()).filter(Boolean);
+  await MagatzemIdees.afegeix({ text, zona: $('compartit-zona').value.trim(), etiquetes, enllac });
   tancaEnrere(tancaCompartit);
   filtreEtiquetes.clear();   // que es vegi encara que hi hagués filtre actiu
   await refresca();
@@ -5417,10 +5482,6 @@ function atenCompartitPendent() {
   return true;
 }
 
-$('btn-idea-enllac').addEventListener('click', () => {
-  compartitPendent = null;
-  obreCompartit({ text: '', enllac: '' }, false);
-});
 $('compartit-desa').addEventListener('click', desaCompartit);
 const tancaCompartitUI = () => tancaEnrere(tancaCompartit);
 $('compartit-x').addEventListener('click', tancaCompartitUI);
@@ -5929,8 +5990,10 @@ function pintaViatges() {
 
 /* ── Formulari de crear / editar viatge ── */
 /* ── Participants del viatge (chips) ──
-   L'editor de «entre qui es reparteix» treballa sobre aquesta llista
-   temporal mentre el formulari és obert; es desa amb el viatge. */
+   L'editor de «Qui farà aquest viatge?» treballa sobre aquesta llista
+   temporal mentre el formulari és obert; es desa amb el viatge. El camp es
+   deia «entre qui es reparteixen les despeses» quan només servia per al
+   pressupost; ara també decideix de qui és cada maleta. */
 let participantsFitxa = [];
 
 /* Noms coneguts per suggerir: els de «qui ho paga» de les reserves i els
@@ -6117,6 +6180,37 @@ function ideesViatgeHTML(v, seves) {
 
 /* Crea una idea de la wishlist des de dins del viatge, marcada amb la zona
    del viatge (el seu nom), perquè aparegui aquí i a la Inspiració. */
+/* Un afegit que has demanat tu ha de repintar sí o sí. pintaDetallViatge()
+   es nega a repintar mentre hi ha el cursor dins d'un camp —perquè una
+   sincronització en segon pla no s'endugui el que escrius—, i prement Intro
+   el cursor hi és: l'ítem es desava però no es veia, i semblava que la tecla
+   no fes res. Clicant el botó sí que anava, perquè el clic treu el cursor
+   del camp. Es treu abans de refrescar, i qui vulgui ja el tornarà a posar. */
+function treuElCursorDelDetall() {
+  const f = document.activeElement;
+  if (f && /^(INPUT|TEXTAREA)$/.test(f.tagName) && f.closest && f.closest('#detall-viatge-vista')) f.blur();
+}
+
+/* Afegeix una activitat directament a l'Agenda: una idea que ja neix
+   assignada al viatge (això és una visita) i sense data, o sigui que cau a
+   «Per encaixar», just a sota, on la pots desplegar per posar-li dia. */
+async function afegeixActivitat() {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const camp = $('nova-activitat');
+  const text = camp ? camp.value.trim() : '';
+  if (!text) {
+    avisa($('avis-activitat'), 'Escriu què hi vols fer.', 'mal');
+    if (camp) camp.focus();
+    return;
+  }
+  await MagatzemIdees.afegeix({ text, zona: v.nom || '', etiquetes: [], enllac: '', viatgeId: v.id });
+  treuElCursorDelDetall();
+  await refresca();
+  const nou = $('nova-activitat');
+  if (nou) nou.focus();
+}
+
 async function afegeixIdeaViatge() {
   const v = viatges.find(x => x.id === viatgeObert);
   if (!v) return;
@@ -6127,6 +6221,7 @@ async function afegeixIdeaViatge() {
     return;
   }
   await MagatzemIdees.afegeix({ text, zona: v.nom || '', etiquetes: [], enllac: '' });
+  treuElCursorDelDetall();
   await refresca();
   const camp = $('nova-idea-viatge');
   if (camp) camp.focus();
@@ -6134,16 +6229,32 @@ async function afegeixIdeaViatge() {
 
 /* Una idea suggerida dins del viatge: text i un botó per convertir-la
    en visita. En convertir-la, va a «per encaixar» (sense data). */
+/* La zona, les etiquetes i l'enllaç s'editen aquí mateix: abans, per posar-li
+   un enllaç a una idea creada des del viatge, havies de convertir-la en
+   visita, canviar a l'Agenda i buscar-la. Reaprofita el mateix mecanisme que
+   les visites (data-visita-camp), que val per a qualsevol idea.
+   El TEXT no s'edita aquí a posta: una idea pot tenir més d'una línia (la
+   primera fa de títol) i un camp d'una línia se n'enduria la resta. Per
+   reescriure-la, la Inspiració. */
 function ideaSuggeridaHTML(i) {
-  const etiquetes = (i.etiquetes || []).length ? `<span class="suggerida-etiq">${esc(i.etiquetes.join(' · '))}</span>` : '';
+  const id = esc(i.id);
   return `<div class="idea-suggerida">
     <div class="suggerida-cos">
-      <span class="suggerida-text">${esc(i.text || 'Idea sense text')}</span>
-      <span class="suggerida-meta">${esc(i.zona || '')}${etiquetes ? ' · ' : ''}${etiquetes}</span>
+      <span class="suggerida-text">${esc((i.text || 'Idea sense text').split('\n')[0])}</span>
+      <div class="suggerida-camps">
+        <input class="fitxa-camp zona" data-visita-camp="zona" data-vid="${id}"
+          value="${esc(i.zona || '')}" placeholder="zona" size="10" autocomplete="off">
+        <input class="fitxa-camp etiquetes" data-visita-camp="etiquetes" data-vid="${id}"
+          value="${esc((i.etiquetes || []).join(', '))}" placeholder="etiquetes" size="10" autocomplete="off">
+        <input class="fitxa-camp" data-visita-camp="enllac" data-vid="${id}"
+          value="${esc(i.enllac || '')}" placeholder="enllaç" size="8" autocomplete="off" inputmode="url">
+      </div>
     </div>
-    <button class="primari mini" data-converteix="${esc(i.id)}">Afegeix al viatge</button>
-    <button class="subtil mini" data-no-suggerir="${esc(i.id)}"
-      title="No la tornis a suggerir en aquest viatge">No la suggereixis</button>
+    <div class="suggerida-accions">
+      <button class="primari mini" data-converteix="${id}">Afegeix al viatge</button>
+      <button class="subtil mini" data-no-suggerir="${id}"
+        title="No la tornis a suggerir en aquest viatge">No la suggereixis</button>
+    </div>
   </div>`;
 }
 
@@ -6413,10 +6524,20 @@ function agendaCompletHTML(v, seves, sevesVisites) {
     return minutsDia(a.hora) - minutsDia(b.hora);
   });
 
-  let html = '';
+  // Porta d'entrada pròpia de l'Agenda. Fins ara només s'hi arribava
+  // convertint una idea, i una cosa que ja saps que faràs («excursió al
+  // Teide») havia de passar per la porta dels desitjos. Idees són coses que
+  // t'agradaria fer; l'Agenda, coses que faràs.
+  // No es demana la data en crear-la: sovint encara no la saps, i «Per
+  // encaixar» existeix justament per no haver-la de decidir abans d'hora.
+  let html = `<div class="idea-nova-viatge">
+      <input id="nova-activitat" class="idea-nova-camp" placeholder="Afegeix una activitat (excursió, visita, sopar…)" autocomplete="off">
+      <button class="primari mini" data-afegeix-activitat>Afegeix</button>
+    </div>
+    <div class="avis" id="avis-activitat"></div>`;
 
   if (!seves.length && !sevesVisites.length) {
-    html += `<p class="detall-buit">Aquest viatge encara no té res. Assigna-hi reserves des de Reserves, o converteix en visites les idees de la pestanya Idees.</p>`;
+    html += `<p class="detall-buit">Aquest viatge encara no té res. Apunta-hi una activitat aquí dalt, assigna-hi reserves des de Reserves, o converteix en visites les idees de la pestanya Idees.</p>`;
   }
 
   if (itinerari.length) {
@@ -6740,6 +6861,7 @@ async function afegeixDespesa() {
   despeses.push({ id: nouId(), concepte, import: importText, categoria, quiPaga, forma: formaNova });
   formaNova = '';
   await MagatzemViatges.actualitza(v.id, { despeses });
+  treuElCursorDelDetall();
   await refresca();
 }
 
@@ -6760,6 +6882,7 @@ async function desaDespesa(id) {
   despesaEnEdicio = null;
   formaEdicio = '';
   await MagatzemViatges.actualitza(v.id, { despeses });
+  treuElCursorDelDetall();
   await refresca();
 }
 
@@ -7129,6 +7252,7 @@ async function afegeixItemMaleta(text, tornaAlCamp) {
   const abans = (bloc && bloc.offsetParent) ? bloc.getBoundingClientRect().top : null;
 
   await MagatzemViatges.actualitza(v.id, { maleta });
+  treuElCursorDelDetall();
   await refresca();
 
   if (abans != null) {
@@ -7344,14 +7468,14 @@ function repartimentHTML(ambPreu, participants) {
   const embolcall = cos => `<div class="repartiment"><h4 class="agenda-titol">Qui deu a qui</h4>${cos}</div>`;
 
   if (!persones.length) {
-    return embolcall(`<p class="repart-nota">Assigna «qui ho paga» a les reserves amb preu, o digues «entre qui» va el viatge (editant-lo), i aquí veuràs qui deu a qui.</p>`);
+    return embolcall(`<p class="repart-nota">Assigna «qui ho paga» a les reserves amb preu, o digues qui farà el viatge (editant-lo), i aquí veuràs qui deu a qui.</p>`);
   }
   if (totalPagat === 0) {
     return embolcall(`<p class="repart-nota">Encara no hi ha cap pagament assignat: posa el preu i el «qui ho paga» a les reserves per veure el repartiment.</p>${notaSense}`);
   }
   if (persones.length === 1) {
     return embolcall(
-      `<p class="repart-nota">De moment tot ho ha pagat <strong>${esc(persones[0].nom)}</strong>. Si éreu més d'una persona, digues «entre qui» va el viatge (editant-lo) o assigna «qui ho paga» a la resta de reserves.</p>${notaSense}`);
+      `<p class="repart-nota">De moment tot ho ha pagat <strong>${esc(persones[0].nom)}</strong>. Si éreu més d'una persona, digues qui farà el viatge (editant-lo) o assigna «qui ho paga» a la resta de reserves.</p>${notaSense}`);
   }
 
   // Repartiment a parts iguals, en cèntims. El sobrant de la divisió es
@@ -7497,6 +7621,7 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   }
   // Crear una idea des de dins del viatge (pestanya Idees)
   if (e.target.closest('[data-afegeix-idea-viatge]')) { await afegeixIdeaViatge(); return; }
+  if (e.target.closest('[data-afegeix-activitat]')) { await afegeixActivitat(); return; }
   // Maleta
   const qui = e.target.closest('[data-maleta-persona]');
   if (qui) { personaMaleta = qui.dataset.maletaPersona; ultimMaleta = ''; pintaDetallViatge(); return; }
@@ -7552,6 +7677,7 @@ $('detall-viatge-vista').addEventListener('click', async e => {
 $('detall-viatge-vista').addEventListener('keydown', e => {
   if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
   if (e.target.id === 'nova-idea-viatge') { e.preventDefault(); afegeixIdeaViatge(); }
+  else if (e.target.id === 'nova-activitat') { e.preventDefault(); afegeixActivitat(); }
   else if (e.target.id === 'nou-item-maleta') { e.preventDefault(); afegeixItemMaleta(e.target.value, true); }
   else if (e.target.closest('.despesa-nova')) { e.preventDefault(); afegeixDespesa(); }
   else if (e.target.closest('.despesa-edicio') && despesaEnEdicio) { e.preventDefault(); desaDespesa(despesaEnEdicio); }
