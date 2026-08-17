@@ -2247,16 +2247,49 @@ function parseReserva(textOriginal) {
 /* ═══════════════ APLICACIÓ ═══════════════ */
 
 /* ── PENDENT PER A LA PROPERA TANDA ──────────────────────────────────
-   1. Viatges. Agrupar les reserves per viatge i no per mes. És el pas
-      que desbloqueja tota la resta. Aquí es resol també el vincle
-      anada-tornada dels vols: el preu passa al pressupost del viatge.
-   2. Pressupost del viatge. Relacionar-hi els preus de les reserves.
-      importNum() i formataImport() ja hi són, preparades.
-   3. Vincle anada-tornada dels vols. De moment a mà (preu només a
-      l'anada, mateix localitzador). Es resol bé dins dels viatges.
-   4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
-   5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
-   6. Buscador d'idees quan n'hi hagi moltes.
+   (Se n'han tret tres el 17/08/2026 que ja estaven fets i despistaven:
+   agrupar les reserves per viatge, el pressupost del viatge i el vincle
+   anada-tornada dels vols, que es va resoldre sol en existir els viatges.
+   La llista de pendents BONA és la §14 de la documentació.)
+   1. Millorar les icones dels tipus (les actuals són SVG fets a mà).
+   2. Parsing automàtic de vols i cotxes (ara s'entren a mà).
+   3. Buscador d'idees quan n'hi hagi moltes.
+   4. Correu de sortida propi a Supabase. Els correus de recuperació de
+      contrasenya (v117) els envia ara el remitent de proves de Supabase,
+      amb un límit d'uns pocs correus per hora i sense garantia d'entrega.
+      Per a poca gent va bé; si creix, cal configurar-hi un SMTP propi a
+      Authentication → Emails. Va lligat a l'adreça de tornada autoritzada
+      a Authentication → URL Configuration, que ja està posada.
+      ENCÀRREC DE LA CLARA (17/08/2026): la propera documentació
+      (com-funciona-l-app-14.md, que tocarà a la v126) ha de portar un
+      APARTAT NOU dedicat a això —el compte, l'accés i el que depèn de la
+      configuració de Supabase—, no una línia més a «Què queda pendent».
+   FET · Ítems nous a la maleta, i el DNI se separa del passaport. Amb un vol
+      se'n suggereixen ara dos («DNI» i «Passaport») en comptes d'un de sol
+      («DNI o passaport»), que obligava a tenir-los per força tots dos o cap.
+      Tres grups nous: PLUJA (impermeable, paraigües), on l'impermeable fa de
+      pont amb muntanya, on ja hi era; APUNTS (llibreta, boli, guia
+      turística); i RÀDIO (ràdio, piles, auriculars), bidireccional a posta.
+      Als que ja hi havia: màquina d'afaitar al necesser, mascareta a la
+      farmaciola, i navalla al càmping.
+      Quatre coses que es van veure provant-ho, totes de la mateixa família
+      —el pelat de paraules—:
+      · «bolígraf» no comparteix arrel amb «boli»: hi van les dues.
+      · «afeitar» tampoc amb «afaitar». L'ítem surt ben escrit en català i
+        les dues grafies disparen, que si algú l'escriu amb e també ha de
+        funcionar.
+      · «navalla» ha d'anar de disparador encara que l'ítem ja hi sigui: la
+        simetria demana TOTES les paraules de l'ítem, i «Navalla (maleta
+        facturada)» en té tres, o sigui que escrivint només «navalla» no
+        hauria disparat res.
+      · Un ítem que no és a cap grup no el suggereix mai l'app: només torna
+        per «De les teves maletes anteriors», un cop ja l'has fet servir. Per
+        això tots han acabat en algun grup i cap no ha quedat sol.
+      L'avís de la navalla va DINS DEL NOM, escollit sabent que és lleig: el
+      mecanisme de suggeriments només sap proposar ítems, no avisar de res.
+      Fer-ho bé seria creuar la maleta amb el fet que el viatge tingui un vol
+      —l'app ja ho sap, és com suggereix els líquids de menys de 100 ml— i
+      això és una funció a part, no un ítem (v118).
    FET · Es pot recuperar la contrasenya. Fins ara no hi havia cap manera:
       qui se l'oblidava depenia que algú amb accés al tauler de Supabase li
       esborrés l'usuari. Ara la pantalla d'entrada té «He oblidat la
@@ -7254,21 +7287,37 @@ const COMPANYS_MALETA = [
   [['passaport', 'dni'], ['Assegurança de viatge', 'Còpia dels documents']],
   // El necesser és el calaix de la higiene: d'aquí pengen totes les
   // menudalles, en comptes d'inflar el bàsic de cada viatge.
-  [['necesser', 'sabo', 'xampu', 'desodorant', 'suavitzant', 'dutxa'],
+  // «afeitar» és castellanisme, però hi és a posta: l'ítem surt ben escrit
+  // («Màquina d’afaitar») i qui l'escrigui amb e també topa. Les dues
+  // grafies no comparteixen arrel, o sigui que amb una de sola no n'hi ha
+  // prou.
+  [['necesser', 'sabo', 'xampu', 'desodorant', 'suavitzant', 'dutxa', 'afaitar', 'afeitar'],
     ['Raspall de dents', 'Pasta de dents', 'Fil dental', 'Xampú', 'Suavitzant',
-     'Sabó de cos', 'Desodorant', 'Gorro de dutxa', 'Kleenex']],
+     'Sabó de cos', 'Desodorant', 'Gorro de dutxa', 'Màquina d’afaitar', 'Kleenex']],
   [['raspall', 'dent'], ['Pasta de dents', 'Fil dental']],
   [['medicament', 'farmaciola', 'paracetamol'],
-    ['Paracetamol', 'Termòmetre', 'Esparadrap', 'Tiretes', 'Recepta']],
+    ['Paracetamol', 'Termòmetre', 'Esparadrap', 'Tiretes', 'Recepta', 'Mascareta']],
   [['pijama'], ['Sabatilles']],
   [['moneder', 'cartera'], ['Diners en efectiu', 'Targeta de crèdit']],
   [['diner', 'efectiu'], ['Moneder', 'Targeta de crèdit']],
   [['ulleres'], ['Funda de les ulleres', 'Líquid de lentilles']],
-  [['tenda', 'sac'], ['Llanterna', 'Màrfega', 'Matalàs inflable', 'Encenedor']],
+  // «navalla» va de disparador encara que l'ítem ja hi sigui: la simetria
+  // demana que hi siguin TOTES les paraules de l'ítem, i «Navalla (maleta
+  // facturada)» en té tres. Escrivint només «navalla» no dispararia res.
+  [['tenda', 'sac', 'navalla'],
+    ['Llanterna', 'Màrfega', 'Matalàs inflable', 'Encenedor', 'Navalla (maleta facturada)']],
   [['americana', 'vestit'], ['Sabates de vestir', 'Cinturó']],
   [['carregador'], ['Adaptador d’endoll', 'Bateria externa']],
   [['llibre'], ['Auriculars']],
-  [['tovallola'], ['Xancletes']]
+  [['tovallola'], ['Xancletes']],
+  // La pluja sí que la pots dir tu, com el fred: no s'endevina pel destí.
+  // L'impermeable ja sortia a muntanya, o sigui que fa de pont entre els dos.
+  [['impermeable', 'paraigua', 'pluja'], ['Impermeable', 'Paraigües']],
+  // Les coses d'apuntar i d'orientar-se. «boligraf» hi va a part perquè no
+  // comparteix arrel amb «boli».
+  [['llibreta', 'boli', 'boligraf', 'guia'], ['Llibreta', 'Boli', 'Guia turística']],
+  // Bidireccional a posta: la ràdio, sola, no la suggeriria mai ningú.
+  [['radio', 'pila'], ['Ràdio', 'Piles', 'Auriculars']]
 ];
 
 /* Els companys que TU has demostrat que van junts: coses que han sortit a la
@@ -7330,7 +7379,7 @@ function suggerimentsDelViatge(seves) {
   const menes = new Set(seves.map(tipusDe));
   const items = [], motius = [];
   if (menes.has('vol')) {
-    items.push('DNI o passaport', 'Targeta d’embarcament', 'Líquids de menys de 100 ml');
+    items.push('DNI', 'Passaport', 'Targeta d’embarcament', 'Líquids de menys de 100 ml');
     motius.push('un vol');
   }
   if (menes.has('cotxe')) { items.push('Carnet de conduir'); motius.push('un cotxe de lloguer'); }
