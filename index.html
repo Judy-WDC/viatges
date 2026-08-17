@@ -1423,6 +1423,50 @@
   .novetats-cos p:last-child { margin-bottom: 0; }
   .novetats-comiat { margin-top: 18px; }
   .novetats-ok { width: 100%; margin-top: 20px; }
+
+  /* ── El full de la maleta per imprimir ──
+     Es dibuixa a part i no es veu mai a la pantalla. NO s'amaga l'app amb
+     estils per imprimir el que ja hi ha: les files de la maleta porten
+     nansa, botó d'esborrar i botó de moure de persona, que en paper no
+     volen dir res. Fer-ne una còpia neta surt més a compte que anar
+     amagant-ne trossos.
+     Va tot en blanc i negre a posta: en paper el color de cadascú no diu res
+     i gasta tinta. Mides en punts, que és la unitat del paper. */
+  #full-imprimir { display: none; }
+  .full-cap { border-bottom: 1.5pt solid #000; padding-bottom: 8pt; }
+  .full-viatge { font-size: 17pt; font-weight: 600; margin: 0; color: #000; }
+  .full-dates { font-size: 10pt; color: #333; margin: 2pt 0 0; }
+  .full-qui { font-size: 12pt; font-weight: 600; margin: 14pt 0 8pt; color: #000; }
+  .full-llista { list-style: none; margin: 0; padding: 0; }
+  .full-item {
+    display: flex; align-items: center; gap: 9pt; padding: 4pt 0;
+    border-bottom: 0.5pt solid #bbb; font-size: 11pt; color: #000;
+  }
+  .full-casella {
+    width: 11pt; height: 11pt; border: 0.8pt solid #000; flex: none;
+    display: flex; align-items: center; justify-content: center; font-size: 9pt;
+  }
+  .full-item.fet .full-text { text-decoration: line-through; color: #666; }
+  .full-buida { font-size: 11pt; color: #555; font-style: italic; }
+  .full-peu { font-size: 8.5pt; color: #555; margin-top: 14pt; padding-top: 6pt; border-top: 0.5pt solid #bbb; }
+  /* El peu de la maleta: el comptador a l'esquerra i imprimir a la dreta. */
+  .maleta-peu { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .maleta-peu .maleta-compte { margin: 0; }
+  .imprimir-opcio { display: flex; align-items: center; gap: 9px; padding: 7px 2px; font-size: 14px; color: var(--tinta); }
+  .imprimir-opcio input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+@page { margin: 16mm; }
+@media print {
+  /* Del document només s'imprimeix el full. Els «script» també hi són, però
+     no es pinten. */
+  body > *:not(#full-imprimir) { display: none !important; }
+  #full-imprimir { display: block !important; }
+  body { background: #fff; }
+  /* Un full per persona, i cap ítem partit entre dues pàgines. */
+  .full-persona { break-after: page; page-break-after: always; }
+  .full-persona:last-child { break-after: auto; page-break-after: auto; }
+  .full-item { break-inside: avoid; page-break-inside: avoid; }
+}
 </style>
 </head>
 <body>
@@ -1758,6 +1802,24 @@
     <div class="avis" id="avis-peu"></div>
   </div>
 </footer>
+
+<!-- Només surt quan el viatge té més d'una llista: amb una de sola, preguntar
+     de qui és seria un pas de més per a una resposta òbvia. -->
+<div class="novetats-overlay" id="imprimir-overlay">
+  <div class="novetats" role="dialog" aria-modal="true" aria-labelledby="imprimir-titol">
+    <button class="novetats-x" id="imprimir-x" aria-label="Tanca">&times;</button>
+    <h2 class="novetats-titol" id="imprimir-titol">Quines llistes vols imprimir?</h2>
+    <div id="imprimir-gent"></div>
+    <div class="avis" id="avis-imprimir"></div>
+    <div class="compartit-botons">
+      <button class="subtil" id="imprimir-cancela">Cancel·la</button>
+      <button class="primari" id="imprimir-fes">Imprimeix</button>
+    </div>
+  </div>
+</div>
+
+<!-- El full que se'n va a la impressora. Buit fins que es demana. -->
+<div id="full-imprimir"></div>
 
 <div class="novetats-overlay" id="novetats-overlay">
   <div class="novetats" role="dialog" aria-modal="true" aria-labelledby="novetats-titol">
@@ -2264,6 +2326,28 @@ function parseReserva(textOriginal) {
       (com-funciona-l-app-14.md, que tocarà a la v126) ha de portar un
       APARTAT NOU dedicat a això —el compte, l'accés i el que depèn de la
       configuració de Supabase—, no una línia més a «Què queda pendent».
+   FET · La maleta es pot imprimir. Un botó al peu de la llista prepara un
+      full amb el viatge, les dates, de qui és la llista i els ítems amb
+      casella per marcar, i obre la impressió del navegador.
+      NO es fabrica cap PDF. A tot arreu —ordinador, Android i iPhone— el
+      diàleg d'imprimir ofereix «Desa com a PDF», i una biblioteca de PDF
+      serien uns 350 KB de codi extern per a un full amb caselles, en una app
+      d'un sol fitxer que ha de funcionar sense connexió. El que hi perdem és
+      la capçalera que hi posa el navegador (data i adreça), que només es pot
+      treure des del seu diàleg.
+      El full es dibuixa A PART i no s'amaga l'app amb estils d'impressió:
+      les files de la maleta porten nansa, botó d'esborrar i botó de moure de
+      persona, que en paper no volen dir res. Fer-ne una còpia neta surt més a
+      compte que anar amagant-ne trossos.
+      Va tot en blanc i negre a posta: el color de cadascú, en paper, no diu
+      res i gasta tinta. El que ja està marcat surt marcat i ratllat: el full
+      és per continuar, no per començar de zero.
+      Si el viatge té més d'una llista amb coses, pregunta quines vol —amb la
+      que estàs mirant ja marcada—; amb una de sola no pregunta res, que seria
+      un pas de més per a una resposta òbvia. Les llistes buides no surten a
+      la tria: un full en blanc no serveix de res.
+      Un full per persona (break-after) i cap ítem partit entre dues pàgines
+      (break-inside) (v119).
    FET · Ítems nous a la maleta, i el DNI se separa del passaport. Amb un vol
       se'n suggereixen ara dos («DNI» i «Passaport») en comptes d'un de sol
       («DNI o passaport»), que obligava a tenir-los per força tots dos o cap.
@@ -7620,7 +7704,10 @@ function maletaHTML(v, seves) {
       </div>
       <div class="avis" id="avis-maleta"></div>
       <div class="maleta-llista" data-reordena="maleta">${llista}</div>
-      ${meus.length ? `<p class="maleta-compte" id="maleta-compte">${fets} de ${meus.length} ${meus.length === 1 ? 'preparat' : 'preparades'}</p>` : ''}
+      ${tots.length ? `<div class="maleta-peu">
+        ${meus.length ? `<p class="maleta-compte" id="maleta-compte">${fets} de ${meus.length} ${meus.length === 1 ? 'preparat' : 'preparades'}</p>` : '<span></span>'}
+        <button class="subtil mini" data-imprimeix-maleta>Imprimeix la llista</button>
+      </div>` : ''}
       ${suggeriments}
     </div>`;
 }
@@ -7681,6 +7768,89 @@ async function alternaItemMaleta(id) {
     + (meus.length === 1 ? ' preparat' : ' preparades');
   await MagatzemViatges.actualitza(v.id, { maleta });
 }
+
+/* ── Imprimir la maleta ───────────────────────────────────────────────────
+   No es fabrica cap PDF: es prepara el full i s'obre la impressió del
+   navegador, que a tot arreu (ordinador, Android i iPhone) ofereix «Desa com
+   a PDF». Una biblioteca de PDF serien uns 350 KB de codi extern per a un
+   full amb caselles, en una app d'un sol fitxer que ha de funcionar sense
+   connexió. El que hi perdem és la capçalera que hi posa el navegador (data
+   i adreça), que només es pot treure des del seu diàleg. */
+function fullImprimirHTML(v, quins) {
+  const tots = Array.isArray(v.maleta) ? v.maleta : [];
+  return quins.map(p => {
+    const seus = tots.filter(it => (it.persona || '') === (p || ''));
+    const fets = seus.filter(it => it.fet).length;
+    const files = seus.length
+      ? `<ul class="full-llista">` + seus.map(it =>
+          `<li class="full-item${it.fet ? ' fet' : ''}">
+            <span class="full-casella" aria-hidden="true">${it.fet ? '✓' : ''}</span>
+            <span class="full-text">${esc(it.text || '')}</span>
+          </li>`).join('') + `</ul>`
+      : `<p class="full-buida">Aquesta llista encara és buida.</p>`;
+    return `<section class="full-persona">
+      <div class="full-cap">
+        <h1 class="full-viatge">${esc(v.nom || 'Viatge sense nom')}</h1>
+        <p class="full-dates">${esc(rangViatge(v))}</p>
+      </div>
+      <h2 class="full-qui">${p ? 'Maleta de ' + esc(p) : 'La maleta'}</h2>
+      ${files}
+      <p class="full-peu">${fets} de ${seus.length} ${seus.length === 1 ? 'preparat' : 'preparades'} · Els meus viatges</p>
+    </section>`;
+  }).join('');
+}
+
+/* Les llistes que tenen alguna cosa a dins: imprimir un full buit d'algú que
+   encara no hi ha posat res no serveix de res. */
+function llistesAmbCoses(v) {
+  const tots = Array.isArray(v.maleta) ? v.maleta : [];
+  const gent = gentDelViatge(v, reserves.filter(r => r.viatgeId === v.id));
+  const orfes = tots.some(it => !(it.persona || '').trim());
+  return [...(orfes ? [''] : []), ...gent]
+    .filter(p => tots.some(it => (it.persona || '') === (p || '')));
+}
+
+function imprimeixMaleta(quins) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v || !quins.length) return;
+  $('full-imprimir').innerHTML = fullImprimirHTML(v, quins);
+  window.print();
+}
+
+function obreTriaImprimir() {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const llistes = llistesAmbCoses(v);
+  // Amb una sola llista (o cap) no es pregunta res i s'imprimeix i avall.
+  if (llistes.length <= 1) { imprimeixMaleta(llistes.length ? llistes : [personaMaleta || '']); return; }
+  // Ve marcada la que estàs mirant; si aquella és buida, la primera que hi hagi.
+  const marcada = llistes.includes(personaMaleta || '') ? (personaMaleta || '') : llistes[0];
+  $('imprimir-gent').innerHTML = llistes.map(p =>
+    `<label class="imprimir-opcio">
+      <input type="checkbox" value="${esc(p)}"${p === marcada ? ' checked' : ''}>
+      <span>${p ? esc(p) : 'Sense assignar'}</span>
+    </label>`).join('');
+  $('avis-imprimir').textContent = '';
+  $('imprimir-overlay').classList.add('visible');
+  apuntaEnrere('imprimir', () => tancaTriaImprimir());
+}
+
+function tancaTriaImprimir() { $('imprimir-overlay').classList.remove('visible'); }
+const tancaTriaImprimirUI = () => tancaEnrere('imprimir', tancaTriaImprimir);
+
+$('imprimir-x').addEventListener('click', tancaTriaImprimirUI);
+$('imprimir-cancela').addEventListener('click', tancaTriaImprimirUI);
+$('imprimir-fes').addEventListener('click', () => {
+  const quins = [...$('imprimir-gent').querySelectorAll('input:checked')].map(c => c.value);
+  if (!quins.length) {
+    avisa($('avis-imprimir'), 'Tria almenys una llista.', 'mal');
+    return;
+  }
+  tancaTriaImprimirUI();
+  // Es deixa tancar l'overlay abans d'obrir la impressió, o el navegador
+  // el retrataria damunt del full.
+  setTimeout(() => imprimeixMaleta(quins), 60);
+});
 
 /* Amagar un suggeriment que no vols veure més en aquest viatge, i tornar-los
    tots. Es desa dins del viatge (v.sugAmagats) perquè et segueixi d'un
@@ -8037,6 +8207,7 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   if (e.target.closest('[data-afegeix-idea-viatge]')) { await afegeixIdeaViatge(); return; }
   if (e.target.closest('[data-afegeix-activitat]')) { await afegeixActivitat(); return; }
   // Maleta
+  if (e.target.closest('[data-imprimeix-maleta]')) { obreTriaImprimir(); return; }
   const qui = e.target.closest('[data-maleta-persona]');
   if (qui) { personaMaleta = qui.dataset.maletaPersona; ultimMaleta = ''; pintaDetallViatge(); return; }
   const marca = e.target.closest('[data-maleta-toggle]');
