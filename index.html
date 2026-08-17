@@ -729,6 +729,25 @@
   }
   .maleta-nansa:hover { color: var(--tinta-tenue); }
   .maleta-nansa svg { width: 16px; height: 16px; }
+  /* «Per encaixar»: la nansa va DINS de la fila, a l'esquerra del cap. */
+  .fila-dalt { display: flex; align-items: stretch; }
+  .fila-dalt .fila-cap { flex: 1; min-width: 0; padding-left: 6px; }
+  /* Alineada amb la primera línia (a l'alçada de la icona), no centrada:
+     amb la fila de dues línies quedava flotant al mig. I estreta, que al
+     mòbil aquesta fila ja va justa d'amplada. */
+  .fila-nansa {
+    flex: none; display: inline-flex; align-items: flex-start; justify-content: center;
+    width: 20px; padding: 17px 0 0 4px; color: var(--vora-forta);
+    cursor: grab; touch-action: none; user-select: none;
+  }
+  .fila-nansa:hover { color: var(--tinta-tenue); }
+  .fila-nansa svg { width: 15px; height: 15px; }
+  /* Amb la fila desplegada, el cap es tenyeix: la nansa hi ha d'anar a joc
+     o quedaria un tros clar enganxat a l'albergínia. */
+  .fila.oberta .fila-dalt { background: var(--accent); }
+  .fila.oberta .fila-nansa { color: var(--accent-tenue); }
+  .fila.visita.arrossegant { border-left-color: var(--accio); box-shadow: 0 6px 18px rgba(51, 39, 46, 0.14); }
+  .fila.visita.arrossegant .fila-nansa { color: var(--accent); cursor: grabbing; }
   .maleta-item.arrossegant {
     background: var(--accent-fons); border-radius: 8px;
     border-bottom-color: transparent; cursor: grabbing;
@@ -2182,6 +2201,32 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Correcció de la v113: la nansa de «Per encaixar» passa a dins de la
+      fila, a l'esquerra del cap i alineada amb la icona. Fora quedava una
+      icona solta al marge, lletja. La raó que s'havia donat per posar-la fora
+      («la fila d'una visita és el mateix component que la d'una reserva») era
+      FALSA: filaVisitaHTML() és una funció pròpia i tocar-la no afecta les
+      reserves. Ara accepta un paràmetre «ambNansa», que només fa servir «Per
+      encaixar».
+      Dos ajustos que van sortir mirant-ho al mòbil: la nansa va alineada amb
+      la primera línia i no centrada (amb la fila de dues línies quedava
+      flotant al mig), i és estreta —20px—, que aquella fila ja va justa
+      d'amplada. Amb la fila desplegada, la franja de la nansa es tenyeix
+      d'albergínia com el cap, o quedaria un tros clar enganxat (v114).
+   FET · «Per encaixar» també es reordena arrossegant, per posar a dalt el que
+      vulguis encaixar abans. El mecanisme d'arrossegar de la maleta s'ha fet
+      genèric: la nansa és [data-nansa], la fila .reordenable i el contenidor
+      porta data-reordena amb el nom de la llista, que és el que decideix on
+      es desa l'ordre.
+      Desar-lo NO es podia fer com a la maleta: els ítems de la maleta són una
+      llista dins del viatge, però les visites són registres separats de la
+      taula d'idees i no hi ha cap ordre a reordenar. Es desa la llista
+      d'identificadors dins del viatge (v.ordreEncaixar): una sola escriptura,
+      sense tocar cap idea. Les visites que no hi surtin —acabades d'afegir—
+      van al final, i els identificadors d'idees esborrades s'ignoren sols.
+      La nansa va en un EMBOLCALL, al costat de la fila i no a dins: la fila
+      d'una visita és el mateix component que la d'una reserva i no s'ha de
+      tocar per això (v113).
    FET · L'Agenda té porta pròpia. Fins ara només s'hi arribava convertint
       una idea, o sigui que una cosa que ja saps que faràs («excursió al
       Teide») havia de passar per la porta dels desitjos. Ara hi ha un camp
@@ -6261,12 +6306,22 @@ function ideaSuggeridaHTML(i) {
 /* Una visita (idea marcada com a visita d'un viatge), com a fila
    desplegable coherent amb les reserves. En obrir-la: text, zona,
    etiquetes, enllaç, data i hora editables, i treure del viatge. */
-function filaVisitaHTML(vi) {
+/* «ambNansa» només a «Per encaixar», que és l'única llista que es reordena.
+   La nansa va DINS de la fila, a l'esquerra del cap: posar-la fora deixava
+   una icona solta al marge i quedava lleig. La fila d'una visita té la seva
+   pròpia funció (no la comparteix amb les reserves), o sigui que tocar-la
+   aquí no afecta res més. */
+function filaVisitaHTML(vi, ambNansa) {
   const obert = filesObertes.has(vi.id);
   const primeraLinia = (vi.text || 'Visita').split('\n')[0];
   const etiq = (vi.etiquetes || []).join(', ');
+  const nansa = ambNansa
+    ? `<span class="fila-nansa" data-nansa role="button" aria-label="Mou de lloc"
+        title="Arrossega per moure-la">${iconaSVG('nansa')}</span>`
+    : '';
 
-  return `<div class="fila visita${obert ? ' oberta' : ''}" data-id="${esc(vi.id)}">
+  return `<div class="fila visita${obert ? ' oberta' : ''}${ambNansa ? ' reordenable' : ''}" data-id="${esc(vi.id)}">
+    <div class="fila-dalt">${nansa}
     <button class="fila-cap graella-fila" aria-expanded="${obert ? 'true' : 'false'}" aria-controls="visita-${esc(vi.id)}">
       <span class="cel-punt">
         <span class="icona-tipus visita-icona" role="img" aria-label="Visita">${iconaSVG('estrella')}</span>
@@ -6279,7 +6334,7 @@ function filaVisitaHTML(vi) {
       <span class="cel-cancel"></span>
       <span class="cel-preu"></span>
       <span class="cel-chev">${CHEVRON}</span>
-    </button>
+    </button></div>
     <div class="fila-detall${obert ? '' : ' ocult'}" id="visita-${esc(vi.id)}">
       <div class="visita-edita">
         <label class="visita-camp ample">
@@ -6514,7 +6569,12 @@ function agendaHTML(seves) {
    poden convertir en visita. */
 function agendaCompletHTML(v, seves, sevesVisites) {
   const ambData = sevesVisites.filter(vi => vi.dataVisita);
-  const senseData = sevesVisites.filter(vi => !vi.dataVisita);
+  // L'ordre de «Per encaixar» el tries tu arrossegant; es desa al viatge com
+  // una llista d'identificadors. Les que no hi surtin encara van al final.
+  const ordreEnc = Array.isArray(v.ordreEncaixar) ? v.ordreEncaixar : [];
+  const posEnc = id => { const i = ordreEnc.indexOf(id); return i === -1 ? 1e9 : i; };
+  const senseData = sevesVisites.filter(vi => !vi.dataVisita)
+    .sort((a, b) => posEnc(a.id) - posEnc(b.id));
 
   const itinerari = [
     ...seves.map(r => ({ tipus: 'reserva', obj: r, quan: r.checkinISO || '', hora: r.checkinHora || '' })),
@@ -6548,9 +6608,10 @@ function agendaCompletHTML(v, seves, sevesVisites) {
 
   if (senseData.length) {
     html += `<div class="agenda-bloc"><h4 class="agenda-titol">Per encaixar</h4>`
-      + `<p class="agenda-nota">Visites sense dia fixat. Obre-les per posar-los data quan la sàpigues.</p>`
-      + senseData.map(filaVisitaHTML).join('')
-      + `</div>`;
+      + `<p class="agenda-nota">Visites sense dia fixat. Obre-les per posar-los data quan la sàpigues, o arrossega-les per posar a dalt les que vulguis encaixar abans.</p>`
+      + `<div data-reordena="encaixar">`
+      + senseData.map(vi => filaVisitaHTML(vi, true)).join('')
+      + `</div></div>`;
   }
 
   return html;
@@ -7175,8 +7236,8 @@ function maletaHTML(v, seves) {
     : '';
 
   const llista = meus.length
-    ? meus.map(it => `<div class="maleta-item${it.fet ? ' fet' : ''}" data-id="${esc(it.id)}">
-        <span class="maleta-nansa" data-maleta-nansa="${esc(it.id)}"
+    ? meus.map(it => `<div class="maleta-item reordenable${it.fet ? ' fet' : ''}" data-id="${esc(it.id)}">
+        <span class="maleta-nansa" data-nansa
           role="button" aria-label="Mou de lloc" title="Arrossega per moure'l">${iconaSVG('nansa')}</span>
         <button class="maleta-marca" data-maleta-toggle="${esc(it.id)}"
           aria-pressed="${it.fet ? 'true' : 'false'}">
@@ -7225,7 +7286,7 @@ function maletaHTML(v, seves) {
         <button class="primari mini" data-afegeix-maleta>Afegeix</button>
       </div>
       <div class="avis" id="avis-maleta"></div>
-      <div class="maleta-llista">${llista}</div>
+      <div class="maleta-llista" data-reordena="maleta">${llista}</div>
       ${meus.length ? `<p class="maleta-compte" id="maleta-compte">${fets} de ${meus.length} ${meus.length === 1 ? 'preparat' : 'preparades'}</p>` : ''}
       ${suggeriments}
     </div>`;
@@ -7360,10 +7421,10 @@ async function mouItemAPersona(id, persona) {
 let arrossegant = null;
 
 function iniciaArrossegar(e) {
-  const nansa = e.target.closest('[data-maleta-nansa]');
+  const nansa = e.target.closest('[data-nansa]');
   if (!nansa) return;
-  const fila = nansa.closest('.maleta-item');
-  const llista = fila && fila.parentElement;
+  const fila = nansa.closest('.reordenable');
+  const llista = fila && fila.closest('[data-reordena]');
   if (!llista) return;
   arrossegant = { fila, llista };
   fila.classList.add('arrossegant');
@@ -7374,7 +7435,7 @@ function iniciaArrossegar(e) {
 function mouArrossegant(e) {
   if (!arrossegant) return;
   const { fila, llista } = arrossegant;
-  for (const altra of llista.querySelectorAll('.maleta-item')) {
+  for (const altra of llista.querySelectorAll('.reordenable')) {
     if (altra === fila) continue;
     const r = altra.getBoundingClientRect();
     const mig = r.top + r.height / 2;
@@ -7391,8 +7452,21 @@ async function acabaArrossegar() {
   const { fila, llista } = arrossegant;
   fila.classList.remove('arrossegant');
   arrossegant = null;
-  const ordre = [...llista.querySelectorAll('.maleta-item')].map(f => f.dataset.id);
-  await desaOrdreMaleta(ordre);
+  const ordre = [...llista.querySelectorAll('.reordenable')].map(f => f.dataset.id);
+  if (llista.dataset.reordena === 'encaixar') await desaOrdreEncaixar(ordre);
+  else await desaOrdreMaleta(ordre);
+}
+
+/* L'ordre de «Per encaixar» no es pot desar com el de la maleta: les visites
+   són registres separats de la taula d'idees, no una llista dins del viatge.
+   Es desa la llista d'identificadors dins del viatge —una sola escriptura, i
+   sense tocar cap idea—. Les que no hi surtin (acabades d'afegir) van al
+   final, i els identificadors d'idees esborrades s'ignoren sols. */
+async function desaOrdreEncaixar(ordre) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  await MagatzemViatges.actualitza(v.id, { ordreEncaixar: ordre });
+  await refresca();
 }
 
 /* Desa l'ordre nou. Només es reordenen els ítems d'aquesta persona: els de
