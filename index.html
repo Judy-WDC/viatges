@@ -1466,6 +1466,29 @@
       <button class="subtil" id="btn-registra">Crea el compte</button>
     </div>
     <div class="avis" id="avis-acces"></div>
+    <button class="codi-oblidat" id="btn-clau-oblidada">He oblidat la contrasenya</button>
+  </div>
+</div>
+
+<!-- On s'acaba la recuperació: s'hi arriba clicant l'enllaç del correu, mai
+     des de dins de l'app. Es demana dos cops per la mateixa raó que el codi
+     d'obertura: una errada de dits et tornaria a deixar fora. -->
+<div class="acces ocult" id="nova-clau">
+  <div class="acces-caixa">
+    <p class="acces-titol">Els meus viatges</p>
+    <p class="acces-intro">Tria una contrasenya nova per al teu compte.</p>
+    <div class="acces-camp">
+      <label for="nova-clau-1">Contrasenya nova</label>
+      <input type="password" id="nova-clau-1" autocomplete="new-password">
+    </div>
+    <div class="acces-camp">
+      <label for="nova-clau-2">Repeteix-la</label>
+      <input type="password" id="nova-clau-2" autocomplete="new-password">
+    </div>
+    <div class="acces-botons">
+      <button class="primari" id="btn-nova-clau">Desa la contrasenya</button>
+    </div>
+    <div class="avis" id="avis-nova-clau"></div>
   </div>
 </div>
 
@@ -2234,6 +2257,32 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Es pot recuperar la contrasenya. Fins ara no hi havia cap manera:
+      qui se l'oblidava depenia que algú amb accés al tauler de Supabase li
+      esborrés l'usuari. Ara la pantalla d'entrada té «He oblidat la
+      contrasenya», que envia el correu amb l'enllaç, i en tornar-hi s'obre
+      una pantalla per posar-ne una de nova (dos cops, com el codi d'obertura:
+      una errada de dits el tornaria a deixar fora).
+      La part delicada és la tornada. L'enllaç del correu porta les claus al
+      final de l'adreça i la biblioteca de Supabase les llegeix SOLA en
+      arrencar, o sigui que quan l'app pregunta si hi ha sessió ja n'hi ha:
+      sense fer res més, qui vingués del correu entraria a l'app i no li
+      demanaríem mai la contrasenya nova, que és el que venia a fer. Per això
+      veDeRecuperacio() mira l'adreça ABANS de Nuvol.init() —un cop creat el
+      client, ja se l'ha netejada i no queda rastre d'on veníem.
+      Es demana la contrasenya nova ABANS del codi d'obertura a posta:
+      l'enllaç ja demostra que el correu és seu, i el codi és d'aquest
+      aparell, no del compte. El codi es demana igualment just després, en
+      desar-la.
+      El missatge en demanar el correu és SEMPRE el mateix, hi hagi compte o
+      no: si digués «aquest correu no té compte», qualsevol podria provar
+      adreces per esbrinar qui té compte aquí. Mateixa idea que el text
+      genèric del codi d'obertura. Els límits d'enviament sí que es diuen, o
+      semblaria que el botó no fa res, i l'enllaç caducat també (caduca i és
+      d'un sol ús; sense dir-ho, semblaria que l'app s'ha espatllat).
+      DEMANA CONFIGURACIÓ A SUPABASE: l'adreça de tornada s'ha d'autoritzar a
+      Authentication → URL Configuration. I el remitent de sèrie de Supabase
+      és de proves, amb un límit de pocs correus per hora (v117).
    FET · Cada persona d'un viatge té el seu color, i el seu nom surt d'aquell
       color a tot arreu dins d'aquell viatge: pestanyes de la maleta, menú
       d'assignar-hi ítems, files i moviments del pressupost, i pastilles de la
@@ -3475,6 +3524,21 @@ const Nuvol = {
   async surt() {
     try { await this.client.auth.signOut(); } catch (e) {}
     this.usuari = null;
+  },
+
+  /* Envia el correu amb l'enllaç per posar una contrasenya nova.
+     L'adreça de tornada s'ha d'AUTORITZAR al tauler de Supabase
+     (Authentication → URL Configuration → Redirect URLs) o l'enllaç del
+     correu no hi porta. Es fa servir l'adreça d'on s'està executant l'app,
+     no una d'escrita a mà, perquè valgui igual en local i publicada. */
+  async demanaNovaClau(correu) {
+    return this.client.auth.resetPasswordForEmail(correu, {
+      redirectTo: location.origin + location.pathname
+    });
+  },
+
+  async canviaClau(clau) {
+    return this.client.auth.updateUser({ password: clau });
   },
 
   /* Agrupa les crides seguides: desar tres coses de cop no dispara tres
@@ -8062,6 +8126,28 @@ function mostraAcces(visible) {
   if (visible) $('acces-correu').focus();
 }
 
+/* ── Recuperar la contrasenya ─────────────────────────────────────────────
+   L'enllaç del correu porta les claus al final de l'adreça i la biblioteca
+   de Supabase les llegeix sola en arrencar: quan l'app pregunta si hi ha
+   sessió, ja n'hi ha. Sense això que segueix, qui vingués d'un correu de
+   recuperació entraria a l'app directament i no li demanaríem mai la
+   contrasenya nova, que és justament el que venia a fer.
+   Per això es mira l'adreça ABANS de crear el client: un cop creat, la
+   biblioteca ja se l'ha netejada i no queda rastre d'on veníem. */
+function veDeRecuperacio() {
+  const mira = cadena => {
+    try { return new URLSearchParams(cadena).get('type') === 'recovery'; }
+    catch (e) { return false; }
+  };
+  return mira((location.hash || '').replace(/^#/, '')) || mira(location.search);
+}
+
+function mostraNovaClau(visible) {
+  $('nova-clau').classList.toggle('ocult', !visible);
+  $('zona-compte').classList.toggle('ocult', visible);
+  if (visible) $('nova-clau-1').focus();
+}
+
 function textErrorAcces(e) {
   const m = ((e && e.message) || '').toLowerCase();
   if (m.includes('invalid login')) return 'El correu o la contrasenya no són correctes.';
@@ -8134,6 +8220,60 @@ $('btn-registra').addEventListener('click', async () => {
 // Enter a qualsevol dels dos camps equival a prémer Entra
 for (const id of ['acces-correu', 'acces-clau']) {
   $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-entra').click(); });
+}
+
+/* El missatge és SEMPRE el mateix, hi hagi compte o no. Si digués «aquest
+   correu no té compte», qualsevol podria anar provant adreces per esbrinar
+   qui té compte aquí. És la mateixa idea del text genèric del codi
+   d'obertura. */
+$('btn-clau-oblidada').addEventListener('click', async () => {
+  const correu = $('acces-correu').value.trim();
+  if (!correu) {
+    avisa($('avis-acces'), 'Escriu el teu correu aquí a dalt i torna a prémer.', 'mal');
+    $('acces-correu').focus();
+    return;
+  }
+  $('btn-clau-oblidada').disabled = true;
+  const { error } = await Nuvol.demanaNovaClau(correu);
+  $('btn-clau-oblidada').disabled = false;
+  // Els límits d'enviament sí que es diuen: si no, sembla que no fa res.
+  if (error && /rate limit/i.test(error.message || '')) {
+    avisa($('avis-acces'), 'S’han demanat massa correus seguits. Espera una estona i torna-ho a provar.', 'mal');
+    return;
+  }
+  avisa($('avis-acces'), 'Si aquest correu té compte, hi rebràs un enllaç per posar-hi una '
+    + 'contrasenya nova. Mira també la carpeta de correu brossa.', 'ok');
+});
+
+$('btn-nova-clau').addEventListener('click', async () => {
+  const a = $('nova-clau-1').value;
+  const b = $('nova-clau-2').value;
+  if (a.length < 6) {
+    avisa($('avis-nova-clau'), 'La contrasenya ha de tenir com a mínim sis caràcters.', 'mal');
+    return;
+  }
+  if (a !== b) {
+    avisa($('avis-nova-clau'), 'Les dues no coincideixen. Torna-les a escriure.', 'mal');
+    $('nova-clau-2').value = ''; $('nova-clau-2').focus();
+    return;
+  }
+  $('btn-nova-clau').disabled = true;
+  const { data, error } = await Nuvol.canviaClau(a);
+  $('btn-nova-clau').disabled = false;
+  if (error) { avisa($('avis-nova-clau'), textErrorAcces(error), 'mal'); return; }
+  $('nova-clau-1').value = ''; $('nova-clau-2').value = '';
+  // Fora les claus de l'adreça: recarregar no ha de tornar a obrir això.
+  try { history.replaceState(history.state, '', location.pathname); } catch (e) {}
+  mostraNovaClau(false);
+  // A partir d'aquí és una entrada normal, codi d'obertura inclòs.
+  const sessio = await Nuvol.sessio();
+  const usuari = (data && data.user) || (sessio && sessio.user);
+  if (codiActiu() && sessio) { sessioPendent = sessio; mostraBloqueig(true); return; }
+  await haEntrat(usuari);
+});
+
+for (const id of ['nova-clau-1', 'nova-clau-2']) {
+  $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-nova-clau').click(); });
 }
 
 $('opc-surt').addEventListener('click', async () => {
@@ -8560,6 +8700,10 @@ document.addEventListener('keydown', e => {
 
   netejaPinsAntics();
 
+  // S'ha de llegir ABANS de Nuvol.init(): en crear el client, la biblioteca
+  // es queda les claus de l'adreça i la neteja.
+  const recuperantClau = veDeRecuperacio();
+
   // Si la biblioteca no ha carregat (per exemple, sense connexió el primer
   // dia), l'app segueix funcionant amb la còpia d'aquest navegador.
   if (!Nuvol.init()) { mostraEstat('local'); return; }
@@ -8570,6 +8714,21 @@ document.addEventListener('keydown', e => {
   actualitzaNotaCodi();
 
   const sessio = await Nuvol.sessio();
+
+  // Ve d'un correu de recuperació: es demana la contrasenya nova i prou. Va
+  // ABANS del codi d'obertura a posta —l'enllaç ja demostra que el correu és
+  // seu, i el codi és d'aquest aparell, no del compte—; el codi es demana
+  // igualment just després, en desar-la.
+  if (recuperantClau) {
+    if (sessio) { mostraNovaClau(true); return; }
+    // Enllaç caducat o ja fet servir: Supabase no deixa sessió i, sense
+    // dir-ho, semblaria que l'app no ha fet res.
+    mostraAcces(true);
+    avisa($('avis-acces'), 'Aquest enllaç ja no val: caduca al cap d’una estona i només '
+      + 'es pot fer servir un cop. Demana’n un altre.', 'mal');
+    return;
+  }
+
   if (!sessio) { mostraAcces(true); return; }
 
   // Si aquest aparell té codi, es demana ABANS de mostrar res. En desbloquejar,
