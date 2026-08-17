@@ -2201,6 +2201,19 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Arreglat: dins d'un viatge, «Tots els viatges» no tornava a la llista
+      de viatges sinó a la pantalla anterior. tancaEnrere() demanava enrere al
+      navegador a cegues i desfeia l'últim pas apuntat, fos quin fos. Si
+      entraves al viatge i després tocaves una pestanya, a dalt de la pila hi
+      havia el canvi de pestanya, i era això el que es desfeia.
+      Ara tancaEnrere() rep el nom del que tanca i només passa pel navegador si
+      aquell pas és JUSTAMENT l'últim; si ha quedat enterrat, tanca directament
+      i neutralitza el pas allà on sigui, perquè una pitjada d'enrere futura no
+      torni a tancar el que ja has tancat —o pitjor, un altre viatge que hagis
+      obert mentrestant. El preu és una pitjada d'enrere que no fa res visible;
+      val més això que anar a parar on no toca.
+      Val per als vuit tancaments que hi passen: viatge, fitxa, fitxa-viatge,
+      panell, compartit, lloc, novetats i codi (v115).
    FET · Correcció de la v113: la nansa de «Per encaixar» passa a dins de la
       fila, a l'esquerra del cap i alineada amb la icona. Fora quedava una
       icona solta al marge, lletja. La raó que s'havia donat per posar-la fora
@@ -3524,7 +3537,7 @@ $('btn-afegeix').addEventListener('click', () => {
     obrePanell(true);
     apuntaEnrere('panell', () => obrePanell(false));
   } else {
-    tancaEnrere(() => obrePanell(false));
+    tancaEnrere('panell', () => obrePanell(false));
   }
 });
 
@@ -3687,7 +3700,7 @@ function pintaCampsFitxa() {
 }
 
 $('btn-descarta').addEventListener('click', () => {
-  tancaEnrere(() => { $('fitxa').classList.remove('visible'); editantId = null; });
+  tancaEnrere('fitxa', () => { $('fitxa').classList.remove('visible'); editantId = null; });
 });
 
 $('btn-desa').addEventListener('click', async () => {
@@ -5513,7 +5526,7 @@ async function desaCompartit() {
     : (camp ? camp.value.trim() : '');
   const etiquetes = $('compartit-etiquetes').value.split(',').map(s => s.trim()).filter(Boolean);
   await MagatzemIdees.afegeix({ text, zona: $('compartit-zona').value.trim(), etiquetes, enllac });
-  tancaEnrere(tancaCompartit);
+  tancaEnrere('compartit', tancaCompartit);
   filtreEtiquetes.clear();   // que es vegi encara que hi hagués filtre actiu
   await refresca();
   vesASeccio('idees');       // et deixa on ha anat a parar
@@ -5528,7 +5541,7 @@ function atenCompartitPendent() {
 }
 
 $('compartit-desa').addEventListener('click', desaCompartit);
-const tancaCompartitUI = () => tancaEnrere(tancaCompartit);
+const tancaCompartitUI = () => tancaEnrere('compartit', tancaCompartit);
 $('compartit-x').addEventListener('click', tancaCompartitUI);
 $('compartit-cancela').addEventListener('click', tancaCompartitUI);
 $('compartit-overlay').addEventListener('click', e => { if (e.target === $('compartit-overlay')) tancaCompartitUI(); });
@@ -5769,7 +5782,7 @@ async function triaLloc(n) {
     if (tipus === 'reserva') await Magatzem.actualitza(id, { lloc });
     else await MagatzemIdees.actualitza(id, { lloc });
   }
-  tancaEnrere(tancaTriaLloc);
+  tancaEnrere('lloc', tancaTriaLloc);
   await refresca();
 }
 
@@ -5824,7 +5837,7 @@ $('lloc-resultats').addEventListener('click', e => {
   const b = e.target.closest('[data-lloc]');
   if (b) triaLloc(+b.dataset.lloc);
 });
-const tancaLlocUI = () => tancaEnrere(tancaTriaLloc);
+const tancaLlocUI = () => tancaEnrere('lloc', tancaTriaLloc);
 $('lloc-x').addEventListener('click', tancaLlocUI);
 $('lloc-overlay').addEventListener('click', e => { if (e.target === $('lloc-overlay')) tancaLlocUI(); });
 document.addEventListener('keydown', e => {
@@ -5863,11 +5876,23 @@ function apuntaEnrere(nom, desfes) {
   try { history.pushState({ passes: pilaEnrere.length }, ''); } catch (e) {}
 }
 
-/* Tanca com si haguessis pitjat enrere. Si no hi ha cap marca (per exemple
-   just en carregar), es tanca directament. */
-function tancaEnrere(tancaDirecte) {
-  if (pilaEnrere.length) { try { history.back(); return; } catch (e) {} }
+/* Tanca com si haguessis pitjat enrere, dient QUÈ es tanca. El nom no és
+   decoració: sense ell, el botó demanava enrere al navegador a cegues i
+   desfeia l'últim pas fos quin fos. */
+function tancaEnrere(nom, tancaDirecte) {
+  const dalt = pilaEnrere[pilaEnrere.length - 1];
+  // Només es demana enrere al navegador si el que es tanca és JUSTAMENT
+  // l'últim pas apuntat. Si al damunt hi ha res més —has entrat en un viatge
+  // i després has tocat una pestanya, per exemple—, enrere desfaria aquella
+  // altra cosa: llavors es tanca directament.
+  if (dalt && dalt.nom === nom) { try { history.back(); return; } catch (e) {} }
   tancaDirecte();
+  // El pas ha quedat enterrat: es neutralitza allà on sigui, perquè una
+  // pitjada d'enrere futura no torni a tancar el que ja has tancat (o pitjor,
+  // una altra cosa del mateix tipus que hagis obert després).
+  for (let i = pilaEnrere.length - 1; i >= 0; i--) {
+    if (pilaEnrere[i].nom === nom) { pilaEnrere[i].desfes = () => {}; break; }
+  }
 }
 
 /* Retira les marques de les capes que l'app ja ha tancat pel seu compte. */
@@ -7608,7 +7633,7 @@ function repartimentHTML(ambPreu, participants) {
 }
 
 $('detall-viatge-vista').addEventListener('click', async e => {
-  if (e.target.closest('#btn-tornar-viatges')) { tancaEnrere(tancaDetallViatge); return; }
+  if (e.target.closest('#btn-tornar-viatges')) { tancaEnrere('viatge', tancaDetallViatge); return; }
   if (e.target.closest('#btn-edita-viatge-detall')) {
     const v = viatges.find(x => x.id === viatgeObert);
     if (v) obreFitxaViatgeDesDeDetall(v);
@@ -7820,7 +7845,7 @@ $('btn-desa-viatge').addEventListener('click', async () => {
   await refrescaViatges();
 });
 
-$('btn-cancela-viatge').addEventListener('click', () => tancaEnrere(tancaFitxaViatge));
+$('btn-cancela-viatge').addEventListener('click', () => tancaEnrere('fitxa-viatge', tancaFitxaViatge));
 
 /* ═══════════════ ACCÉS ═══════════════ */
 
@@ -7857,7 +7882,7 @@ function tancarNovetats() {
   const ov = $('novetats-overlay');
   if (ov) ov.classList.remove('visible');
 }
-const tancaNovetatsUI = () => tancaEnrere(tancarNovetats);
+const tancaNovetatsUI = () => tancaEnrere('novetats', tancarNovetats);
 $('novetats-x').addEventListener('click', tancaNovetatsUI);
 $('novetats-ok').addEventListener('click', tancaNovetatsUI);
 $('novetats-overlay').addEventListener('click', e => { if (e.target === $('novetats-overlay')) tancaNovetatsUI(); });
@@ -8243,7 +8268,7 @@ function pintaCodiModal(estat) {
     cos.innerHTML = '<div class="novetats-cos"><p>El codi s’ha tret d’aquest aparell. '
       + 'En obrir l’app ja no te’l demanarem.</p></div>'
       + '<button class="primari codi-accio" id="codi-fet">Entesos</button>';
-    $('codi-fet').addEventListener('click', () => tancaEnrere(tancaCodiModal));
+    $('codi-fet').addEventListener('click', () => tancaEnrere('codi', tancaCodiModal));
     return;
   }
 
@@ -8251,7 +8276,7 @@ function pintaCodiModal(estat) {
     cos.innerHTML = '<div class="novetats-cos"><p>Codi activat. El proper cop que obris '
       + 'l’app en aquest aparell te’l demanarem.</p></div>'
       + '<button class="primari codi-accio" id="codi-fet">Entesos</button>';
-    $('codi-fet').addEventListener('click', () => tancaEnrere(tancaCodiModal));
+    $('codi-fet').addEventListener('click', () => tancaEnrere('codi', tancaCodiModal));
     return;
   }
 
@@ -8293,7 +8318,7 @@ function pintaCodiModal(estat) {
   });
 }
 
-const tancaCodiUI = () => tancaEnrere(tancaCodiModal);
+const tancaCodiUI = () => tancaEnrere('codi', tancaCodiModal);
 $('opc-codi').addEventListener('click', obreCodiModal);
 $('codi-x').addEventListener('click', tancaCodiUI);
 $('codi-overlay').addEventListener('click', e => { if (e.target === $('codi-overlay')) tancaCodiUI(); });
