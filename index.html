@@ -720,6 +720,20 @@
     transform: rotate(-45deg);
   }
   .maleta-item.fet .maleta-text { color: var(--tinta-tenue); text-decoration: line-through; }
+  /* La nansa d'arrossegar. El «touch-action: none» és imprescindible: sense
+     ell, al mòbil el dit desplaçaria la pàgina en comptes de moure la fila. */
+  .maleta-nansa {
+    flex: none; display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; align-self: stretch; color: var(--vora-forta);
+    cursor: grab; touch-action: none; user-select: none;
+  }
+  .maleta-nansa:hover { color: var(--tinta-tenue); }
+  .maleta-nansa svg { width: 16px; height: 16px; }
+  .maleta-item.arrossegant {
+    background: var(--accent-fons); border-radius: 8px;
+    border-bottom-color: transparent; cursor: grabbing;
+  }
+  .maleta-item.arrossegant .maleta-nansa { color: var(--accent); cursor: grabbing; }
   .maleta-treu { border: none; background: none; color: var(--tinta-tenue); font-size: 16px; padding: 4px 8px; flex: none; }
   .maleta-treu:hover { background: var(--vermell-fons); color: var(--vermell); }
   .maleta-compte { font-size: 11.5px; color: var(--tinta-tenue); margin: 12px 0 0; }
@@ -727,12 +741,35 @@
   .maleta-sug-titol { font-size: 12px; font-weight: 500; color: var(--tinta-tenue); margin: 0 0 3px; letter-spacing: 0.03em; text-transform: uppercase; }
   .maleta-sug-motiu { font-size: 11.5px; color: var(--tinta-tenue); margin: 0 0 10px; line-height: 1.4; }
   .maleta-xips { display: flex; flex-wrap: wrap; gap: 6px; }
+  /* El xip és un contenidor amb dos botons: el gros afegeix, la × amaga.
+     No poden ser un botó dins d'un altre, per això la píndola és un span. */
   .maleta-sug {
-    display: inline-flex; align-items: center; gap: 5px;
+    display: inline-flex; align-items: stretch;
     border: 1px solid var(--vora-forta); background: var(--superficie);
-    color: var(--accent); font-size: 12.5px; font-weight: 400; padding: 5px 11px; border-radius: 999px;
+    border-radius: 999px; overflow: hidden;
   }
-  .maleta-sug:hover { background: var(--accent-fons); border-color: var(--accent-suau); }
+  .maleta-sug:hover { border-color: var(--accent-suau); }
+  .maleta-sug-posa {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: none; background: none; color: var(--accent);
+    font-size: 12.5px; font-weight: 400; padding: 5px 4px 5px 11px; border-radius: 0;
+  }
+  .maleta-sug-posa:hover { background: var(--accent-fons); }
+  .maleta-sug-x {
+    border: none; background: none; color: var(--tinta-tenue);
+    font-size: 14px; line-height: 1; padding: 5px 9px 5px 6px; border-radius: 0;
+  }
+  .maleta-sug-x:hover { background: var(--vermell-fons); color: var(--vermell); }
+  .maleta-amagats { font-size: 11.5px; color: var(--tinta-tenue); margin: 12px 0 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .maleta-amagats button {
+    border: 1px solid var(--vora-forta); background: var(--superficie); color: var(--accent);
+    border-radius: 999px; padding: 2px 10px; font-size: 11.5px; font-weight: 500;
+  }
+  /* Moure un ítem a una altra persona */
+  .maleta-mou { border: none; background: none; color: var(--tinta-tenue); padding: 4px 6px; flex: none; }
+  .maleta-mou:hover { background: var(--accent-fons); color: var(--accent); }
+  .maleta-mou svg { width: 15px; height: 15px; display: block; }
+  .maleta-item { position: relative; }
 
   /* Idea suggerida dins del viatge */
   .idea-suggerida {
@@ -2140,6 +2177,53 @@ function parseReserva(textOriginal) {
    4. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    5. Parsing automàtic de vols i cotxes (ara s'entren a mà).
    6. Buscador d'idees quan n'hi hagi moltes.
+   FET · Dues coses a la maleta.
+      (1) Els suggeriments es poden AMAGAR: cada xip porta una × al costat
+      del text. El xip passa a ser un contenidor amb dos botons (afegir i
+      amagar), perquè un botó dins d'un altre no és HTML vàlid. Es desa dins
+      del viatge (v.sugAmagats), no al navegador, perquè et segueixi d'un
+      aparell a l'altre —no hi ha cap lloc per a preferències que se
+      sincronitzi—; la contrapartida és que amagar-lo val només per a aquest
+      viatge. La comparació es fa normalitzada, així amagar «Xancletes» val
+      encara que torni escrit diferent. Al peu, «N suggeriments amagats ·
+      torna'ls a mostrar», i el bloc de suggeriments es dibuixa encara que
+      NOMÉS hi hagi amagats: si no, la línia per recuperar-los desapareixeria
+      amb ells i no hi hauria manera de tornar-hi.
+      (2) Un ítem es pot moure a una altra persona amb un botó de silueta que
+      obre el desplegable de sempre (el mateix patró que assignar una reserva
+      a un viatge), amb la persona actual marcada i «Sense assignar» al final.
+      El botó només surt quan hi ha més d'un lloc on posar-lo: en un viatge
+      d'una sola persona la fila es queda com era (v108).
+   FET · La maleta ja reconeix la gent del viatge com ho fa el pressupost.
+      Abans només mirava els participants explícits («entre qui es
+      reparteix», les píndoles del formulari del viatge), i qui havia omplert
+      el «qui ho paga» de les reserves —que és una altra cosa— es trobava una
+      llista sola sense saber per què. Ara hi ha gentDelViatge(), que en fa la
+      UNIÓ: participants explícits + qui hagi pagat una reserva + qui hagi
+      pagat una despesa. És exactament la regla del repartiment de «qui deu a
+      qui»: si allà hi surten dues persones, a la maleta també.
+      Amb això calia protegir els ítems que ja hi hagués: els creats quan el
+      viatge no tenia gent porten la persona buida i, en aparèixer les
+      pestanyes, haurien quedat desats però inabastables. Per això, si n'hi ha
+      cap sense persona, surt una pestanya «Sense assignar» al davant, que és
+      també on van a parar els d'algú que hagi deixat de sortir a la llista.
+      Amb una sola persona i sense orfes no surt selector: una llista i prou
+      (v107).
+   FET · Els ítems de la maleta es poden reordenar arrossegant-los. Cada fila
+      té una nansa de tres ratlles a l'esquerra; s'arrossega des d'allà i
+      només des d'allà, perquè arrossegar des de qualsevol punt de la fila
+      competiria amb el gest de desplaçar la pàgina i amb el de marcar
+      l'ítem. La nansa porta «touch-action: none», que és el que li diu al
+      navegador que allà el dit el gestionem nosaltres: sense això, al mòbil
+      la pàgina es desplaçaria i la fila no es mouria.
+      Es fa amb Pointer Events, que valen per a dit i ratolí alhora. Mentre
+      mous es reordena el DOM directament —és el retorn immediat— i només en
+      deixar anar es desa: ni una escriptura per píxel ni repintats enmig del
+      gest. El canvi de posició es dispara en passar el MIG de la fila veïna,
+      que evita que balli amunt i avall al límit.
+      En desar, només es reordenen els ítems de la persona que estàs mirant;
+      els de les altres es queden exactament on eren dins de la llista
+      sencera. Comprovat amb dues persones entrellaçades (v106).
    FET · En afegir des d'un suggeriment, els xips es queden on eren. En
       afegir un ítem la llista creix i empeny el bloc de suggeriments cap
       avall, o sigui que se't movien sota el dit mentre en tocaves uns quants
@@ -2860,7 +2944,9 @@ const ICONES = {
   // el tros que sobresurt (calculat on es creuen), així no cal cap farciment
   // opac —el fons del botó canvia segons si està premut o no.
   monedes: '<path d="M12.25 7.44A5.6 5.6 0 1 1 12.25 16.56" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="9" cy="12" r="5.6" fill="none" stroke="currentColor" stroke-width="1.7"/>',
-  targeta: '<rect x="2.5" y="5.5" width="19" height="13" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M2.5 10h19" stroke="currentColor" stroke-width="1.7"/>'
+  targeta: '<rect x="2.5" y="5.5" width="19" height="13" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M2.5 10h19" stroke="currentColor" stroke-width="1.7"/>',
+  nansa: '<path d="M6 9h12M6 12h12M6 15h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  persona: '<circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M5 19.5a7 7 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>'
 };
 
 function iconaSVG(clau, classe) {
@@ -6907,16 +6993,50 @@ function jaHiEs(text, meus) {
   });
 }
 
-function xipsMaleta(llista, meus) {
+/* Un suggeriment amagat no torna a sortir en aquest viatge. Es compara
+   normalitzat, així amagar «Xancletes» val tant si torna en singular com amb
+   una majúscula diferent. */
+function sugAmagat(text, amagats) {
+  const k = clauMaleta(text);
+  return amagats.some(a => clauMaleta(a) === k);
+}
+
+function xipsMaleta(llista, meus, amagats) {
   return llista
-    .filter(t => !jaHiEs(t, meus))
-    .map(t => `<button class="maleta-sug" data-posa-maleta="${esc(t)}">
-        <span aria-hidden="true">+</span>${esc(t)}</button>`).join('');
+    .filter(t => !jaHiEs(t, meus) && !sugAmagat(t, amagats || []))
+    .map(t => `<span class="maleta-sug">
+        <button class="maleta-sug-posa" data-posa-maleta="${esc(t)}"><span aria-hidden="true">+</span>${esc(t)}</button>
+        <button class="maleta-sug-x" data-amaga-sug="${esc(t)}" aria-label="Amaga aquest suggeriment">×</button>
+      </span>`).join('');
+}
+
+/* Qui va en aquest viatge, mirant-ho TOT: els participants que hi hagis
+   definit («entre qui es reparteix», editant el viatge) més qualsevol que
+   hagi pagat una reserva o una despesa. És la mateixa regla que el
+   repartiment del pressupost: si allà hi surten dues persones, a la maleta
+   també hi han de sortir. Abans la maleta només mirava els participants
+   explícits, i qui havia omplert «qui ho paga» però no les píndoles es
+   trobava una llista sola sense saber per què. */
+function gentDelViatge(v, seves) {
+  const noms = new Map();   // clau en minúscules, per no duplicar Pepita/pepita
+  const posa = n => {
+    const net = (n || '').trim();
+    if (net && !noms.has(net.toLowerCase())) noms.set(net.toLowerCase(), net);
+  };
+  for (const p of (v.participants || [])) posa(p);
+  for (const r of (seves || [])) posa(r.quiPaga);
+  for (const d of (v.despeses || [])) posa(d.quiPaga);
+  return [...noms.values()].sort((a, b) => a.localeCompare(b, 'ca'));
 }
 
 function maletaHTML(v, seves) {
   const tots = Array.isArray(v.maleta) ? v.maleta : [];
-  const gent = (v.participants || []).filter(Boolean);
+  const gent = gentDelViatge(v, seves);
+  // Els ítems que no són de ningú (els d'abans que hi hagués gent, o els
+  // d'algú que ha deixat de sortir) tenen la seva pestanya, o quedarien
+  // desats però inabastables.
+  const orfes = tots.some(it => !(it.persona || '').trim());
+  if (gent.length && orfes) gent.unshift('');
   // Sense participants definits, una sola llista i cap selector: és el cas
   // d'un viatge que et fas sol.
   if (!gent.length) personaMaleta = '';
@@ -6925,36 +7045,43 @@ function maletaHTML(v, seves) {
   const meus = tots.filter(it => (it.persona || '') === (personaMaleta || ''));
   const fets = meus.filter(it => it.fet).length;
 
-  const selector = gent.length
+  const selector = gent.length > 1 || (gent.length === 1 && gent[0] !== '')
     ? `<div class="maleta-qui">` + gent.map(p =>
-        `<button class="maleta-persona${p === personaMaleta ? ' activa' : ''}" data-maleta-persona="${esc(p)}">${esc(p)}</button>`
+        `<button class="maleta-persona${p === personaMaleta ? ' activa' : ''}" data-maleta-persona="${esc(p)}">${p ? esc(p) : 'Sense assignar'}</button>`
       ).join('') + `</div>`
     : '';
 
   const llista = meus.length
-    ? meus.map(it => `<div class="maleta-item${it.fet ? ' fet' : ''}">
+    ? meus.map(it => `<div class="maleta-item${it.fet ? ' fet' : ''}" data-id="${esc(it.id)}">
+        <span class="maleta-nansa" data-maleta-nansa="${esc(it.id)}"
+          role="button" aria-label="Mou de lloc" title="Arrossega per moure'l">${iconaSVG('nansa')}</span>
         <button class="maleta-marca" data-maleta-toggle="${esc(it.id)}"
           aria-pressed="${it.fet ? 'true' : 'false'}">
           <span class="maleta-casella" aria-hidden="true"></span>
           <span class="maleta-text">${esc(it.text || '')}</span>
         </button>
+        ${gent.length > 1 ? `<button class="maleta-mou" data-mou-maleta="${esc(it.id)}"
+          aria-label="Mou-lo a una altra persona" title="Mou-lo a una altra persona">${iconaSVG('persona')}</button>` : ''}
         <button class="maleta-treu" data-maleta-treu="${esc(it.id)}" aria-label="Treu de la maleta">×</button>
       </div>`).join('')
     : `<p class="despeses-buida">Encara no hi ha res a la maleta. Escriu-hi el primer, o toca un suggeriment.</p>`;
 
   // Companys de l'ÚLTIM que has afegit, no de tota la llista: si cada ítem
   // en dispara tres, el bloc creix i s'acaba ignorant. Cinc com a màxim.
-  const xipsC = ultimMaleta ? xipsMaleta(companysDe(ultimMaleta).slice(0, 5), meus) : '';
+  const amagats = Array.isArray(v.sugAmagats) ? v.sugAmagats : [];
+  const xipsC = ultimMaleta ? xipsMaleta(companysDe(ultimMaleta).slice(0, 5), meus, amagats) : '';
 
   const sugV = suggerimentsDelViatge(seves);
-  const xipsV = xipsMaleta(sugV.items, meus);
-  const xipsA = xipsMaleta(suggerimentsAnteriors(v, personaMaleta).slice(0, 12), meus);
+  const xipsV = xipsMaleta(sugV.items, meus, amagats);
+  const xipsA = xipsMaleta(suggerimentsAnteriors(v, personaMaleta).slice(0, 12), meus, amagats);
   const motiu = sugV.motius.length
     ? 'Perquè aquest viatge té ' + sugV.motius.slice(0, -1).join(', ')
       + (sugV.motius.length > 1 ? ' i ' : '') + sugV.motius[sugV.motius.length - 1] + '.'
     : 'El bàsic de sempre.';
 
-  const suggeriments = (xipsC || xipsV || xipsA) ? `<div class="maleta-sugs">
+  // Compte: també cal ensenyar el bloc si NOMÉS hi ha amagats, o la línia per
+  // recuperar-los desapareixeria amb ells i no hi hauria manera de tornar-hi.
+  const suggeriments = (xipsC || xipsV || xipsA || amagats.length) ? `<div class="maleta-sugs">
       ${xipsC ? `<h5 class="maleta-sug-titol">Amb això sol anar-hi</h5>
         <p class="maleta-sug-motiu">Perquè acabes de posar-hi «${esc(ultimMaleta)}».</p>
         <div class="maleta-xips">${xipsC}</div>` : ''}
@@ -6963,6 +7090,9 @@ function maletaHTML(v, seves) {
         <div class="maleta-xips">${xipsV}</div>` : ''}
       ${xipsA ? `<h5 class="maleta-sug-titol"${(xipsC || xipsV) ? ' style="margin-top:16px"' : ''}>De les teves maletes anteriors</h5>
         <div class="maleta-xips">${xipsA}</div>` : ''}
+      ${amagats.length ? `<p class="maleta-amagats">
+        ${amagats.length === 1 ? '1 suggeriment amagat' : amagats.length + ' suggeriments amagats'}
+        <button data-mostra-sugs>torna’ls a mostrar</button></p>` : ''}
     </div>` : '';
 
   return `<div class="maleta">
@@ -7032,6 +7162,127 @@ async function alternaItemMaleta(id) {
   if (compte) compte.textContent = meus.filter(it => it.fet).length + ' de ' + meus.length
     + (meus.length === 1 ? ' preparat' : ' preparades');
   await MagatzemViatges.actualitza(v.id, { maleta });
+}
+
+/* Amagar un suggeriment que no vols veure més en aquest viatge, i tornar-los
+   tots. Es desa dins del viatge (v.sugAmagats) perquè et segueixi d'un
+   aparell a l'altre: no hi ha cap lloc per a preferències teves que se
+   sincronitzi, i el navegador sol és d'aquell aparell. */
+async function amagaSuggeriment(text) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v || !text) return;
+  const amagats = Array.isArray(v.sugAmagats) ? v.sugAmagats : [];
+  if (sugAmagat(text, amagats)) return;
+  await MagatzemViatges.actualitza(v.id, { sugAmagats: [...amagats, text] });
+  await refresca();
+}
+
+async function mostraSuggerimentsAmagats() {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  await MagatzemViatges.actualitza(v.id, { sugAmagats: [] });
+  await refresca();
+}
+
+/* ── Moure un ítem de la maleta a una altra persona ──
+   Reaprofita el desplegable del menú d'assignar una reserva a un viatge:
+   s'obre sota el botó i es tanca clicant a fora. */
+function tancaMenuPersona() {
+  const m = $('menu-persona');
+  if (m) m.remove();
+  document.removeEventListener('click', tancaMenuPersonaSiFora);
+}
+function tancaMenuPersonaSiFora(e) {
+  if (!e.target.closest('#menu-persona') && !e.target.closest('[data-mou-maleta]')) tancaMenuPersona();
+}
+
+function obreMenuPersona(boto, id) {
+  tancaMenuPersona();
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const it = (v.maleta || []).find(x => x.id === id);
+  if (!it) return;
+  const seva = (it.persona || '');
+  const gent = gentDelViatge(v, reserves.filter(r => r.viatgeId === viatgeObert));
+
+  const menu = document.createElement('div');
+  menu.className = 'menu-assigna';
+  menu.id = 'menu-persona';
+  menu.innerHTML = gent.map(p =>
+      `<button class="menu-assigna-opcio${p === seva ? ' actiu' : ''}" data-posa-persona="${esc(id)}" data-persona="${esc(p)}">${esc(p)}</button>`
+    ).join('')
+    + `<button class="menu-assigna-opcio treure${!seva ? ' actiu' : ''}" data-posa-persona="${esc(id)}" data-persona="">Sense assignar</button>`;
+  boto.parentNode.insertBefore(menu, boto.nextSibling);
+  setTimeout(() => document.addEventListener('click', tancaMenuPersonaSiFora), 0);
+}
+
+async function mouItemAPersona(id, persona) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  tancaMenuPersona();
+  const maleta = (v.maleta || []).map(it => it.id === id ? { ...it, persona } : it);
+  await MagatzemViatges.actualitza(v.id, { maleta });
+  await refresca();
+}
+
+/* ── Reordenar la maleta arrossegant ──
+   Amb Pointer Events, que valen per a dit i ratolí alhora, i NOMÉS des de la
+   nansa: arrossegar des de qualsevol punt de la fila competiria amb el gest
+   de desplaçar la pàgina i amb el de marcar l'ítem.
+
+   Mentre mous, es reordena el DOM directament (és el retorn immediat), i
+   només en deixar anar es desa. Així no hi ha ni una escriptura per píxel ni
+   repintats enmig del gest. */
+let arrossegant = null;
+
+function iniciaArrossegar(e) {
+  const nansa = e.target.closest('[data-maleta-nansa]');
+  if (!nansa) return;
+  const fila = nansa.closest('.maleta-item');
+  const llista = fila && fila.parentElement;
+  if (!llista) return;
+  arrossegant = { fila, llista };
+  fila.classList.add('arrossegant');
+  try { nansa.setPointerCapture(e.pointerId); } catch (err) {}
+  e.preventDefault();
+}
+
+function mouArrossegant(e) {
+  if (!arrossegant) return;
+  const { fila, llista } = arrossegant;
+  for (const altra of llista.querySelectorAll('.maleta-item')) {
+    if (altra === fila) continue;
+    const r = altra.getBoundingClientRect();
+    const mig = r.top + r.height / 2;
+    const filaEsSota = !!(altra.compareDocumentPosition(fila) & Node.DOCUMENT_POSITION_FOLLOWING);
+    // Es canvia de lloc quan el dit passa el mig de la fila veïna: així no
+    // balla amunt i avall just al límit.
+    if (e.clientY < mig && filaEsSota) { llista.insertBefore(fila, altra); return; }
+    if (e.clientY > mig && !filaEsSota) { llista.insertBefore(fila, altra.nextSibling); return; }
+  }
+}
+
+async function acabaArrossegar() {
+  if (!arrossegant) return;
+  const { fila, llista } = arrossegant;
+  fila.classList.remove('arrossegant');
+  arrossegant = null;
+  const ordre = [...llista.querySelectorAll('.maleta-item')].map(f => f.dataset.id);
+  await desaOrdreMaleta(ordre);
+}
+
+/* Desa l'ordre nou. Només es reordenen els ítems d'aquesta persona: els de
+   les altres es queden exactament on eren dins de la llista sencera. */
+async function desaOrdreMaleta(ordre) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const tots = v.maleta || [];
+  const meus = ordre.map(id => tots.find(it => it.id === id)).filter(Boolean);
+  if (meus.length !== ordre.length) return;   // alguna cosa no quadra: no es toca
+  let i = 0;
+  const maleta = tots.map(it => (it.persona || '') === (personaMaleta || '') ? meus[i++] : it);
+  await MagatzemViatges.actualitza(v.id, { maleta });
+  await refresca();
 }
 
 async function treuItemMaleta(id) {
@@ -7255,6 +7506,13 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   if (treuM) { await treuItemMaleta(treuM.dataset.maletaTreu); return; }
   const posaM = e.target.closest('[data-posa-maleta]');
   if (posaM) { await afegeixItemMaleta(posaM.dataset.posaMaleta, false); return; }
+  const amagaS = e.target.closest('[data-amaga-sug]');
+  if (amagaS) { await amagaSuggeriment(amagaS.dataset.amagaSug); return; }
+  if (e.target.closest('[data-mostra-sugs]')) { await mostraSuggerimentsAmagats(); return; }
+  const mouM = e.target.closest('[data-mou-maleta]');
+  if (mouM) { obreMenuPersona(mouM, mouM.dataset.mouMaleta); return; }
+  const posaP = e.target.closest('[data-posa-persona]');
+  if (posaP) { await mouItemAPersona(posaP.dataset.posaPersona, posaP.dataset.persona); return; }
   if (e.target.closest('[data-afegeix-maleta]')) { await afegeixItemMaleta($('nou-item-maleta').value, true); return; }
   // Despeses soltes del pressupost
   if (e.target.closest('[data-afegeix-despesa]')) { await afegeixDespesa(); return; }
@@ -7298,6 +7556,11 @@ $('detall-viatge-vista').addEventListener('keydown', e => {
   else if (e.target.closest('.despesa-nova')) { e.preventDefault(); afegeixDespesa(); }
   else if (e.target.closest('.despesa-edicio') && despesaEnEdicio) { e.preventDefault(); desaDespesa(despesaEnEdicio); }
 });
+
+$('detall-viatge-vista').addEventListener('pointerdown', iniciaArrossegar);
+document.addEventListener('pointermove', mouArrossegant);
+document.addEventListener('pointerup', acabaArrossegar);
+document.addEventListener('pointercancel', acabaArrossegar);
 
 /* Editar en línia els camps d'una visita (dia, hora, zona, etiquetes, nota) */
 $('detall-viatge-vista').addEventListener('change', async e => {
