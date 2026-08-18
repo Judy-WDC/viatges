@@ -192,6 +192,28 @@
     transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
   }
   button:hover { background: var(--subtil); }
+
+  /* ── QUINA CLASSE DE BOTÓ FER SERVIR ─────────────────────────────────────
+     Regla de la casa: SI ES POT CLICAR, S'HA DE VEURE QUE ES POT CLICAR.
+     Per defecte, un botó sense classe, que ja porta vora i fons.
+
+     · (cap classe) → el normal. Qualsevol acció que vagi sola: al peu d'una
+       llista, al costat d'un text, dins d'una fila. És el que has de triar
+       si dubtes.
+     · .primari    → mostassa. L'acció PRINCIPAL d'una pantalla o d'un
+       formulari, i només una: desar, entrar, afegir.
+     · .subtil     → SENSE vora ni fons. Només quan el que hi ha al voltant
+       ja diu que és clicable: al costat d'un .primari en un formulari, o
+       enganxat a un títol («Edita» a la capçalera del viatge). Un .subtil
+       tot sol enmig d'una pantalla es llegeix com a text i ningú no el
+       clica: ja ha passat amb «Completa-les» (v96) i amb «Imprimeix la
+       llista» (v120).
+     · .perill     → vermell i sense vora, per esborrar. Sempre amb
+       confirmació.
+     · .mini       → només fa la mida petita, es combina amb les de dalt.
+
+     Els botons que semblen text però no ho són (.codi-oblidat, .maleta-sug)
+     tenen la seva pròpia classe i van dins d'un bloc que ja els explica. */
   button.primari { background: var(--accio); border-color: var(--accio); color: var(--accio-tinta); font-weight: 500; }
   button.primari:hover { background: #C89518; border-color: #C89518; }
   button.subtil { border-color: transparent; background: none; color: var(--tinta-suau); }
@@ -1438,9 +1460,23 @@
   .full-dates { font-size: 10pt; color: #333; margin: 2pt 0 0; }
   .full-qui { font-size: 12pt; font-weight: 600; margin: 14pt 0 8pt; color: #000; }
   .full-llista { list-style: none; margin: 0; padding: 0; }
+  /* Dues columnes quan la llista és llarga: en un A4 hi caben una trentena
+     d'ítems en una columna, i a partir d'aquí el segon full sortiria gairebé
+     buit. Amb llistes curtes NO s'hi posen, que quedaria una columna sola i
+     mig full en blanc al costat.
+     El «break-inside» és imprescindible aquí: sense ell, un ítem que passi a
+     dues línies es partiria entre el peu d'una columna i el cap de l'altra. */
+  .full-llista.dues-columnes { columns: 2; column-gap: 12mm; }
+  .full-llista.dues-columnes .full-item { break-inside: avoid; page-break-inside: avoid; }
+  /* L'interlineat s'ha de dir aquí. Sense això hereta l'1,5 del cos, que és
+     bo per llegir en pantalla i malgasta paper: cada fila feia 8,9 mm i en un
+     A4 només hi cabien 24 ítems. */
+  .full-persona { line-height: 1.3; }
+  /* Sense ratlla de separació: el quadradet de cada fila ja marca el ritme, i
+     en paper les línies fan soroll. Es compensa amb una mica més d'aire. */
   .full-item {
-    display: flex; align-items: center; gap: 9pt; padding: 4pt 0;
-    border-bottom: 0.5pt solid #bbb; font-size: 11pt; color: #000;
+    display: flex; align-items: center; gap: 9pt; padding: 3.5pt 0;
+    font-size: 11pt; color: #000;
   }
   .full-casella {
     width: 11pt; height: 11pt; border: 0.8pt solid #000; flex: none;
@@ -1448,7 +1484,6 @@
   }
   .full-item.fet .full-text { text-decoration: line-through; color: #666; }
   .full-buida { font-size: 11pt; color: #555; font-style: italic; }
-  .full-peu { font-size: 8.5pt; color: #555; margin-top: 14pt; padding-top: 6pt; border-top: 0.5pt solid #bbb; }
   /* El peu de la maleta: el comptador a l'esquerra i imprimir a la dreta. */
   .maleta-peu { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .maleta-peu .maleta-compte { margin: 0; }
@@ -2326,6 +2361,37 @@ function parseReserva(textOriginal) {
       (com-funciona-l-app-14.md, que tocarà a la v126) ha de portar un
       APARTAT NOU dedicat a això —el compte, l'accés i el que depèn de la
       configuració de Supabase—, no una línia més a «Què queda pendent».
+   FET · El full de la maleta perd les ratlles entre ítems i guanya les dues
+      columnes. Les ratlles no calien: el quadradet de cada fila ja marca el
+      ritme i en paper fan soroll. Es compensa amb una mica més d'aire
+      (3,5pt en comptes de 2,5), que sense línies les files necessiten
+      respirar; la fila passa de 7,1 a 7,5 mm.
+      Les dues columnes salten soles a partir de 30 ítems. Amb menys NO s'hi
+      posen, que quedaria una columna sola i mig full en blanc al costat; a
+      partir d'aquí, una columna no cabria en un full i el segon sortiria
+      gairebé buit. Mesurat: 30 ítems en una columna fan 254,8 mm dels 265
+      útils, i 60 en dues en fan els mateixos 254,8. O sigui que ara hi cap
+      el doble de llista en el mateix paper.
+      El «break-inside» de la llista en columnes és imprescindible: sense ell
+      un ítem de dues línies es partiria entre el peu d'una columna i el cap
+      de l'altra (v121).
+   FET · Tres retocs de la impressió de la maleta, tots reportats provant-la
+      en paper de debò:
+      (1) El botó «Imprimeix la llista» duia la classe .subtil, que és
+      justament la que TREU la vora, i no es veia que fos clicable. Ara porta
+      el botó normal. És el mateix error de «Completa-les» (v96), i per això
+      damunt de les definicions dels botons hi ha ara un bloc que diu quina
+      classe toca en cada cas: la regla ja hi era —si es pot clicar, s'ha de
+      veure que es pot clicar—, però no estava escrita on es tria la classe.
+      (2) Fora la línia del peu del full («N de M preparades · Els meus
+      viatges»): en paper no aporta res i menja espai.
+      (3) L'interlineat del full es diu ara explícitament (1,3). Heretava
+      l'1,5 del cos de l'app, que va bé per llegir en pantalla i malgasta
+      paper: cada fila feia 8,9 mm i en un A4 només hi cabien 24 ítems. Ara
+      la fila fa 7,1 mm i n'hi caben 33; una llista de 23 ocupa 192 mm dels
+      265 útils, en comptes de 249.
+      El full SEMPRE ha estat A4 (o el que digui el diàleg d'imprimir): des
+      del codi només se'n fixen els marges, no la mida del paper (v120).
    FET · La maleta es pot imprimir. Un botó al peu de la llista prepara un
       full amb el viatge, les dates, de qui és la llista i els ítems amb
       casella per marcar, i obre la impressió del navegador.
@@ -2743,429 +2809,18 @@ function parseReserva(textOriginal) {
       només situen el pin i no entren mai al creuament d'idees. La correcció
       es desa a la reserva (camp «llocAdreca») i es replanta a la memòria cau
       en carregar (sembraAdrecesCorregides), com les altres (v92).
-   FET · Una reserva ja no calla quan no se sap on és. Abans, si ni l'adreça
-      ni el poble es podien situar, no sortia cap línia: la reserva
-      desapareixia del mapa en silenci i no te n'assabentaves. Ara hi ha dos
-      avisos nous: si hi ha adreça i no s'ha pogut situar ni ella ni el poble,
-      «No s'ha pogut situar ni l'adreça ni el poble: no surt al mapa» amb el
-      botó «Situa-la»; i si la reserva no té cap dada de lloc, «Encara no té
-      dades de lloc, així que no surt al mapa» sense botó (no hi ha res a
-      corregir: cal omplir l'adreça, i els camps són just a sobre). Es manté
-      el silenci mentre quedi alguna consulta pendent. La decisió de què dir
-      surt d'avisLlocReserva(), que recorre els casos en ordre en comptes
-      d'anar sortint per la porta del darrere quan no sabia què dir (v91).
-   FET · Correcció: quan la zona d'una idea no es trobava, sortia «no s'ha
-      trobat aquest lloc» seguit del botó «No és aquest lloc?». No tenia cap
-      sentit: si no s'ha trobat res, no hi ha cap lloc amb què estar en
-      desacord. Ara són dos estats separats: si s'ha trobat un lloc, se'n diu
-      el nom i el botó pregunta si no és aquell; si s'ha consultat i no s'ha
-      trobat, diu «No s'ha trobat «X» al mapa» i el botó és «Situa-la», que
-      obre la mateixa cerca. Si encara s'està consultant, no es diu res.
-      nomLlocDeZona() torna només el nom o cadena buida, i la distinció la fa
-      zonaNoTrobada(), en comptes de barrejar un nom amb una frase (v90).
-   FET · Es pot afegir una idea des d'un web. L'app llegeix de l'adreça els
-      paràmetres «titol», «text» i «enllac» i obre una targeta ja emplenada:
-      d'on ve, el text de la idea (editable), la zona (buida, amb les zones
-      que ja fas servir) i l'enllaç. La SELECCIÓ mana sobre el títol: si
-      l'article parla de deu platges, seleccionant-ne una abans de compartir
-      arriba només aquella; sense selecció, arriba el títol. Alguns navegadors
-      fiquen l'adreça dins del text en compartir una selecció: se separa
-      (separaEnllac) perquè no acabi formant part de la idea. Cap camp no
-      s'enfoca sol, que al mòbil el teclat taparia la targeta. Es demana la
-      zona en comptes de desar en silenci perquè és l'únic camp que el
-      compartir no pot omplir i el que decideix si la idea serà útil. Si
-      encara no has entrat, el que has compartit espera i s'obre just després
-      d'entrar-hi (i aquell cop no surten les novetats, per no apilar dues
-      finestres). El botó «Des d'un enllaç» d'Inspiració obre la mateixa
-      targeta buida, amb l'enllaç editable. L'adreça es neteja després de
-      llegir-la, perquè recarregar no repeteixi la targeta.
-      PENDENT: per a Android cal declarar-ho al manifest.webmanifest, que és
-      un fitxer a part; per a iPhone cal una Drecera d'Apple que obri
-      …/viatges/?text=…&enllac=… (v89).
-   FET · Es pot dir «aquí no» a una idea suggerida. Cada idea de la
-      subpestanya Idees d'un viatge té ara un botó «No la suggereixis»: la
-      idea es queda a la Inspiració tal com està, però deixa de sortir en
-      AQUEST viatge. Es desa dins de la idea la llista de viatges on no s'ha
-      de suggerir (camp «noSuggerir»), així que descartar-la a Lisboa no
-      l'afecta a Girona, i no cal tocar la base de dades. El filtre passa per
-      ideesSuggerides(), que és per on passen també el mapa (com a idea
-      candidata) i el comptador d'avisos: dir «aquí no» la treu de tot.
-      No es descarta en silenci: al peu hi ha «N idees descartades · torna-les
-      a mostrar», perquè d'aquí a mesos no et preguntis per què una idea no
-      surt mai en aquell viatge. El nom del botó NO és «Torna a Inspiració»
-      a posta: aquest ja existeix al detall d'una visita i allà vol dir una
-      altra cosa (desassignar-la del viatge) (v88).
-   FET · El títol d'una reserva de cotxe passa a ser «Lloguer de cotxe» en
-      comptes del nom de l'empresa: diu QUÈ és, no de qui és. Perquè la
-      companyia no es perdi de la fila, passa al subtítol al costat del lloc
-      de recollida («Europcar · Aeroport de La Palma»), que és el mateix
-      patró dels vols (títol el trajecte, subtítol la companyia). A
-      l'exportació a Excel no canvia res: la companyia ja hi tenia columna
-      pròpia (v87).
-   FET · La línia del lloc d'una reserva ara diu PER QUÈ el pin ha acabat al
-      poble, amb tres començaments diferents: no hi ha adreça exacta (un vol),
-      l'adreça no s'ha pogut situar, o s'ha situat tan lluny que el filtre de
-      distància l'ha descartada. És una sola línia i no tres avisos apilats:
-      els tres casos acaben igual (el pin al poble) i l'acció útil és la
-      mateixa. Mentre l'adreça encara no s'ha consultat NO es diu res: es
-      distingeix «he preguntat i no s'ha trobat» (apuntat a la memòria cau)
-      de «encara no ho he mirat», perquè no acusi el geocodificador abans de
-      tenir resposta. El botó passa a dir «No és aquest lloc?» amb
-      interrogant i amb una vora fina: sense això es llegia com una
-      afirmació i no com una cosa clicable (v86).
-   FET · Corregir el lloc ja no és només de les idees: val també per a les
-      VISITES d'un viatge (que tenen zona pròpia i patien exactament el
-      mateix) i per a les RESERVES. A les reserves, però, només quan el pin
-      surt del POBLE: si l'adreça exacta s'ha resolt, el pin és al lloc real i
-      posar-hi una línia a cada allotjament seria soroll. Per decidir-ho hi ha
-      origenCoords(), que diu si les coordenades vénen de l'adreça o de la
-      zona; coordsItem() ara hi passa per sobre, així que el dibuix dels pins
-      i aquesta línia no es poden separar mai. Es desa a la reserva (camp
-      «lloc») i es replanta a la memòria cau en carregar, igual que a les
-      idees. Ull: això NO és l'avís de «no s'ha trobat l'adreça exacta», que
-      és una altra cosa i queda pendent (v85).
-   FET · Es pot corregir el lloc d'una zona. Fins ara el geocodificador es
-      quedava el PRIMER resultat i no deia quin era: amb noms que es
-      repeteixen pel món («Los Sauces» n'hi ha a Xile, Colorado, l'Argentina i
-      Colòmbia, i el de La Palma no surt ni entre els cinc primers) el pin
-      acabava a l'altra punta del planeta sense avisar. I no s'arregla
-      escrivint més: «Los Sauces, La Palma» porta a Cartagena. Dues peces:
-      (1) sota cada idea es veu QUÈ ha entès l'app, amb el nom sencer del lloc
-      («Los Sauces, Provincia de Malleco, Xile»), que és el que fa visible
-      l'error; (2) un botó «No és aquest lloc» obre una cerca —amb botó, mai
-      mentre escrius, que la política de Nominatim prohibeix l'autocompletat—
-      amb fins a cinc candidats amb el nom complet per triar-ne un. El que es
-      tria es desa a dos llocs: a la memòria cau de zones, perquè el pin i el
-      creuament idea-reserva quedin bé sense tocar res més, i dins de la idea
-      (camp «lloc»), perquè la correcció viatgi als altres aparells; en
-      carregar les idees es replanta a la cau (sembraLlocsCorregits). Es desa
-      la jerarquia i no només les coordenades: si no, el pin quedaria bé però
-      el creuament seguiria pensant que la idea és a Xile. Ara es guarda també
-      el nom sencer de cada zona resolta, així que puja CLAU_JER a v3 i les
-      zones es tornen a consultar un cop, en segon pla (v84).
-   FET · El botó enrere del mòbil ja no tanca l'app: desfà l'últim pas. Tanca
-      el que hi hagi obert al damunt (panell d'afegir, fitxa d'una reserva,
-      fitxa d'un viatge, novetats, codi d'obertura), surt del detall d'un
-      viatge cap a la llista, i torna a la pestanya anterior. Amb res obert,
-      surt, com ha de ser. Funciona amb una pila de funcions que desfan un pas
-      cadascuna, més una marca a l'historial; el popstate en desfà tantes com
-      calgui (mantenir premut el botó recula diverses de cop) i anar endavant
-      no en desfà cap. Els botons de tancar passen pel mateix camí
-      (history.back) i els tancaments automàtics —desar una reserva tanca la
-      fitxa i el panell— retiren les seves marques, perquè no quedin pitjades
-      del botó enrere que no fan res. IMPORTANT: la pantalla de bloqueig i la
-      d'accés no hi deixen cap marca, així que enrere no pot servir per
-      saltar-se el codi d'obertura. Queden fora a posta les subpestanyes d'un
-      viatge, el commutador Llista/Mapa i les files desplegades, per no
-      convertir enrere en un laberint (v83).
-   FET · Codi d'obertura: un codi de 6 xifres que es demana en obrir l'app, a
-      més del correu i la contrasenya. OPCIONAL i apagat de sèrie: s'activa i
-      es treu des del menú «Compte», i és PER APARELL (viu en aquest navegador
-      i no puja mai a Supabase, perquè s'ha de poder comprovar sense connexió,
-      que és quan més falta fa l'app). En crear-lo es demana dues vegades: sense
-      confirmació, una errada de dits et deixaria fora del teu propi mòbil. No
-      es desa el codi sinó una empremta (SHA-256 amb sal); el que impedeix
-      provar el milió de combinacions és el límit de 5 intents, que en esgotar-se
-      tanca la sessió. «He oblidat el codi» fa el mateix, amb confirmació. La
-      pantalla de bloqueig reaprofita la caixa de la pantalla d'accés perquè se
-      senti com un pas d'entrar-hi i no com una alarma; l'error diu quants
-      intents queden. Si el navegador no té criptografia (context no segur),
-      l'opció ni surt al menú. En mode demo no es demana mai, i entrar amb
-      correu i contrasenya tampoc hi passa (allà ja t'has identificat amb una
-      cosa més forta). El codi s'esborra en tancar la sessió, com la resta de
-      dades locals. És una CORTINA, no un pany: para els tafaners, però les
-      dades segueixen sense xifrar a localStorage (v82).
-   FET · La finestra d'inici deixa de ser una salutació i passa a explicar les
-      novetats: codi de seguretat, reserves passades plegades i filtre dels
-      mapes. Amb subtítols, i la finestra ja fa scroll si no cap a la pantalla
-      (abans, amb text llarg, el botó «Entesos» hauria quedat fora). Es puja
-      VERSIO_NOVETATS a '2' perquè torni a sortir un cop a tothom. La
-      benvinguda personal queda comentada al costat, en pausa: es vol
-      recuperar amb un text genèric que valgui per a qualsevol usuària.
-      ATENCIÓ: el text anuncia el codi de seguretat, que encara NO està
-      muntat. Aquest fitxer no s'ha de publicar fins que hi sigui (v81).
-   FET · Les notes d'Inspiració ja s'encongeixen: una idea d'una línia tenia
-      un requadre de cinc, mig buit. La culpa era del «min-height: 148px» de
-      la regla general de textarea —pensat per a la caixa d'enganxar emails—,
-      que heretaven també la nota d'una idea i la d'una visita. S'ha mogut a
-      #entrada, que és qui el necessita. De retruc calia arreglar fesGran():
-      amb la secció amagada, el navegador diu que el contingut fa 0 i la caixa
-      quedava arrufada (fins ara el min-height ho tapava). Ara, si la caixa no
-      es veu, no se li toca l'alçada, i mostraSeccio() la remesura en ensenyar
-      Inspiració. La nota d'una visita, dins d'un viatge, també deixa de tenir
-      el requadre gegant (v80).
-   FET · Pins al lloc correcte: adreces amb el codi postal al final feien que
-      Nominatim no trobés RES, i el pin recaigués en un «poble» que era el
-      codi postal pelat («38700» → Baixa Saxònia, Alemanya). Tres canvis:
-      (1) l'adreça es neteja abans de preguntar-la —es treuen els codis
-      postals que van sols al final, que sovint ni són correctes; el país es
-      manté, que sí que ajuda—; (2) poblacio() ja no es queda un codi postal
-      com a nom de poble: descarta també els codis postals finals, alternant
-      amb el país, perquè hi ha adreces amb l'ordre «…, Villa de Mazo, Spain,
-      38700»; (3) xarxa de seguretat nova: si l'adreça es resol a més de
-      100 km del seu poble, es descarta i el pin va al poble. Això arregla de
-      retruc el creuament d'idees, que amb el codi postal dolent situava la
-      reserva a Alemanya. No cal invalidar cap memòria cau: com que canvia el
-      text que es pregunta i el poble que es dedueix, canvien les claus i les
-      consultes es refan soles. A més, en tancar la sessió ara sí que
-      s'esborra la memòria cau de coordenades d'adreces, que s'havia quedat
-      fora de la llista (v79).
-   FET · Les reserves ja passades surten de la llista principal i queden
-      plegades al final, sota una barra «Ja passades · N reserves» que s'obre
-      amb un clic (per defecte, tancada). A dins, els mesos van del més recent
-      al més antic. Una reserva és passada l'endemà del seu ÚLTIM dia
-      (checkout, o checkin si no en té): un cotxe que tornes avui es veu actiu
-      tot el dia; les que no tenen cap data no són passades mai. A més, les
-      files passades es despinten mentre estan tancades (icona, nom, dates i
-      preu en gris, vora lateral apagada) i recuperen el color en obrir-les.
-      Com que la fila és un component únic, l'atenuació val també dins del
-      detall d'un viatge; la partició, en canvi, és només de la llista
-      principal (v78).
-   FET · Filtre per categoria al mapa del viatge: la llegenda de sota el mapa
-      passa a ser clicable. Clicar una categoria (Allotjament, Transport,
-      Activitats, Idea) deixa al mapa només aquella; clicant-ne més, s'hi
-      sumen; en apagar-les totes o encendre-les totes, es torna a veure tot.
-      Els pins descartats desapareixen. El filtre no refà el mapa (repinta
-      només la capa de pins), així el zoom i la posició no salten a cada clic,
-      i no es reenquadra. La llegenda es calcula sempre amb el viatge sencer,
-      perquè el botó d'una categoria amagada segueixi sent-hi. La nota
-      d'elements sense ubicació compta només el que es veu. És una preferència
-      de vista: no es desa ni se sincronitza, i es reinicia en obrir un viatge
-      (v77).
-   FET · Suggeriment d'idees més fi: ara es desa de quin tipus és cada nivell
-      de la zona. Compartir comarca o illa SÍ que suggereix; compartir
-      província, comunitat autònoma o país, NO. (Abans, compartir província o
-      comunitat encara comptava.) Es puja la versió de la memòria cau, així
-      que les zones es tornen a consultar un cop, en segon pla (v76).
-   FET · Separació entre les caixes de reserva d'un mateix mes a la llista
-      (abans quedaven enganxades perquè el «gap» no arribava a les files) (v75).
-   FET · Ara és una PWA: instal·lable al mòbil i a l'escriptori, amb icona
-      pròpia (maleta) i funcionament sense connexió. S'hi afegeixen el
-      manifest, un service worker (desa el nucli de l'app; mai els mapes, el
-      geocodificador ni Supabase) i les etiquetes del <head>. Rutes relatives
-      perquè viu dins de /viatges/. Cal pujar els fitxers nous al costat de
-      l'HTML (manifest.webmanifest, sw.js i les icones) (v74).
-   FET · Mapa més gran a l'ordinador: l'alçada s'adapta a la finestra (uns dos
-      terços de l'alt, amb mínim i màxim), en comptes dels 380px fixos. Al
-      mòbil es manté a 380px. En redimensionar la finestra, el mapa visible es
-      refresca (invalidateSize) per no deixar requadres grisos (v73).
-   FET · Pins del mapa de viatge a l'adreça exacta quan n'hi ha: allotjaments
-      (adreça), cotxe i «altres» (lloc de recollida) i entrades (recinte +
-      població) es geocodifiquen a banda, així el pin va al lloc real i no al
-      centre del poble. Si l'adreça no es pot situar, recau al poble com
-      abans. Les coordenades d'adreça es desen en una memòria pròpia i no
-      entren al creuament d'idees per jerarquia (v72).
-   FET · Suggeriment d'idees per viatge: en creuar zones per jerarquia
-      territorial, s'ignora ara el nivell més ampli (el país). Compartir
-      només «espanya» ja no compta com a proximitat, així que idees de
-      Granada o Granollers deixen d'aparèixer al viatge a Tenerife. Cal
-      compartir un nivell més fi (illa, comarca, ciutat…) (v71).
-   FET · Finestra de novetats (modal) que surt un sol cop en obrir l'app
-      (usuari real, no en demo): finestra flotant amb l'estètica de l'app,
-      fons enfosquit al darrere, botó «Entesos» i creu a dalt a la dreta (i
-      també tanca amb Escape o clicant fora). El «un sol cop» es recorda a
-      localStorage; per tornar-la a mostrar amb un text nou, es puja
-      VERSIO_NOVETATS. No es mostra la versió a l'usuari (v70).
-   FET · Una idea assignada a un viatge (visita) té ara dues accions al seu
-      detall: «Torna a Inspiració» (la desassigna i torna a ser idea lliure,
-      com abans «Treure del viatge») i «Elimina» (l'esborra del tot, del
-      viatge i de la Inspiració, amb confirmació) (v69).
-   FET · Pins de color al mapa de viatge, per categoria: Allotjament (pruna),
-      Transport (avió+cotxe, blau-verd), Activitats (entrades+visites, ambre)
-      i Idea candidata (gris). S'agrupa per lloc I categoria (un pin de color
-      per tipus a cada lloc), repartits en ventall perquè no es trepitgin, amb
-      llegenda a sota. Pins dibuixats amb SVG (sense imatges externes). Els
-      colors del mapa d'idees encara van tots iguals: PENDENT (v68).
-   FET · Mapa de viatge: subpestanya nova «Mapa» dins del viatge (Idees ·
-      Agenda · Pressupost · Mapa), que reaprofita el motor de Leaflet. En un
-      sol mapa hi surten les reserves, les visites i les idees candidates de
-      la zona. Com que les coordenades són per poble, s'agrupen per ubicació:
-      un pin per lloc amb un globus que llista tot el que hi ha. Es geocodifiquen
-      també les zones de les visites. Colors i precisió fina: PENDENTS (v67).
-   FET · Mapa d'idees a la Inspiració (commutador Llista/Mapa): Leaflet +
-      OpenStreetMap carregat sota demanda; cada idea amb zona resoluble és un
-      pin (clic → text, zona, etiquetes), el filtre d'etiquetes filtra també
-      els pins, i les idees sense ubicació es compten en una nota. El
-      geocoding ara desa també les coordenades (cauCoords) amb la mateixa
-      consulta a Nominatim; en demo se'n sembren un parell. Colors dels pins:
-      PENDENT (els deixem tots iguals de moment) (v66).
-   FET · Es poden crear idees des de dins d'un viatge: a la pestanya Idees hi
-      ha un camp «Nova idea…» que crea una idea de la wishlist marcada amb la
-      zona del viatge (el seu nom), així que apareix tant a la pestanya del
-      viatge (per convertir-la en visita) com a la Inspiració general. De
-      moment no s'edita des d'aquí; per retocar-la a fons, la Inspiració (v65).
-   FET · Les fletxes del selector de dia («Activitats del dia») ara van
-      centrades: el botó centra amb flex i s'usa el chevron de l'app (girat
-      a esquerra/dreta) en lloc dels glifs ‹ › de text, que quedaven
-      descentrats (v64).
-   FET · La pestanya general «Idees» passa a dir-se «Inspiració», per no
-      confondre's amb la subpestanya «Idees» de dins d'un viatge. Només canvia
-      l'etiqueta visible (i el títol per a lectors de pantalla); l'id intern
-      i la resta del codi queden igual (v63).
-   FET · Cada viatge té una subpestanya nova «Idees», a l'esquerra de
-      l'Agenda: hi ha les idees de la llista que encaixen amb la zona del
-      viatge (per convertir-les en visites), que abans penjaven a sota de
-      l'agenda com a «Idees per a aquest viatge». L'Agenda segueix sent la
-      pestanya per defecte en obrir un viatge (v62).
-   FET · Les despeses soltes ara s'editen en línia: en clicar una despesa de
-      la llista s'obre allà mateix amb els seus camps (concepte, import,
-      categoria, qui paga) i les accions Desa / Cancel·la / Elimina. Una a la
-      vegada, mateixa validació que en afegir (import obligatori), i en desar
-      es recalculen total, barra i repartiment (v61).
-   FET · Correcció: al mòbil, la caixa de l'import del formulari de despeses
-      sortia massa alta (el 96px es llegia com a alçada en columna). El bloc
-      d'ajustos mòbil s'ha mogut després de les regles que sobreescriu perquè
-      guanyi per ordre; l'import torna a alçada normal (v60).
-   FET · Responsive del pressupost (mòbil, ≤500px): el formulari d'afegir
-      despesa passa a un camp per filera, i les files del repartiment posen
-      el nom i el saldo a dalt i el detall a sota, per no amuntegar-se. La
-      resta del pressupost i l'agenda ja s'hi veien bé (v59).
-   FET · A la fila compacta (plegada), l'avís de cancel·lació només surt si
-      encara es pot cancel·lar: s'amaga quan no en té (vols), quan és «no
-      reemborsable» o quan la data ja ha vençut (classe cancel-apagat). Al
-      detall desplegat s'hi continua veient sempre (v58).
-   FET · El resum de dalt de les idees s'agrupa per VIATGE en comptes de per
-      poble de cada reserva: una línia per viatge («Tens N idees per al viatge
-      a Tenerife · del … al …»), amb el mateix creuament geogràfic de
-      l'agenda (entén que Los Cristianos és a Tenerife), sense partir-ho per
-      pobles ni comptar idees dues vegades (v57).
-   FET · A «Activitats del dia», cada fila és desplegable: en clicar-la
-      s'obre el detall complet de només lectura (els mateixos camps que
-      l'itinerari complet: dates, hores, companyia, núm. de reserva, preu,
-      notes…; per a visites, nota/zona/etiquetes/enllaç), amb un chevron que
-      gira. Per editar, l'itinerari complet (v56).
-   FET · A «Activitats del dia», l'allotjament surt com a activitat el dia de
-      check-in («Check-in a…») i el de check-out («Check-out de…»), simètric
-      amb el cotxe. Sense hora, el check-in va al final del dia i el check-out
-      a l'inici. El dia del check-in ja no es repeteix a sota («A la nit»),
-      que es reserva per a les nits d'enmig (v55).
-   FET · L'agenda té un mode nou «Activitats del dia» (commutador amb
-      «Itinerari complet»): un dia cada cop amb ‹ ›, per defecte avui si ets
-      dins del viatge. Hi surten vols, entrades i visites; el cotxe només el
-      dia de recollida i de devolució; l'allotjament no és activitat: va a
-      baix, dissimulat, com «A la nit · [on dorms]» segons el rang de dates.
-      Files compactes, no editables (per editar, l'itinerari complet) (v54).
-   FET · L'app passa a dir-se «Els meus viatges» (títol de la pestanya,
-      capçalera i pantalla d'accés). No es toquen els usos genèrics de la
-      paraula «registre» (missatges com «el registre és buit») (v53).
-   FET · Filtre de les idees per etiqueta: barra de píndoles commutables a
-      sobre de la llista (multi-selecció amb «o»), amb píndola «sense
-      etiqueta», comptador «N de M» i «esborra el filtre». Viu en memòria,
-      no toca dades ni sincronització; en afegir una idea el filtre es
-      neteja perquè la nova es vegi (v52).
-   FET · Els ítems del mateix dia (un vol Barcelona–Lisboa, una activitat…)
-      mostren una sola data en lloc d'un rang repetit («3 set» en comptes de
-      «3 → 3 set»); només si duren més d'un dia surt «entrada → sortida».
-      Val a la llista i a l'agenda (rangDates, compartit) (v51).
-   FET · La demo ja mostra el pressupost complet: el vol, el cotxe i
-      l'entrada de Lisboa queden assignats al viatge «Lisboa i el Douro»
-      (amb qui paga), i el viatge té pressupost previst (500 €), participants
-      (Pepita, Joan) i despeses soltes d'exemple amb les categories noves
-      (menjar, transport, activitats, souvenirs) (v50).
-   FET · Categories de despeses soltes adaptades a l'entorn viatge: Menjar,
-      Transport, Activitats, Souvenirs, Altres (abans oci/compres) (v49).
-   FET · Pressupost en dues columnes a l'ordinador: a l'esquerra el resum
-      «Cost del viatge» i «Qui deu a qui» (el que es mira), a la dreta les
-      despeses soltes (el que s'edita). El formulari d'afegir passa a tres
-      fileres (concepte+import / categoria+qui paga / botó a la dreta), la
-      fletxa del resum apunta a la dreta (›), i el límit d'amplada puja a
-      760px. Al mòbil les columnes s'apilen (v48).
-   FET · A l'ordinador, el contingut del pressupost es limita a una columna
-      de 480px (classe .subvista-pressupost) perquè les línies etiqueta↔import
-      no quedin separades d'un extrem a l'altre. Al mòbil no afecta (v47).
-   FET · Els títols de secció del viatge (Itinerari, Per encaixar, Despeses
-      soltes · el detall, Qui deu a qui…) passen del gris tènue a l'accent
-      pruna (--accent), perquè es llegeixin clarament com a títols (v46).
-   FET · Jerarquia visual del pressupost: el resum global (desglòs + total +
-      barra) passa a una targeta amb títol «Cost del viatge», i les despeses
-      soltes hi surten com UNA línia agregada (amb ▾) en comptes de per
-      categoria. A sota, les seccions «Despeses soltes · el detall» i «Qui
-      deu a qui» queden com a àrees de treball més lleugeres. Es veu que el
-      global conté el detall (v45).
-   FET · Despeses soltes del pressupost: dins d'un viatge, a la subpestanya
-      Pressupost, es poden apuntar a mà despeses que no són reserves (benzina,
-      sopars, entrades, souvenirs…), amb categoria (menjar/transport/oci/
-      compres/altres) i, opcionalment, qui les paga. Es desen dins del viatge
-      (v.despeses), sense taula nova; sumen al total i a la barra de previst-
-      contra-real i compten al repartiment igual que les reserves (v44).
-   FET · L'indicador de dalt a la dreta ja no diu «Al dia» quan tot està
-      sincronitzat: es queda buit (silenci = tot bé). Es mantenen els avisos
-      («N per sincronitzar», «Sincronitzant…», «Sense connexió», «Només en
-      aquest navegador», «No s'ha pogut sincronitzar») (v43).
-   FET · Menú de compte a la capçalera: el botó «Surt» passa a ser un
-      desplegable «Compte» (reaprofita el patró del menú d'assignació) amb el
-      correu, «Desa una còpia de seguretat» (JSON complet), «Recupera una
-      còpia» (additiva) i «Surt». Torna a estar disponible el backup/restaura
-      que la v41 havia tret, però ara amagat i agrupat (v42).
-   FET · Trets del peu els botons «Desa una còpia de seguretat» i «Recupera
-      una còpia» (i el seu JS: copiaCompleta, restauraCol i els handlers);
-      es manté l'exportació a Excel i l'àrea d'avisos del peu. A la vista
-      compacta de viatges ja no es mostra el resum (nombre de reserves ni
-      preu): funció resumViatge treta (v41).
-   FET · Panell «afegeix una reserva»: ja no s'obre sol en carregar l'app
-      (abans la primera càrrega amb el registre buit l'obria i es quedava
-      obert fins i tot amb reserves). Es plega sempre; l'estat buit assenyala
-      el botó (v40).
-   FET · Tanda de retocs (v40): (6) Nominatim ara cacheja el «no trobat» com
-      a llista buida i no el reconsulta, distingint-lo dels errors de xarxa
-      (que sí es reproven); (7) monedes sense símbol conegut (CHF…) es
-      mostren amb el codi, no forçant «€»; (8) el confirm d'esborrar diu el
-      nom real de qualsevol tipus (nomReserva), no «sense nom»; (9) el parser
-      genèric salta la primera data per la seva llargada real (trobaData.fi),
-      no per un +8 fix; (10) comparador d'ordenació de viatges estable (0 en
-      empat).
-   FET · «Entre qui» va cada viatge: editor de participants amb chips al
-      formulari del viatge (desat a v.participants, sense migració). El
-      repartiment divideix entre la unió de participants explícits i
-      pagadors, així un participant que no ha pagat res també deu la seva
-      part («ho pago tot jo però som dos»). Sense participants, recau en els
-      pagadors com fins ara. Inclòs a l'exportació d'Excel (v39).
-   FET · Tret del peu l'avís «les dades es desen en aquest navegador… es
-      perdran»: ja no és cert des que hi ha sincronització al núvol (v38).
-   FET · Repartiment «qui deu a qui» al pressupost del viatge: a partir del
-      «qui ho paga» de cada reserva, reparteix el cost a parts iguals entre
-      els pagadors i calcula les transferències mínimes per quedar en paus.
-      En cèntims perquè quadri; les reserves sense pagador queden fora i
-      s'avisa (v37).
-   FET · Dates en castellà del mes d'agost: «agosto» faltava a MES_RE i les
-      dates d'agost es perdien. Afegit abans que «agost» (el més llarg va
-      primer a l'alternança, o el curt s'endú la coincidència) (v36).
-   FET · El detall d'un viatge ara té la mateixa protecció de focus que la
-      llista i les idees: una sincronització en segon pla ja no esborra el
-      que s'està escrivint en un camp d'una visita (només protegeix
-      input/textarea, no els botons) (v36).
-   FET · «Qui ho paga» ara es desa també dins del detall d'un viatge; abans
-      els listeners de data-paga només penjaven de #cos-llista, i el que
-      s'hi escrivia dins d'un viatge es perdia (v35).
-   FET · Còpia de seguretat completa: la còpia JSON i l'exportació a Excel
-      cobreixen reserves, idees i viatges (abans, només reserves). La
-      restauració entén el format nou (objecte amb les tres col·leccions) i
-      l'antic (array de només reserves), sense sobreescriure res (v35).
-   FET · Normalitzar zones amb geocodificació (Nominatim), versió 25.
-      Es consulta 1 cop per zona en segon pla, es desa la jerarquia i el
-      creuament compara jerarquies amb recaiguda a text. User-Agent =
-      NOMINATIM_APP. Si algun dia l'app creix, veure el document
-      d'anotacions (afegir-hi un correu de contacte, sobretot).
-   FET · Dates en formats lliures a l'entrada manual: interpretaData()
-      accepta 15/3/2026, 15-3-26, 15.03.26, 15/3... i desa en ISO (v23).
-   FET · Hora d'entrada de Booking: «de 14:00 a 00:00» → 14:00. La franja
-      fins a mitjanit era soroll; una franja real (15:00–22:00) es manté.
-   FET · Idees: segona col·lecció amb taula pròpia a Supabase, pestanyes
-      i creuament de zona amb la població de les reserves (versió 17).
-   FET · Tipus de reserva: allotjament, vol, cotxe, entrada, altres
-      (versió 18). Selector a la fitxa amb camps propis per tipus, icona
-      a la llista, i població per tipus per al creuament. El parser d'emails
-      de moment només entén allotjaments; els altres tipus s'entren a mà.
-   FET · Camp «qui ho paga» (versió 16). Text lliure amb suggeriments dels
-      noms ja fets servir, editable directament al desplegable. El parser
-      no l'omple mai: a nom de qui va la reserva no vol dir qui la paga.
-   FET · Pregunta del cobrament quan arriba la data (versió 12). No és
-      la data de cancel·lació sinó la de pagament, que segons el cas és
-      el final del termini gratuït o el dia d'entrada.
-   4. (lliure)
-   FET · Botó per obrir l'adreça a Google Maps (versió 9).
-   FET · Mode demostració amb ?demo a l'adreça (versió 10).
-   FET · Supabase: magatzem local-first amb sincronització (versió 14).
+
+   ── Aquí s'acaba el registre. El 18/08/2026, en arribar a 100 entrades, se'n
+      van podar les 70 més velles (de la v1 a la v91) i s'hi van deixar les 30
+      últimes, que és el que s'havia acordat de fer en aquest punt.
+      NO S'HA PERDUT RES: les entrades velles viuen a les còpies congelades,
+      que fan d'arxiu. Si busques per què es va fer una cosa i aquí no hi és,
+      mira-les de la més nova a la més vella:
+        app-viatges-13.html → fins a la v116 (95 entrades)
+        app-viatges-12.html → fins a la v106 (85 entrades)
+        app-viatges-11.html → fins a la v96  (75 entrades)
+        app-viatges-10.html → fins a la v86  (65 entrades)
+      Quan aquest registre torni a arribar a 100, toca tornar-ho a fer.
 
    ⚠ RECORDATORI PENDENT: un cop creat el compte des de l'app, cal anar a
       Supabase → Authentication → Sign In / Providers i DESACTIVAR
@@ -7706,7 +7361,7 @@ function maletaHTML(v, seves) {
       <div class="maleta-llista" data-reordena="maleta">${llista}</div>
       ${tots.length ? `<div class="maleta-peu">
         ${meus.length ? `<p class="maleta-compte" id="maleta-compte">${fets} de ${meus.length} ${meus.length === 1 ? 'preparat' : 'preparades'}</p>` : '<span></span>'}
-        <button class="subtil mini" data-imprimeix-maleta>Imprimeix la llista</button>
+        <button class="mini" data-imprimeix-maleta>Imprimeix la llista</button>
       </div>` : ''}
       ${suggeriments}
     </div>`;
@@ -7780,9 +7435,14 @@ function fullImprimirHTML(v, quins) {
   const tots = Array.isArray(v.maleta) ? v.maleta : [];
   return quins.map(p => {
     const seus = tots.filter(it => (it.persona || '') === (p || ''));
-    const fets = seus.filter(it => it.fet).length;
+    // A partir d'aquí una columna sola no cabria en un full i el segon
+    // sortiria gairebé buit. El número surt de mesurar-ho: amb els marges de
+    // 16 mm hi caben una trentena d'ítems d'una línia, i es baixa el llindar
+    // perquè els que ocupin dues línies no facin vessar el full.
+    const DUES_COLUMNES_A_PARTIR_DE = 30;
     const files = seus.length
-      ? `<ul class="full-llista">` + seus.map(it =>
+      ? `<ul class="full-llista${seus.length > DUES_COLUMNES_A_PARTIR_DE ? ' dues-columnes' : ''}">`
+        + seus.map(it =>
           `<li class="full-item${it.fet ? ' fet' : ''}">
             <span class="full-casella" aria-hidden="true">${it.fet ? '✓' : ''}</span>
             <span class="full-text">${esc(it.text || '')}</span>
@@ -7795,7 +7455,6 @@ function fullImprimirHTML(v, quins) {
       </div>
       <h2 class="full-qui">${p ? 'Maleta de ' + esc(p) : 'La maleta'}</h2>
       ${files}
-      <p class="full-peu">${fets} de ${seus.length} ${seus.length === 1 ? 'preparat' : 'preparades'} · Els meus viatges</p>
     </section>`;
   }).join('');
 }
