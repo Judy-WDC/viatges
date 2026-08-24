@@ -31,10 +31,18 @@
     --subtil: #EDE7DF;
     --vora: #E4DBD0;
     --vora-forta: #D8CFC4;
+    /* La vora del que es pot TOCAR: botons i camps. Va a part de --vora-forta
+       perquè les vores fan dues feines diferents. Una vora que diu «això es pot
+       tocar» s'ha de veure (mínim 3:1 contra el fons); una que només separa
+       —el marc d'una targeta, la ratlla sota la capçalera de la llista— no, i
+       enfosquir-les totes deixaria l'app enreixada. Albergínia rebaixada i no
+       un gris: a la paleta no hi ha ni un sol to fred, i un gris hi entrava
+       com un element d'una altra família. */
+    --vora-control: #9C8190;
     /* Text */
     --tinta: #33272E;
     --tinta-suau: #6E5D52;
-    --tinta-tenue: #9C9088;
+    --tinta-tenue: #706761;
     /* Identitat: albergínia (estructura) i mostassa (accions) */
     --accent: #5E3352;
     --accent-fort: #4E2A44;
@@ -47,9 +55,9 @@
     --mostassa: #9A7B1F;
     --mostassa-actiu: #E8C877;
     /* Estats */
-    --verd: #4E7A5C;
+    --verd: #497356;
     --verd-fons: #E3EDE4;
-    --ambre: #9A7B1F;
+    --ambre: #81671A;
     --ambre-fons: #F3EAD4;
     --vermell: #A4402F;
     --vermell-fons: #F5E4DF;
@@ -142,7 +150,7 @@
   .filtre-etiquetes:empty { display: none; }
   .pill-etiq {
     padding: 5px 12px; border-radius: 999px; font-family: inherit; font-size: 13px;
-    background: transparent; color: var(--tinta-suau); border: 1px solid var(--vora-forta); cursor: pointer;
+    background: transparent; color: var(--tinta-suau); border: 1px solid var(--vora-control); cursor: pointer;
   }
   .pill-etiq:hover { border-color: var(--accent-clar); color: var(--accent); }
   .pill-etiq.activa { background: var(--accent); color: #F6EFE9; border-color: var(--accent); }
@@ -185,7 +193,7 @@
     font-weight: 500;
     padding: 8px 14px;
     border-radius: var(--radi-petit);
-    border: 1px solid var(--vora-forta);
+    border: 1px solid var(--vora-control);
     background: var(--superficie);
     color: var(--tinta);
     cursor: pointer;
@@ -227,6 +235,29 @@
   }
   input:focus, textarea:focus { border-color: var(--accent); }
 
+  /* ── COM ES MARCA UN SELECTOR ────────────────────────────────────────────
+     Regla de la casa: UN SELECTOR HA DE DIR EN VEU ALTA QUINA OPCIÓ ESTÀ
+     TRIADA. Qui fa servir un lector de pantalla no veu quin botó està pintat:
+     si no ho diu una etiqueta, no ho sap.
+
+     N'hi ha de dues menes, i no se n'ha d'inventar cap altra:
+
+     · Canviar de PANTALLA (les tres pestanyes de dalt) → el contenidor porta
+       <nav aria-label="…"> i el botó de la pantalla on ets, aria-current="page".
+     · Triar una MANERA DE VEURE el mateix (Llista/Taula, les subpestanyes
+       d'un viatge, Itinerari/Dia, Llista/Mapa d'Inspiració) → el contenidor
+       porta role="group" amb aria-label que digui de què va el grup, i CADA
+       botó aria-pressed="true|false".
+
+     I una que no s'ha de fer servir: role="tablist". És una PROMESA amb
+     lletra petita —cada botó ha de dir que és una pestanya, quina està
+     seleccionada i quin tros de pantalla mana, i s'han de poder recórrer amb
+     les fletxes del teclat— i, a mitges, és pitjor que no dir res: el lector
+     anuncia pestanyes i després no n'hi ha cap. Les subpestanyes d'un viatge
+     la van portar fins a la v133 sense res del que ve al darrere.
+
+     Ull: aria-pressed s'ha d'actualitzar allà on es canvia la classe
+     «activa». Si només es toca la classe, el selector torna a quedar mut. */
   .commutador { display: flex; gap: 2px; background: var(--subtil); border-radius: var(--radi-petit); padding: 3px; }
   .commutador button { border: none; background: none; color: var(--tinta-suau); padding: 5px 13px; border-radius: 5px; font-size: 13px; }
   .commutador button:hover { background: rgba(0, 0, 0, 0.03); }
@@ -247,7 +278,7 @@
   textarea {
     width: 100%;
     padding: 13px;
-    border: 1px solid var(--vora);
+    border: 1px solid var(--vora-control);
     border-radius: 8px;
     background: var(--fons);
     font-family: var(--mono);
@@ -287,7 +318,7 @@
     color: var(--tinta-suau);
     font-size: 13px;
   }
-  .pastilla-tipus:hover { border-color: var(--vora-forta); background: var(--subtil); }
+  .pastilla-tipus:hover { border-color: var(--vora-control); background: var(--subtil); }
   .pastilla-tipus .ico-tipus-tria { width: 15px; height: 15px; flex: none; }
   .pastilla-tipus.activa {
     background: var(--accent-fons);
@@ -322,7 +353,7 @@
   .camp input {
     width: 100%;
     padding: 8px 10px;
-    border: 1px solid var(--vora);
+    border: 1px solid var(--vora-control);
     border-radius: 6px;
     font-family: inherit;
     font-size: 13.5px;
@@ -589,7 +620,7 @@
   /* Amb vora: sense ella es llegia com a text i no com una cosa clicable,
      igual que passava amb «No és aquest lloc?». */
   .sense-forma button {
-    border: 1px solid var(--vora-forta); background: var(--superficie); color: var(--accent);
+    border: 1px solid var(--vora-control); background: var(--superficie); color: var(--accent);
     border-radius: 999px; padding: 3px 12px; font-size: 12px; font-weight: 500; flex: none;
   }
   .sense-forma button:hover { background: var(--accent-fons); border-color: var(--accent-suau); }
@@ -606,7 +637,7 @@
   .despesa-fila { display: flex; gap: 8px; }
   .despesa-accio { display: flex; justify-content: flex-end; }
   .despesa-camp {
-    padding: 8px 10px; border: 1px solid var(--vora); border-radius: 8px;
+    padding: 8px 10px; border: 1px solid var(--vora-control); border-radius: 8px;
     font-family: inherit; font-size: 13.5px; color: var(--tinta); background: var(--superficie);
   }
   .despesa-camp:focus { border-color: var(--accent); outline: none; }
@@ -678,16 +709,16 @@
   .agenda-titol { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin: 0 0 4px; }
 
   /* Commutador de l'agenda: itinerari complet / activitats del dia */
-  .agenda-mode { display: inline-flex; border: 1px solid var(--vora-forta); border-radius: 8px; overflow: hidden; margin-bottom: 18px; }
+  .agenda-mode { display: inline-flex; border: 1px solid var(--vora-control); border-radius: 8px; overflow: hidden; margin-bottom: 18px; }
   .agenda-mode-opcio { padding: 7px 13px; border: none; background: transparent; color: var(--tinta-suau); font-family: inherit; font-size: 12.5px; cursor: pointer; }
-  .agenda-mode-opcio + .agenda-mode-opcio { border-left: 1px solid var(--vora-forta); }
+  .agenda-mode-opcio + .agenda-mode-opcio { border-left: 1px solid var(--vora-control); }
   .agenda-mode-opcio.activa { background: var(--accent); color: #F6EFE9; }
 
   /* Navegació per dies */
   .dia-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
   .dia-fletxa {
     width: 30px; height: 30px; flex: none; display: flex; align-items: center; justify-content: center;
-    border: 1px solid var(--vora-forta); border-radius: 8px; padding: 0;
+    border: 1px solid var(--vora-control); border-radius: 8px; padding: 0;
     background: var(--superficie); color: var(--tinta-suau); cursor: pointer;
   }
   .dia-fletxa.enrere .chev { transform: rotate(90deg); }
@@ -738,7 +769,7 @@
   .visita-camp.ample { grid-column: 1 / -1; }
   .visita-camp span { font-size: 12px; font-weight: 500; color: var(--tinta-tenue); }
   .visita-camp input, .visita-camp textarea {
-    border: 1px solid var(--vora); border-radius: 7px; padding: 7px 9px;
+    border: 1px solid var(--vora-control); border-radius: 7px; padding: 7px 9px;
     font-family: inherit; font-size: 13.5px; color: var(--tinta);
     background: var(--superficie); resize: vertical;
   }
@@ -748,7 +779,7 @@
   .maleta-qui { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
   .maleta-persona {
     font-size: 12.5px; padding: 5px 13px; border-radius: 999px;
-    border: 1px solid var(--vora-forta); background: none; color: var(--tinta-suau); font-weight: 400;
+    border: 1px solid var(--vora-control); background: none; color: var(--tinta-suau); font-weight: 400;
   }
   .maleta-persona:hover { background: var(--subtil); color: var(--tinta); }
   .maleta-persona.activa { background: var(--accent-fons); border-color: var(--accent); color: var(--accent); font-weight: 500; }
@@ -765,7 +796,7 @@
   .maleta-marca:hover { background: var(--superficie-clara); }
   .maleta-casella {
     width: 18px; height: 18px; flex: none; border-radius: 5px;
-    border: 1.5px solid var(--vora-forta); background: none;
+    border: 1.5px solid var(--vora-control); background: none;
     display: inline-flex; align-items: center; justify-content: center;
   }
   .maleta-item.fet .maleta-casella { background: var(--accent); border-color: var(--accent); }
@@ -779,7 +810,7 @@
      ell, al mòbil el dit desplaçaria la pàgina en comptes de moure la fila. */
   .maleta-nansa {
     flex: none; display: inline-flex; align-items: center; justify-content: center;
-    width: 28px; align-self: stretch; color: var(--vora-forta);
+    width: 28px; align-self: stretch; color: var(--vora-control);
     cursor: grab; touch-action: none; user-select: none;
   }
   .maleta-nansa:hover { color: var(--tinta-tenue); }
@@ -792,7 +823,7 @@
      mòbil aquesta fila ja va justa d'amplada. */
   .fila-nansa {
     flex: none; display: inline-flex; align-items: flex-start; justify-content: center;
-    width: 20px; padding: 17px 0 0 4px; color: var(--vora-forta);
+    width: 20px; padding: 17px 0 0 4px; color: var(--vora-control);
     cursor: grab; touch-action: none; user-select: none;
   }
   .fila-nansa:hover { color: var(--tinta-tenue); }
@@ -819,7 +850,7 @@
      No poden ser un botó dins d'un altre, per això la píndola és un span. */
   .maleta-sug {
     display: inline-flex; align-items: stretch;
-    border: 1px solid var(--vora-forta); background: var(--superficie);
+    border: 1px solid var(--vora-control); background: var(--superficie);
     border-radius: 999px; overflow: hidden;
   }
   .maleta-sug:hover { border-color: var(--accent-suau); }
@@ -836,7 +867,7 @@
   .maleta-sug-x:hover { background: var(--vermell-fons); color: var(--vermell); }
   .maleta-amagats { font-size: 11.5px; color: var(--tinta-tenue); margin: 12px 0 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .maleta-amagats button {
-    border: 1px solid var(--vora-forta); background: var(--superficie); color: var(--accent);
+    border: 1px solid var(--vora-control); background: var(--superficie); color: var(--accent);
     border-radius: 999px; padding: 2px 10px; font-size: 11.5px; font-weight: 500;
   }
   /* Moure un ítem a una altra persona */
@@ -867,7 +898,7 @@
   /* Crear una idea des de dins del viatge (pestanya Idees) */
   .idea-nova-viatge { display: flex; gap: 8px; margin-bottom: 16px; }
   .idea-nova-camp {
-    flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--vora); border-radius: 8px;
+    flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--vora-control); border-radius: 8px;
     font-family: inherit; font-size: 13.5px; color: var(--tinta); background: var(--superficie);
   }
   .idea-nova-camp:focus { border-color: var(--accent); outline: none; }
@@ -963,6 +994,12 @@
   .fila.oberta .fila-cap .icona-tipus { background: var(--accent-clar); color: #F6EFE9; }
   .fila.oberta .fila-cap .xifra,
   .fila.oberta .fila-cap .menuda { color: #F6EFE9; }
+  /* La cancel·lació era l'única cel·la que no es girava en obrir la fila: es
+     quedava amb els colors de fons clar damunt de l'albergínia i no es llegia
+     (1,6:1). El groc per a la que corre pressa és el mateix que fa servir
+     l'estat de la sincronització a la capçalera, que també és albergínia. */
+  .fila.oberta .fila-cap .cel-cancel { color: var(--accent-tenue); }
+  .fila.oberta .fila-cap .cel-cancel.cancel-urgent { color: var(--mostassa-actiu); }
   .fila.oberta .chev { color: var(--accent-tenue); }
   .cel-punt { grid-area: punt; }
   .cel-nom { grid-area: nom; min-width: 0; }
@@ -1062,14 +1099,14 @@
   .detall-graella { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px 24px; }
   .detall-camp span { display: block; font-size: 12px; font-weight: 500; color: var(--tinta-tenue); }
   .detall-camp p { margin: 2px 0 0; font-size: 13.5px; font-variant-numeric: tabular-nums; }
-  .detall-camp p.absent { color: var(--tinta-tenue); opacity: 0.8; font-style: italic; }
+  .detall-camp p.absent { color: var(--tinta-tenue); font-style: italic; }
   .detall-camp.ample { grid-column: 1 / -1; }
   .camp-viu {
     width: 100%;
     max-width: 280px;
     margin-top: 2px;
     padding: 5px 9px;
-    border: 1px solid var(--vora);
+    border: 1px solid var(--vora-control);
     border-radius: 6px;
     background: var(--superficie);
     font-family: inherit;
@@ -1077,7 +1114,7 @@
     color: var(--tinta);
   }
   .camp-viu::placeholder { color: var(--tinta-tenue); font-style: italic; }
-  .camp-viu:hover { border-color: var(--vora-forta); }
+  .camp-viu:hover { border-color: var(--accent-clar); }
   .enllac-maps {
     display: inline-flex;
     align-items: center;
@@ -1190,7 +1227,7 @@
   /* Amb una vora fina: sense ella es llegia com una etiqueta i no com una
      cosa que es pot clicar. */
   .idea-lloc button {
-    border: 1px solid var(--vora-forta); background: none; padding: 1px 7px; font-size: 11.5px;
+    border: 1px solid var(--vora-control); background: none; padding: 1px 7px; font-size: 11.5px;
     font-weight: 400; color: var(--accent); border-radius: 999px; flex: none;
   }
   .idea-lloc button:hover { background: var(--accent-fons); }
@@ -1206,7 +1243,7 @@
   .lloc-fila .idea-lloc-nom { flex: 1; min-width: 160px; white-space: normal; line-height: 1.4; }
   .lloc-fila strong { font-weight: 500; color: var(--tinta); }
   .lloc-fila button {
-    border: 1px solid var(--vora-forta); background: var(--superficie); color: var(--accent);
+    border: 1px solid var(--vora-control); background: var(--superficie); color: var(--accent);
     font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 999px; flex: none;
   }
   .lloc-fila button:hover { background: var(--accent-fons); }
@@ -1215,7 +1252,7 @@
   .compartit-camp { display: block; margin-bottom: 13px; }
   .compartit-camp > span { display: block; font-size: 12px; font-weight: 500; color: var(--tinta-tenue); margin-bottom: 4px; }
   .compartit-camp textarea, .compartit-camp input {
-    width: 100%; padding: 9px 11px; border: 1px solid var(--vora); border-radius: 6px;
+    width: 100%; padding: 9px 11px; border: 1px solid var(--vora-control); border-radius: 6px;
     background: var(--superficie-clara); font-family: inherit; font-size: 14px;
     color: var(--tinta); line-height: 1.4; resize: vertical;
   }
@@ -1233,14 +1270,14 @@
   .lloc-cerca { display: flex; gap: 8px; margin: 4px 0 12px; }
   .lloc-cerca input {
     flex: 1; min-width: 0; padding: 8px 10px;
-    border: 1px solid var(--vora); border-radius: 6px;
+    border: 1px solid var(--vora-control); border-radius: 6px;
     font-family: inherit; font-size: 14px; color: var(--tinta); background: var(--superficie);
   }
   .lloc-cerca button { flex: none; }
   .lloc-resultats { display: flex; flex-direction: column; gap: 5px; }
   .lloc-opcio {
     width: 100%; text-align: left; line-height: 1.4;
-    border: 1px solid var(--vora); background: var(--superficie-clara);
+    border: 1px solid var(--vora-control); background: var(--superficie-clara);
     border-radius: 8px; padding: 9px 11px; font-size: 13px; font-weight: 400; color: var(--tinta);
   }
   .lloc-opcio:hover { border-color: var(--accent); background: var(--accent-fons); }
@@ -1278,7 +1315,7 @@
   .acces-camp input {
     width: 100%;
     padding: 9px 11px;
-    border: 1px solid var(--vora);
+    border: 1px solid var(--vora-control);
     border-radius: 6px;
     font-family: inherit;
     font-size: 14px;
@@ -1309,7 +1346,7 @@
   .codi-caselles { display: flex; gap: 8px; justify-content: center; }
   .casella {
     width: 38px; height: 46px; flex: none;
-    border: 1px solid var(--vora-forta); border-radius: 8px;
+    border: 1px solid var(--vora-control); border-radius: 8px;
     background: var(--superficie-clara);
     display: flex; align-items: center; justify-content: center;
   }
@@ -1674,7 +1711,7 @@
 
   <section class="panell ocult" id="panell-afegeix" aria-label="Afegeix una reserva">
     <p class="pista">Copia tot el text de l'email de confirmació i enganxa'l aquí. No cal netejar res: l'app hi buscarà les dades.</p>
-    <textarea id="entrada" placeholder="Enganxa aquí el text de l'email de Booking, Expedia, Airbnb…" spellcheck="false"></textarea>
+    <textarea id="entrada" placeholder="Enganxa aquí el text de l'email de Booking, Vueling, Ryanair…" spellcheck="false"></textarea>
     <div class="accions">
       <button class="primari" id="btn-llegeix">Llegeix la reserva</button>
       <button class="subtil" id="btn-neteja">Buida la caixa</button>
@@ -1762,9 +1799,9 @@
       <button class="primari" id="btn-nova-idea">Afegeix una idea</button>
     </div>
 
-    <div class="agenda-mode" id="inspiracio-mode">
-      <button class="agenda-mode-opcio" data-inspiracio-vista="llista">Llista</button>
-      <button class="agenda-mode-opcio" data-inspiracio-vista="mapa">Mapa</button>
+    <div class="agenda-mode" id="inspiracio-mode" role="group" aria-label="Manera de veure la inspiració">
+      <button class="agenda-mode-opcio" data-inspiracio-vista="llista" aria-pressed="true">Llista</button>
+      <button class="agenda-mode-opcio" data-inspiracio-vista="mapa" aria-pressed="false">Mapa</button>
     </div>
 
     <div class="filtre-etiquetes" id="filtre-etiquetes"></div>
@@ -1934,6 +1971,86 @@ function dataISO(d) {
   return `${d.any}-${String(d.mes).padStart(2,'0')}-${String(d.dia).padStart(2,'0')}`;
 }
 
+/* ── Dates i hores dels vols ──────────────────────────────────────────
+   Els correus d'avió no escriuen les dates com els d'hotel, i cada
+   companyia ho fa a la seva manera: en xifres (23/05/2025), amb el mes
+   escrit (04 Marzo 2023) o amb el mes abreujat i SENSE ANY (02.sep).
+   En aquest últim cas l'any es dedueix de la data del correu: un vol és
+   sempre posterior a la confirmació, o sigui que si el dia i el mes cauen
+   abans, són de l'any que ve (correu al desembre, vol al gener). */
+
+// Com DATA_RE, però amb el mes abreujat: «2 de set. 2025», «3 Apr 2025».
+// Serveix per llegir la data d'enviament, que és on cada client de correu
+// escriu el mes com li sembla. mesANum() ja entén les abreviatures.
+const DATA_CURTA_RE = /\b(\d{1,2})\s+(?:de\s+|d['’]\s?)?(\p{L}{3,})\.?\s+(?:de(?:l)?\s+)?(\d{4})\b/u;
+
+// El nom és llarg a posta: més avall ja hi ha un isoDe(), el de l'agenda,
+// que rep una data de JavaScript. Com que tot el codi viu en un sol fitxer
+// i comparteix espai de noms, dues funcions amb el mateix nom no donen cap
+// error: la segona esborra la primera i el que peta és molt més enllà.
+function isoDeDiaMesAny(dia, mes, any) {
+  return `${any}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+}
+
+/* La data en què es va enviar el correu. Es busca només al capdamunt: més
+   avall hi ha les dates del viatge i les dels pagaments, que enganyarien. */
+function dataDelCorreu(flat) {
+  const cap = flat.slice(0, 900);
+  const m = cap.match(DATA_CURTA_RE);
+  if (m) {
+    const mes = mesANum(m[2]);
+    if (mes) return isoDeDiaMesAny(+m[1], mes, +m[3]);
+  }
+  const n = cap.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{2,4})\b/);
+  if (n) return isoDeDiaMesAny(+n[1], +n[2], +n[3] < 100 ? 2000 + +n[3] : +n[3]);
+  return avuiISO();
+}
+
+function completaAny(dia, mes, refISO) {
+  const ref = /^\d{4}-\d{2}-\d{2}$/.test(refISO || '') ? refISO : avuiISO();
+  const cand = isoDeDiaMesAny(dia, mes, +ref.slice(0, 4));
+  return cand >= ref ? cand : isoDeDiaMesAny(dia, mes, +ref.slice(0, 4) + 1);
+}
+
+function sumaDies(iso, dies) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso || '')) return '';
+  const [a, m, d] = iso.split('-').map(Number);
+  const data = new Date(a, m - 1, d);
+  data.setDate(data.getDate() + dies);
+  return isoDeDiaMesAny(data.getDate(), data.getMonth() + 1, data.getFullYear());
+}
+
+// Les hores es comparen com a text, i per això han d'anar amb dos dígits:
+// «9:30» i «09:30» són la mateixa hora però no la mateixa cadena.
+function horaNeta(h) {
+  const m = String(h || '').match(/(\d{1,2}):(\d{2})/);
+  return m ? String(+m[1]).padStart(2, '0') + ':' + m[2] : '';
+}
+
+/* La data d'arribada d'un vol. Un vol de nit surt a les 22:45 i arriba a
+   les 00:55: no és el mateix dia. Aegean ho diu amb un «+1» al costat de
+   l'hora; la resta no ho diu enlloc i s'ha de deduir comparant les hores. */
+function dataArribada(isoSortida, horaSortida, horaArribada, saltExplicit) {
+  if (!isoSortida) return '';
+  let salt = saltExplicit || 0;
+  if (!salt && horaSortida && horaArribada && horaArribada < horaSortida) salt = 1;
+  return salt ? sumaDies(isoSortida, salt) : isoSortida;
+}
+
+/* L'última data amb any que hi ha en un tros de text. El bloc de cada vol
+   comença amb la seva data, però abans hi pot haver la del correu o la
+   d'un pagament: la bona és la que queda més a prop del vol. */
+function ultimaData(txt) {
+  let millor = null, desde = 0;
+  while (desde < txt.length) {
+    const d = trobaData(txt.slice(desde));
+    if (!d) break;
+    if (d.any) millor = { dia: d.dia, mes: d.mes, any: d.any, index: desde + d.index, fi: desde + d.fi };
+    desde += d.fi;
+  }
+  return millor;
+}
+
 function normalitza(text) {
   return text
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')   // enllaços markdown
@@ -1949,6 +2066,11 @@ function detectaPlataforma(flat) {
   if (/\baccor\b|\ball\.com\b|\b(?:ibis|novotel|mercure|pullman|sofitel|adagio|mama shelter)\b/i.test(flat)) {
     return /\bibis\b/i.test(flat) ? 'ibis (Accor)' : 'Accor';
   }
+  // Companyies aèries: el nom de la companyia identifica el correu tan bé
+  // com la marca d'un hotel, i cadascuna té el seu lector de vols.
+  if (/\bvueling\b/i.test(flat)) return 'Vueling';
+  if (/\bryanair\b/i.test(flat)) return 'Ryanair';
+  if (/\baegean\b/i.test(flat)) return 'Aegean';
   if (/booking\.com/i.test(flat)) return 'Booking.com';
   if (/expedia/i.test(flat)) return 'Expedia';
   if (/airbnb/i.test(flat)) return 'Airbnb';
@@ -2331,14 +2453,263 @@ function parseGeneric(flat) {
   return r;
 }
 
+/* ═══════════════ VOLS ═══════════════
+   Cada companyia escriu el correu a la seva manera i no s'assemblen en res
+   —ni en l'ordre, ni en les paraules, ni en el que hi posen—, o sigui que
+   cadascuna té el seu lector, com ja passa amb Booking i Accor.
+   El que sí que és comú és el resultat: cada lector torna una LLISTA de
+   vols, un si és només anada i dos si hi ha tornada. Una anada i tornada
+   són dues reserves, perquè són dos vols amb dia, hora i número propis,
+   com si els haguessis entrat a mà.
+   El preu, en canvi, és UN de sol per a tot el correu, i va sencer al
+   primer vol: repartit a mitges, cap dels dos números no coincidiria amb
+   el del correu; posat als dos, el pressupost del viatge sortiria doble.
+   Els vols que en pengen ho diuen a les notes, que si no sembla que la
+   tornada hagi sortit de franc. */
+
+/* Talla la publicitat i la lletra petita del final: allà hi ha imports que
+   no són teus («hasta 75,00 EUR» de l'equipatge, «menos de 99€ la noche»)
+   i números llarguíssims del text legal. Només es talla si el senyal surt
+   prou avall: si aparegués a la capçalera ens quedaríem sense correu. */
+function talla(flat, re) {
+  const i = flat.search(re);
+  return i > 300 ? flat.slice(0, i) : flat;
+}
+
+function escapaRe(t) {
+  return String(t || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function ciutatPlausible(t) {
+  return /^\p{Lu}[\p{L}'’·. -]{1,28}$/u.test(t || '');
+}
+
+/* «Barcelona (T1) Berlín (Brandenburgo) (T1)» → ['Barcelona', 'Berlín'].
+   Les dues ciutats van seguides i cadascuna arrossega els seus parèntesis
+   —terminal, país, nom de l'aeroport—: fora parèntesis, han de quedar dues
+   paraules i prou. Si en queden més (una ciutat de nom llarg, com Palma de
+   Mallorca) no s'endevina res i es fa servir només el codi d'aeroport. */
+function duesCiutats(seg) {
+  const parts = seg.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim().split(' ');
+  return parts.length === 2 && parts.every(ciutatPlausible) ? parts : [];
+}
+
+/* Origen i destinació: el nom de la ciutat amb el codi d'aeroport al
+   costat quan el correu dóna totes dues coses. Vueling no diu les ciutats
+   d'una manera fiable i Aegean no diu els codis: cada correu dóna el que
+   té, i val més això que inventar-se el que falta. */
+function llocVol(ciutat, codi) {
+  if (ciutat && codi) return ciutat + ' (' + codi + ')';
+  return ciutat || codi || '';
+}
+
+function afegeixNota(notes, text) {
+  return notes ? notes + ' ' + text : text;
+}
+
+/* Posa a tots els vols del correu allò que és de la reserva sencera,
+   reparteix el preu i acaba de calcular les dates d'arribada. */
+function acabaVols(vols, comuns) {
+  vols.forEach((v, i) => {
+    v.tipus = 'vol';
+    if (!v.companyia) v.companyia = comuns.companyia || '';
+    if (comuns.numReserva) v.numReserva = comuns.numReserva;
+    if (comuns.pagament) v.pagament = comuns.pagament;
+    v.checkinHora = horaNeta(v.checkinHora);
+    v.checkoutHora = horaNeta(v.checkoutHora);
+    v.checkoutISO = dataArribada(v.checkinISO, v.checkinHora, v.checkoutHora, v.saltDies);
+    delete v.saltDies;
+    if (comuns.preu) {
+      if (i === 0) {
+        v.preu = comuns.preu;
+        if (vols.length > 1) v.notes = afegeixNota(v.notes, 'El preu és de la reserva sencera (anada i tornada).');
+      } else {
+        v.notes = afegeixNota(v.notes, 'El preu va amb el vol d’anada, que ve del mateix correu.');
+      }
+    }
+  });
+  return vols;
+}
+
+/* ── Vueling ──
+   El correu no marca els vols amb cap etiqueta fixa: al d'anada i tornada
+   hi ha «Ida» i «Vuelta», però al d'anada sola no hi ha cap encapçalament.
+   El que hi és sempre, i un cop per vol, és el número («VY1882»), i fa de
+   tanca: cada bloc va del final del vol anterior fins al número del
+   següent. Dins del bloc, la data bona és l'ÚLTIMA: abans hi pot haver la
+   del correu, la del reenviament o la d'un pagament. */
+function parseVueling(flat) {
+  const cos = talla(flat, /Informaci[óo]n importante para tu vuelo|Aviso legal/i);
+  const vols = [];
+  const re = /\b(VY)\s?(\d{3,4})\b/g;
+  let m, previ = 0;
+  while ((m = re.exec(cos))) {
+    const v = volVueling(cos.slice(previ, m.index));
+    previ = m.index + m[0].length;
+    if (v) { v.numVol = m[1] + m[2]; vols.push(v); }
+  }
+  if (!vols.length) return [];
+
+  const comuns = { companyia: 'Vueling' };
+  let x = flat.match(/C[óo]digo de reserva:?\s*([A-Z0-9]{5,8})\b/i);
+  if (x) comuns.numReserva = x[1];
+  x = cos.match(/Total:\s*([\d.,]+)\s*(EUR|USD|GBP|CHF|[€$£])/i);
+  if (x) comuns.preu = importAmbMoneda(x[1], x[2]);
+  // El buit ha de deixar passar punts: entre «Estado:» i «Confirmado» hi
+  // sol quedar el punt d'una icona que no s'ha pogut copiar.
+  if (/Estado:[\s\S]{0,40}?Confirmado/i.test(cos)) comuns.pagament = 'Pagat';
+
+  /* Els seients van en una taula amb una columna per trajecte i una fila
+     per persona: el primer de cada fila és de l'anada i el segon, si n'hi
+     ha, de la tornada. De qui és cada seient aquí es perd —la fitxa d'un
+     vol no té passatgers—: el que queda és la llista de seients del vol. */
+  const perVol = vols.map(() => []);
+  const rs = /Asiento\s+(\d{1,2}[A-F])(?:\s+(\d{1,2}[A-F]))?/gi;
+  let s;
+  while ((s = rs.exec(cos))) {
+    if (perVol[0]) perVol[0].push(s[1].toUpperCase());
+    if (s[2] && perVol[1]) perVol[1].push(s[2].toUpperCase());
+  }
+  vols.forEach((v, i) => {
+    if (perVol[i].length) v.seient = [...new Set(perVol[i])].sort().join(', ');
+  });
+
+  return acabaVols(vols, comuns);
+}
+
+function volVueling(bloc) {
+  const d = ultimaData(bloc);
+  if (!d) return null;
+  const resta = bloc.slice(d.fi);
+  // Sense \b al final: Vueling escriu les hores amb una hac enganxada
+  // («12:45h»), i entre el 5 i la hac no hi ha cap frontera de paraula.
+  const hores = resta.match(/\b\d{1,2}:\d{2}(?!\d)/g) || [];
+  if (hores.length < 2) return null;
+  const codis = [...resta.matchAll(/\b([A-Z]{3})\b/g)];
+  const ciutats = codis.length ? duesCiutats(resta.slice(0, codis[0].index)) : [];
+  return {
+    origen: llocVol(ciutats[0], codis[0] && codis[0][1]),
+    desti: llocVol(ciutats[1], codis[1] && codis[1][1]),
+    checkinISO: isoDeDiaMesAny(d.dia, d.mes, d.any),
+    checkinHora: hores[0],
+    checkoutHora: hores[1]
+  };
+}
+
+/* ── Ryanair ──
+   Els dos vols venen en dos blocs iguals i complets —número, ciutats,
+   data, les dues hores amb etiqueta i els codis d'aeroport—, i per això es
+   llegeixen amb una sola regla que ho demana tot: si un bloc no té aquesta
+   forma, val més no endevinar-lo. La regla és en castellà, que és com
+   arriben aquests correus. */
+const VOL_RYANAIR = /\b([A-Z]{2}\s?\d{3,4})\s+([^\d()]{2,40}?)\s*-\s*([^\d()]{2,40}?)\s*(\d{1,2}\/\d{1,2}\/\d{4})\s*Hora de salida\s*-\s*(\d{1,2}:\d{2})\s*Hora de llegada\s*-\s*(\d{1,2}:\d{2})\s*\(([A-Z]{3})\)\s*-\s*\(([A-Z]{3})\)/g;
+
+function parseRyanair(flat) {
+  const cos = talla(flat, /Facturar ahora|B[áa]sicos de viaje|Check.?in now/i);
+  const vols = [];
+  let m;
+  VOL_RYANAIR.lastIndex = 0;
+  while ((m = VOL_RYANAIR.exec(cos))) {
+    vols.push({
+      numVol: m[1].replace(/\s+/g, ''),
+      origen: llocVol(m[2].trim(), m[7]),
+      desti: llocVol(m[3].trim(), m[8]),
+      checkinISO: isoNumerica(m[4]),
+      checkinHora: m[5],
+      checkoutHora: m[6]
+    });
+  }
+  if (!vols.length) return [];
+
+  const comuns = { companyia: 'Ryanair' };
+  let x = flat.match(/N[úu]mero de reserva:?\s*([A-Z0-9]{5,8})\b/i);
+  if (x) comuns.numReserva = x[1];
+  // El buit del mig ha de deixar passar xifres: entre «Precio total» i
+  // l'import hi ha els últims quatre números de la targeta.
+  x = cos.match(/Precio total[\s\S]{0,150}?([\d.,]+)\s*(EUR|USD|GBP|CHF|[€$£])/i);
+  if (x) comuns.preu = importAmbMoneda(x[1], x[2]);
+  if (/comprado a trav[ée]s de/i.test(cos)) comuns.pagament = 'Pagat';
+  return acabaVols(vols, comuns);
+}
+
+/* ── Aegean ──
+   La línia de resum de cada vol ho porta gairebé tot i en ordre
+   —«lunes 02.sep 12:00 Barcelona - 15:50 Atenas»—, però no l'any, que es
+   dedueix de la data del correu, ni el número de vol, que ve més avall amb
+   la companyia que l'opera. L'arribada de l'endemà sí que la diu, amb un
+   «+1» al costat de l'hora. Aquí no hi ha codis d'aeroport enlloc, o sigui
+   que origen i destinació són noms de ciutat. */
+const VOL_AEGEAN = /(?:lunes|martes|mi[ée]rcoles|jueves|viernes|s[áa]bado|domingo|dilluns|dimarts|dimecres|dijous|divendres|dissabte|diumenge|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+(\d{1,2})[.\s]\s?(\p{L}{3,})\.?\s+(\d{1,2}:\d{2})\s+([^-]{2,40}?)\s+-\s+(\d{1,2}:\d{2})\s*(?:\+(\d))?\s+(.{2,40}?)\s+(?:Sin escalas|Direct|Non.?stop|Duraci[óo]n)/giu;
+
+function parseAegean(flat) {
+  const cos = talla(flat, /Aegean Upgrade Challenge|Aparcamiento en el aeropuerto/i);
+  const refISO = dataDelCorreu(flat);
+  const vols = [], finals = [];
+  let m;
+  VOL_AEGEAN.lastIndex = 0;
+  while ((m = VOL_AEGEAN.exec(cos))) {
+    const mes = mesANum(m[2]);
+    if (!mes) continue;
+    vols.push({
+      origen: m[4].trim(),
+      desti: m[7].trim(),
+      checkinISO: completaAny(+m[1], mes, refISO),
+      checkinHora: m[3],
+      checkoutHora: m[5],
+      saltDies: m[6] ? +m[6] : 0
+    });
+    finals.push(VOL_AEGEAN.lastIndex);
+  }
+  if (!vols.length) return [];
+
+  vols.forEach((v, i) => {
+    // El número de vol i qui l'opera van al detall, entre una línia de
+    // resum i la següent.
+    const seg = cos.slice(finals[i], finals[i + 1] || cos.length);
+    const n = seg.match(/\b([A-Z][A-Z0-9]\s?\d{2,4})\s*,?\s*Operado por/i);
+    if (n) v.numVol = n[1].replace(/\s+/g, '');
+    const op = seg.match(/Operado por\s+([\p{L} ]{3,30}?)\s+(?:Aeronave|Clase|Cabin)/iu);
+    if (op) v.companyia = op[1].trim();
+    /* Els seients van en una taula a part, amb una línia per persona i
+       trajecte: «Barcelona Hacia Atenas 29B (Standard)». S'hi va a buscar
+       pel trajecte, que és l'única cosa que lliga la taula amb el vol. */
+    const rs = new RegExp(escapaRe(v.origen) + '\\s+(?:Hacia|a)\\s+' + escapaRe(v.desti) + '\\s+(\\d{1,2}[A-F])', 'gi');
+    const seients = [...cos.matchAll(rs)].map(s => s[1].toUpperCase());
+    if (seients.length) v.seient = [...new Set(seients)].sort().join(', ');
+  });
+
+  const comuns = { companyia: 'Aegean' };
+  let x = flat.match(/C[óo]digo de reserva\s*:?\s*([A-Z0-9]{5,8})\b/i);
+  if (x) comuns.numReserva = x[1];
+  // Aquests correus poden no dur cap import (va al PDF adjunt): val més
+  // deixar el preu buit que agafar el primer número que passi.
+  x = cos.match(/(?:Precio total|Importe total|Total del viaje|Total price)\s*:?\s*([\d.,]+)\s*(EUR|USD|GBP|CHF|[€$£])/i);
+  if (x) comuns.preu = importAmbMoneda(x[1], x[2]);
+  return acabaVols(vols, comuns);
+}
+
+const LECTORS_VOL = { 'Vueling': parseVueling, 'Ryanair': parseRyanair, 'Aegean': parseAegean };
+
+/* D'un correu d'hotel en surt una reserva i d'un de vol en poden sortir
+   dues: la primera va a la fitxa i la resta esperen a «pendents», que es
+   revisen una darrere l'altra a mesura que es van desant. */
 function parseReserva(textOriginal) {
   const flat = normalitza(textOriginal);
   const plataforma = detectaPlataforma(flat);
+  const lector = LECTORS_VOL[plataforma];
+  if (lector) {
+    const vols = lector(flat);
+    // Si el correu és d'una companyia aèria però no se n'ha pogut llegir
+    // cap vol, la fitxa surt buida però amb el tipus encertat: omplir-la
+    // amb regles d'hotel seria pitjor que no omplir-la.
+    if (!vols.length) return { plataforma, camps: { tipus: 'vol', companyia: plataforma }, pendents: [] };
+    return { plataforma, camps: vols[0], pendents: vols.slice(1) };
+  }
   let camps;
   if (plataforma === 'Booking.com') camps = parseBooking(flat);
   else if (/Accor/.test(plataforma)) camps = parseAccor(flat);
   else camps = parseGeneric(flat);
-  return { plataforma, camps };
+  return { plataforma, camps, pendents: [] };
 }
 
 /* ═══════════════ APLICACIÓ ═══════════════ */
@@ -2349,7 +2720,10 @@ function parseReserva(textOriginal) {
    anada-tornada dels vols, que es va resoldre sol en existir els viatges.
    La llista de pendents BONA és la §14 de la documentació.)
    1. Millorar les icones dels tipus (les actuals són SVG fets a mà).
-   2. Parsing automàtic de vols i cotxes (ara s'entren a mà).
+   2. Parsing automàtic dels cotxes de lloguer (ara s'entren a mà). Els
+      vols ja es llegeixen (v122), de moment de Vueling, Ryanair i Aegean:
+      cada companyia nova vol el seu lector, i per escriure'l cal un correu
+      de debò d'aquella companyia.
    3. Buscador d'idees quan n'hi hagi moltes.
    4. Correu de sortida propi a Supabase. Els correus de recuperació de
       contrasenya (v117) els envia ara el remitent de proves de Supabase,
@@ -2361,6 +2735,181 @@ function parseReserva(textOriginal) {
       (com-funciona-l-app-14.md, que tocarà a la v126) ha de portar un
       APARTAT NOU dedicat a això —el compte, l'accés i el que depèn de la
       configuració de Supabase—, no una línia més a «Què queda pendent».
+   FET · Els cinc selectors de l'app diuen quina opció està triada. Qui fa
+      servir un lector de pantalla no veu quin botó està pintat: si no ho diu
+      una etiqueta, no ho sap. N'hi havia quatre maneres de fer la mateixa
+      cosa, dues de les quals no ho deien:
+      · Les SUBPESTANYES d'un viatge portaven role="tablist", que vol dir
+        «ara ve una filera de pestanyes». És una promesa amb lletra petita:
+        cada botó ha de dir que és una pestanya, quina està seleccionada i
+        quin tros de pantalla mana, i s'han de poder recórrer amb les fletxes.
+        No hi havia res de tot això. El lector anunciava pestanyes i després
+        trobava cinc botons corrents. A mitges és PITJOR que no dir res:
+        sense l'etiqueta almenys no enganyava.
+      · Itinerari/Dia i Llista/Mapa d'Inspiració no deien absolutament res.
+        Dos botons solts, sense dir ni que van junts ni quin està triat.
+      No s'ha completat la promesa: s'ha retirat. El patró de pestanyes de
+      debò porta les fletxes del teclat i els lligams botó–panell, i no aporta
+      res que no hi hagués. Els tres passen al patró que ja funcionava a
+      Llista/Taula: role="group" amb aria-label que diu de què va el grup, i
+      aria-pressed a cada botó.
+      Damunt de .commutador hi ha ara un bloc que diu quin dels dos patrons
+      toca (aria-current per canviar de pantalla, group+aria-pressed per triar
+      una manera de veure) i que role="tablist" no s'ha de fer servir, perquè
+      el proper selector no torni a copiar el que quedi més a prop.
+      NO canvia res del que es veu: ni un píxel (v133).
+   FET · Tot el text de l'app es llegeix. Hi havia colors dibuixats tan
+      fluixos que deixaven de fer la seva feina, i el pitjor era el que més es
+      fa servir:
+      · --tinta-tenue passa de #9C9088 a #706761. Feia 2,7:1 contra el fons
+        quan el mínim per llegir és 4,5:1, i no és text decoratiu: hi va
+        l'estat del pagament de cada reserva, els subtítols, la línia del lloc
+        i les notes dels mapes, gairebé tot a 11,5–12 px. Ara fa de 4,5 a 5,2
+        segons la superfície.
+        Té un preu que val la pena saber: el gris nou queda a prop de
+        --tinta-suau, o sigui que el tercer nivell de la jerarquia ja no es
+        distingeix per ser més fluix sinó per la MIDA. No hi ha manera
+        d'evitar-ho: un gris que es llegeixi a 11,5 px no pot ser més clar.
+      · --ambre #9A7B1F → #81671A i --verd #4E7A5C → #497356. Els avisos
+        d'error i d'èxit es quedaven a 3,4 i 4,1; ara tots dos a 4,5.
+      · .detall-camp p.absent («no detectat») perdia l'opacity: 0.8, que anava
+        damunt del gris i hauria desfet l'arranjament. Es queda la cursiva,
+        que ja diu prou que allò no hi és.
+      Ull amb el que NO s'ha tocat: --vermell ja passava (5,1:1), i el botó
+      mostassa es queda igual —el seu farciment només fa 1,9:1 contra el fons,
+      però amb la lletra fosca damunt del groc no es pot confondre amb text:
+      es reconeix pel que és, no per la vora (v130).
+   FET · Les vores del que es pot tocar es veuen. Botons i camps es dibuixaven
+      amb una vora d'1,4:1, quan una vora que diu «això es pot tocar» ha de fer
+      3:1. Era la regla de la casa incomplerta d'una altra manera: la vora hi
+      era, però no es veia.
+      Variable NOVA, --vora-control (#9C8190), separada de --vora-forta a
+      posta. Les vores fan dues feines diferents —n'hi ha que diuen «toca'm» i
+      n'hi ha que només separen— i el mínim de 3:1 és només per a les primeres.
+      Enfosquint-les totes, l'app quedava enreixada; --vora-forta i --vora es
+      queden com estaven per als marcs de targeta, la ratlla sota la capçalera
+      de la llista i el marc del mapa.
+      És albergínia rebaixada i no un gris: a la paleta no hi ha ni un sol to
+      fred i un gris hi entrava com un element d'una altra família. A més ja
+      lliga amb el hover i el focus, que són albergínia. Totes les opcions que
+      compleixen estan exactament a 3:1 —no es poden aclarir gens més—, o sigui
+      que l'única cosa que es podia triar era el to.
+      Toca 18 controls (el botó de base, les píndoles del filtre, les pastilles
+      de tipus, les pestanyes de la maleta, les fletxes de dia, les nanses
+      d'arrossegar…) i 10 camps de formulari. El hover de «qui ho paga» passa a
+      --accent-clar, que abans era --vora-forta i ara hauria quedat més clar
+      que la vora de repòs.
+      EXCEPCIÓ a posta: els camps en línia d'una idea (.fitxa-camp, .idea-text)
+      es queden sense vora fins que els toques. Són el bloc de notes, i
+      emmarcar-los mataria la sensació que els fa servir (v131).
+   FET · Arreglat: amb una reserva desplegada, la cel·la de la cancel·lació no
+      es llegia. En obrir una fila, el cap es tenyeix d'albergínia i totes les
+      cel·les es giren a colors clars… menys aquella, que es quedava amb els
+      del fons clar: 1,6:1, i 1,9:1 quan corria pressa. Ara van amb
+      --accent-tenue i, la urgent, amb --mostassa-actiu —el mateix groc que
+      l'estat de la sincronització a la capçalera, que també és albergínia—.
+      No ho vaig veure llegint el codi: va sortir passant un comptador de
+      contrast per tots els elements amb text de totes les pantalles. Val la
+      pena repetir-ho si algun dia es toquen colors (v132).
+   FET · Editant una reserva des de dins d'un viatge, enrere hi torna. La
+      fitxa d'edició viu a Reserves, o sigui que l'app t'hi porta; el que no
+      feia era deixar marca d'aquell canvi de pantalla, i enrere tancava la
+      fitxa i et deixava plantada a Reserves, lluny del viatge d'on venies.
+      Ara la deixa (vesASeccio en comptes de mostraSeccio): una pitjada tanca
+      la fitxa i la següent torna al viatge, que encara és obert perquè
+      canviar de pestanya no el tanca. Desant els canvis, la marca del viatge
+      es manté igualment i enrere hi torna (v129).
+   FET · El filtre d'etiquetes d'Inspiració ja no es buida sol. Prement
+      «Afegeix una idea» es buidava de seguida —perquè la idea nova no quedés
+      amagada per un filtre actiu—, però si després cancel·laves, ja s'havia
+      perdut. I com que cancel·lar no repinta res, les píndoles es quedaven
+      pintades com si el filtre hi fos: la pantalla deia una cosa i l'app en
+      pensava una altra, fins que un repintat qualsevol —una sincronització en
+      segon pla— et treia el filtre sense que ho haguessis demanat.
+      Ara es buida només en DESAR, que és l'únic moment que ho demana. Ja s'hi
+      feia; era la de l'obertura, la que sobrava (v128).
+   FET · Esborrar una despesa solta ara pregunta abans, i diu quina: «Vols
+      esborrar aquesta despesa? «Sopar al Time Out Market · 52,00 €»». Era
+      l'única acció de tota l'app que esborrava dades sense preguntar —les
+      reserves, les idees, les visites i el codi ja ho feien—, i la × va
+      enganxada a la fila que s'obre per editar-la, o sigui que el dit hi
+      falla de seguida. La pregunta surt tant des de la × com des del botó
+      «Elimina» del formulari d'edició, perquè totes dues passen pel mateix
+      lloc (v127).
+   FET · La Maleta ja no obre sempre per «Sense assignar». Aquella pestanya
+      és el calaix dels ítems que no són de ningú (els d'abans que el viatge
+      tingués gent, o els d'algú que ha deixat de sortir-hi) i anava la
+      PRIMERA, o sigui que era la que agafava el selector per defecte cada
+      cop que entraves a la Maleta. Ara va l'última i s'obre per la primera
+      persona, que és el mateix ordre que ja feia el menú de moure un ítem a
+      una altra persona. El full d'imprimir també segueix aquest ordre (v126).
+   FET · Fora el vocabulari bèl·lic dels comentaris. Les paraules que fan que
+      un grup de la taula de la maleta entri en joc es deien «disparadors», i
+      «disparar» ve d'armes. Ara són «activadors» i «activar»: vol dir
+      exactament el mateix i no hi ha res que ho justifiqui. Són 22 llocs,
+      tots comentaris i un nom de variable local; el comportament no canvia
+      gens. La regla val d'ara endavant per a tot el que s'escrigui aquí
+      dins, al registre de versions i a la documentació (v125).
+   FET · Un enllaç escrit a mà en una idea ja no queda trencat. Als camps
+      d'enllaç s'hi escriu «cp.pt», no «https://cp.pt», i el camp de la
+      targeta d'afegir ho desava tal qual: el navegador ho entenia com una
+      adreça de dins de l'app i clicar-hi portava a …/viatges/cp.pt, que no
+      existeix. Com que el que es veu és el nom del domini ben escrit, no hi
+      havia manera d'adonar-se'n.
+      El camp de la llista d'Inspiració sí que hi afegia el «https://»: eren
+      dues portes d'entrada amb dues regles. Ara la regla viu en un lloc de
+      sol (enllacNet) i la fan servir totes dues, i també el que arriba del
+      compartir del mòbil (v124).
+   FET · Arreglat: esborrar una reserva des de la llista no la treia de la
+      pantalla. La reserva sí que s'esborrava —del navegador i del núvol—,
+      però la fila es quedava allà fins que canviaves de pestanya o arribava
+      una sincronització, o sigui que semblava que el botó no hagués anat.
+      El mateix passava responent «Sí, ja està cobrat» o «Encara no».
+      El culpable era la protecció que impedeix repintar mentre escrius
+      (una sincronització en segon pla s'enduria el text a mig teclejar):
+      mirava si el cursor era en qualsevol lloc de la llista, i en clicar un
+      botó el navegador li deixa el cursor a dins. Ara només compten els
+      camps de text, mai els botons —que és el que ja feien pintaIdees() i
+      pintaDetallViatge(), cadascuna amb el seu comentari explicant-ho (v123).
+   FET · L'app llegeix els emails de confirmació de VOLS. Fins ara només
+      entenia allotjaments i els vols s'entraven a mà. De moment en sap tres:
+      Vueling, Ryanair i Aegean.
+      Una anada i tornada són DUES reserves, no una: dos vols amb dia, hora
+      i número propis, com si els haguessis entrat a mà. Es revisen d'un en
+      un —primer l'anada i, en desar-la, surt la tornada ja omplerta—, que
+      és la manera de no escriure res al registre sense que ho hagis vist.
+      El preu és el contrari: n'hi ha UN per correu i va sencer al vol
+      d'anada. Repartit a mitges, cap dels dos números no coincidiria amb
+      el del correu; posat als dos, el pressupost del viatge sortiria el
+      doble. La tornada ho diu a les notes, que si no sembla que hagi
+      sortit de franc.
+      Cada companyia té el seu lector perquè els correus no s'assemblen en
+      res, ni tan sols en què hi posen: Aegean no diu el preu enlloc (va al
+      PDF adjunt) ni els codis d'aeroport, i Ryanair no diu els seients.
+      Origen i destinació surten amb el que cada correu doni —«Barcelona
+      (BCN)» si hi ha ciutat i codi, només el codi si no—, sense inventar
+      el que falta.
+      Quatre coses que es van veure amb els correus de debò:
+      · La primera data d'un correu quasi mai és la del vol: abans hi ha la
+        del reenviament, la de l'enviament i la del pagament. Dins de cada
+        bloc, la data bona és l'ÚLTIMA abans del número de vol.
+      · Aegean no escriu l'any («02.sep»): es dedueix de la data del correu,
+        i si el dia i el mes hi cauen abans, és de l'any que ve (correu al
+        desembre, vol al gener).
+      · L'arribada pot ser l'endemà. Aegean ho diu amb un «+1»; a la resta
+        es dedueix de les hores, que si s'arriba abans de l'hora de sortir
+        és que s'ha passat la mitjanit.
+      · Vueling escriu les hores amb una hac enganxada («12:45h»), i \b no
+        hi fa frontera: la regla les buscava amb \b al final i no en trobava
+        cap. Per això ara acaba amb (?!\d) en comptes de \b.
+      · Una de les funcions noves es deia isoDe(), com una que ja hi havia
+        a l'agenda. Tot el codi viu en un sol fitxer i comparteix espai de
+        noms: la segona esborra la primera sense dir res i el que peta és
+        molt més enllà. Ara es diu isoDeDiaMesAny().
+      El final dels correus es talla («Información importante para tu
+      vuelo», «Facturar ahora»…): allà baix hi ha publicitat amb imports
+      que no són teus —«hasta 75,00 EUR» d'equipatge, «menos de 99€ la
+      noche» de Ryanair Rooms— i xifres llarguíssimes del text legal (v122).
    FET · El full de la maleta perd les ratlles entre ítems i guanya les dues
       columnes. Les ratlles no calien: el quadradet de cada fila ja marca el
       ritme i en paper fan soroll. Es compensa amb una mica més d'aire
@@ -2426,12 +2975,12 @@ function parseReserva(textOriginal) {
       —el pelat de paraules—:
       · «bolígraf» no comparteix arrel amb «boli»: hi van les dues.
       · «afeitar» tampoc amb «afaitar». L'ítem surt ben escrit en català i
-        les dues grafies disparen, que si algú l'escriu amb e també ha de
+        les dues grafies activen, que si algú l'escriu amb e també ha de
         funcionar.
-      · «navalla» ha d'anar de disparador encara que l'ítem ja hi sigui: la
+      · «navalla» ha d'anar d'activador encara que l'ítem ja hi sigui: la
         simetria demana TOTES les paraules de l'ítem, i «Navalla (maleta
         facturada)» en té tres, o sigui que escrivint només «navalla» no
-        hauria disparat res.
+        hauria activat res.
       · Un ítem que no és a cap grup no el suggereix mai l'app: només torna
         per «De les teves maletes anteriors», un cop ja l'has fet servir. Per
         això tots han acabat en algun grup i cap no ha quedat sol.
@@ -2629,7 +3178,7 @@ function parseReserva(textOriginal) {
       Es fa amb Pointer Events, que valen per a dit i ratolí alhora. Mentre
       mous es reordena el DOM directament —és el retorn immediat— i només en
       deixar anar es desa: ni una escriptura per píxel ni repintats enmig del
-      gest. El canvi de posició es dispara en passar el MIG de la fila veïna,
+      gest. El canvi de posició s'activa en passar el MIG de la fila veïna,
       que evita que balli amunt i avall al límit.
       En desar, només es reordenen els ítems de la persona que estàs mirant;
       els de les altres es queden exactament on eren dins de la llista
@@ -2666,8 +3215,8 @@ function parseReserva(textOriginal) {
       que sembla evident: la primera versió només bloquejava el fred i
       l'esquí seguia colant-s'hi (v103).
    FET · A la taula de la maleta, TOTS els grups són simètrics: cada ítem
-      suggerit també dispara el seu grup. Abans hi havia paraules «màgiques»
-      (les de la llista de disparadors) i paraules mudes, i no hi havia manera
+      suggerit també activa el seu grup. Abans hi havia paraules «màgiques»
+      (les de la llista d'activadors) i paraules mudes, i no hi havia manera
       de saber quines eren: escrivint «xancletes» no passava res, i escrivint
       «banyador» sí. Ara tant se val per on entris.
       Els ítems que surten a més d'un grup es converteixen en ponts —la crema
@@ -2677,16 +3226,16 @@ function parseReserva(textOriginal) {
       Per reconèixer una frase dins d'un text hi han de ser totes les seves
       paraules, descartant només les de dues lletres. El llindar importa: amb
       tres, «Ulleres de neu» es quedava demanant només «ulleres» i les de sol
-      disparaven el grup d'esquí (v102).
+      activaven el grup d'esquí (v102).
    FET · Més grups a la taula de la maleta: ball (sabates de ballar, roba
-      per ballar, taps per a les orelles, que es disparen entre ells i també
+      per ballar, taps per a les orelles, que es activen entre ells i també
       amb «concert» o «festival») i fred (guants, gorro, bufanda, buf,
-      samarreta tèrmica, malles tèrmiques, tots disparant-se entre ells). El
+      samarreta tèrmica, malles tèrmiques, tots activant-se entre ells). El
       grup de muntanya guanya bastons de caminar i funda de motxilla, el de
       càmping la màrfega, i el bàsic la roba interior.
-      Fora els grups de «nadó/bebè» i «gos/gat»: el disparador era una cosa
+      Fora els grups de «nadó/bebè» i «gos/gat»: l'activador era una cosa
       que no es fica a la maleta, o sigui que no s'escriuria mai a la llista.
-      Ull amb el català a l'hora d'afegir disparadors: «tèrmica» i
+      Ull amb el català a l'hora d'afegir activadors: «tèrmica» i
       «tèrmiques» no tenen la mateixa arrel (la ce es torna qu), per això hi
       són totes dues. Passa el mateix amb altres paraules; en dubte, provar
       el singular i el plural (v101).
@@ -2698,7 +3247,7 @@ function parseReserva(textOriginal) {
       les sabatilles del «Pijama»; la gorra va amb el banyador i amb les
       botes. Al bàsic només s'hi han afegit «Pijama» i «Diners en efectiu».
       Parelles bidireccionals: moneder ↔ diners en efectiu, raspall ↔ pasta
-      de dents, tovallola ↔ xancletes. I un disparador ja no es suggereix a
+      de dents, tovallola ↔ xancletes. I un activador ja no es suggereix a
       si mateix (v100).
    FET · La maleta suggereix companys del que acabes de posar-hi: escrius
       «banyador» i t'ofereix crema solar, tovallola, xancletes. Surten de dues
@@ -2713,10 +3262,10 @@ function parseReserva(textOriginal) {
       Per comparar el que escrius cal treure-hi el soroll: majúscules,
       accents, puntuació i plurals. I es comparen ARRELS, no paraules: el
       plural català no és només afegir una essa («bota» fa «botes»), i sense
-      això la meitat dels disparadors no lligaven. Amb això, «Bota», «Botes»
-      i «BOTES DE TREKKING» disparen igual.
+      això la meitat dels activadors no lligaven. Amb això, «Bota», «Botes»
+      i «BOTES DE TREKKING» activen igual.
       Es suggereixen només els companys de l'ÚLTIM ítem afegit, no de tota la
-      llista, i com a molt cinc: si cada cosa que hi poses en dispara tres, el
+      llista, i com a molt cinc: si cada cosa que hi poses en activa tres, el
       bloc creix i s'acaba ignorant. Tot és càlcul dins de l'app: cap servei
       extern, cap IA, funciona sense connexió (v99).
    FET · Subpestanya nova «Maleta» dins del viatge (Idees · Agenda ·
@@ -3313,7 +3862,7 @@ const Nuvol = {
     return this.client.auth.updateUser({ password: clau });
   },
 
-  /* Agrupa les crides seguides: desar tres coses de cop no dispara tres
+  /* Agrupa les crides seguides: desar tres coses de cop no activa tres
      sincronitzacions. */
   demanaSincronitzar() {
     if (!this.disponible || !this.usuari) return;
@@ -3440,6 +3989,7 @@ $('btn-afegeix').addEventListener('click', () => {
 $('btn-manual').addEventListener('click', () => {
   editantId = null;
   plataformaActual = '';
+  volsPendents = [];
   mostraFitxa({}, '', 'Nova reserva');
 });
 
@@ -3475,11 +4025,13 @@ function avisa(el, text, tipus) {
 $('btn-llegeix').addEventListener('click', () => {
   const text = $('entrada').value.trim();
   if (!text) { avisa($('avis-enganxa'), 'La caixa és buida. Enganxa-hi primer el text d\u2019un email de reserva.', 'mal'); return; }
-  const { plataforma, camps } = parseReserva(text);
+  const { plataforma, camps, pendents } = parseReserva(text);
   editantId = null;
   plataformaActual = plataforma;
-  mostraFitxa(camps, plataforma);
-  const propis = campsDe('allotjament');
+  volsPendents = pendents;
+  mostraFitxa(camps, plataforma, pendents.length ? 'Vol d\u2019anada' : undefined,
+    pendents.length ? 'Aquest correu porta ' + (pendents.length + 1) + ' vols. Revisa primer l\u2019anada; en desar-la sortir\u00e0 la tornada.' : undefined);
+  const propis = campsDe(tipusDe(camps));
   const trobats = propis.filter(c => camps[c.id]).length;
   if (plataforma === 'Desconeguda') {
     avisa($('avis-enganxa'), 'No he reconegut la plataforma: he omplert el que he pogut amb regles gen\u00e8riques. Revisa-ho b\u00e9.', 'mal');
@@ -3495,10 +4047,16 @@ $('btn-neteja').addEventListener('click', () => { $('entrada').value = ''; $('en
    tipus, perquè triar «vol» després d'haver omplert coses no ho esborri. */
 let campsFitxa = {};
 let tipusFitxa = 'allotjament';
+/* Els vols que queden per revisar d'un mateix correu (la tornada). Es
+   buiden en obrir qualsevol altra fitxa, perquè no s'apareguin enmig
+   d'una reserva que no té res a veure amb aquell correu. */
+let volsPendents = [];
+const SUB_FITXA = 'Revisa les dades i completa els camps marcats abans de desar.';
 
-function mostraFitxa(camps, plataforma, titol) {
+function mostraFitxa(camps, plataforma, titol, sub) {
   campsFitxa = { ...camps };
   tipusFitxa = tipusDe(camps);
+  $('fitxa-sub').textContent = sub || SUB_FITXA;
   const seg = $('segell');
   seg.textContent = plataforma === 'Desconeguda' ? 'Plataforma?' : plataforma;
   seg.className = 'segell' + (plataforma === 'Desconeguda' ? ' desconeguda' : '');
@@ -3508,9 +4066,13 @@ function mostraFitxa(camps, plataforma, titol) {
 
   pintaTriaTipus();
   pintaCampsFitxa();
+  // Si la fitxa ja era oberta —el segon vol d'un correu d'anada i tornada—
+  // no s'apunta cap pas nou: la capa és la mateixa i una sola pitjada
+  // d'enrere l'ha de tancar.
+  const jaOberta = $('fitxa').classList.contains('visible');
   $('fitxa').classList.add('visible');
   $('fitxa').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  apuntaEnrere('fitxa', () => { $('fitxa').classList.remove('visible'); editantId = null; });
+  if (!jaOberta) apuntaEnrere('fitxa', () => { $('fitxa').classList.remove('visible'); editantId = null; });
 }
 
 function pintaTriaTipus() {
@@ -3593,10 +4155,14 @@ function pintaCampsFitxa() {
 }
 
 $('btn-descarta').addEventListener('click', () => {
+  // Descartar un vol descarta també els que quedaven del mateix correu:
+  // si no els vols, no han de tornar a sortir sols més endavant.
+  volsPendents = [];
   tancaEnrere('fitxa', () => { $('fitxa').classList.remove('visible'); editantId = null; });
 });
 
 $('btn-desa').addEventListener('click', async () => {
+  const editava = !!editantId;
   desaValorsFitxa();
   // Es desa el tipus i, dels camps, només els que pertanyen a aquest tipus
   // o són comuns. Així canviar de tipus no arrossega camps orfes.
@@ -3621,12 +4187,26 @@ $('btn-desa').addEventListener('click', async () => {
     $('entrada').value = '';
   }
   editantId = null;
-  $('fitxa').classList.remove('visible');
+  /* Anada i tornada: en desar el primer vol s'obre el segon, ja omplert,
+     per revisar-lo igual que el primer. Cap dels dos no s'escriu sense
+     haver passat per la fitxa. */
+  const seguent = (!editava && volsPendents.length) ? volsPendents.shift() : null;
+  // Amb un vol a mig camí no es tanca res: ni la fitxa —que ara passa a
+  // ser la de la tornada— ni el panell. Així les marques d'enrere segueixen
+  // dient la veritat i no cal tocar l'historial, que és asíncron: el
+  // history.go() d'oblidaEnrere arriba DESPRÉS i tancaria la fitxa que tot
+  // just acabem d'obrir.
+  if (!seguent) $('fitxa').classList.remove('visible');
   await refresca();
-  if (reserves.length) obrePanell(false);
+  if (reserves.length && !seguent) obrePanell(false);
   // Desar tanca la fitxa i, si escau, el panell: es retiren les seves marques
   // perquè enrere no es quedi fent pitjades buides.
-  oblidaEnrere('fitxa', 'panell');
+  if (!seguent) oblidaEnrere('fitxa', 'panell');
+
+  if (seguent) {
+    mostraFitxa(seguent, plataformaActual, 'Vol de tornada',
+      'Aquest és l’altre vol del mateix correu. Revisa’l i desa’l també.');
+  }
 });
 
 /* ══════════ VISTA DE LLISTA ══════════ */
@@ -4095,11 +4675,19 @@ function filaReservaHTML(r) {
 
 function pintaLlista() {
   const cos = $('cos-llista');
-  // Si s'està escrivint dins de la llista, repintar esborraria el que
+  // Si s'està ESCRIVINT dins de la llista, repintar esborraria el que
   // s'està teclejant. La sincronització en segon pla pot arribar en
   // qualsevol moment, així que cal aquesta protecció.
+  // Només compten els camps (input/textarea), MAI els botons: en clicar un
+  // botó, el navegador li deixa el focus a dins, i amb la guarda antiga
+  // —qualsevol focus dins de #cos-llista— el repintat de després no
+  // arribava a fer-se. Esborrar una reserva la treia del magatzem però la
+  // fila es quedava a la pantalla, i respondre «Sí, ja està cobrat» semblava
+  // que no fes res. És la mateixa regla que ja fan pintaIdees() i
+  // pintaDetallViatge().
   const focus = document.activeElement;
-  if (focus && focus.closest && focus.closest('#cos-llista')) return;
+  if (focus && /^(INPUT|TEXTAREA)$/.test(focus.tagName) &&
+      focus.closest && focus.closest('#cos-llista')) return;
   cos.innerHTML = '';
   $('llista-buida').style.display = reserves.length ? 'none' : 'block';
   $('llista').querySelector('.llista-capcalera').style.display = reserves.length ? '' : 'none';
@@ -4245,9 +4833,14 @@ async function gestionaAccions(e) {
     if (!r) return;
     editantId = r.id;
     plataformaActual = r.plataforma || 'Desconeguda';
+    volsPendents = [];
     // Si s'edita des del detall d'un viatge, la fitxa viu a Reserves:
-    // portem l'usuària allà perquè la vegi.
-    if (viatgeObert) mostraSeccio('reserves');
+    // portem l'usuària allà perquè la vegi. Amb vesASeccio() i no amb
+    // mostraSeccio(): el canvi de pantalla ha de deixar marca a l'historial,
+    // o enrere tanca la fitxa i et deixa plantada a Reserves, lluny del
+    // viatge d'on venies. Amb la marca, la segona pitjada hi torna, i el
+    // viatge encara és obert perquè canviar de pestanya no el tanca.
+    if (viatgeObert) vesASeccio('reserves');
     mostraFitxa(r, r.plataforma || 'Desconeguda', 'Edita la reserva');
   }
   if (btn.dataset.assigna) {
@@ -4897,7 +5490,7 @@ function dibuixaPinsIdees(L) {
     if (!c) { sense++; continue; }
     let titol = (i.text || 'Idea').split('\n')[0];
     if (titol.length > 80) titol = titol.slice(0, 80) + '…';
-    const zona = i.zona ? '<br><span style="color:#9C9088">' + esc(i.zona) + '</span>' : '';
+    const zona = i.zona ? '<br><span style="color:#706761">' + esc(i.zona) + '</span>' : '';
     const etiq = (i.etiquetes || []).length ? '<br>' + esc(i.etiquetes.join(' \u00b7 ')) : '';
     L.marker([c.lat, c.lon]).bindPopup('<strong>' + esc(titol) + '</strong>' + zona + etiq).addTo(capaPinsIdees);
     punts.push([c.lat, c.lon]);
@@ -5089,7 +5682,7 @@ function dibuixaPinsViatge(L, capa, v, seves, ajustaVista) {
       }
       const linies = g.items.map(it => {
         let nom = it.nom; if (nom.length > 60) nom = nom.slice(0, 60) + '…';
-        return `<div style="margin-top:3px"><span style="color:#9C9088">${esc(it.tipus)}</span> · ${esc(nom)}</div>`;
+        return `<div style="margin-top:3px"><span style="color:#706761">${esc(it.tipus)}</span> · ${esc(nom)}</div>`;
       }).join('');
       const popup = `<strong>${esc(g.zona || 'Lloc')}</strong> <span style="color:${COLORS_MAPA[g.cat]}">· ${esc(ETIQ_MAPA[g.cat])}</span>${linies}`;
       L.marker([lat, lon], { icon: pinIcona(L, COLORS_MAPA[g.cat]) }).bindPopup(popup).addTo(capa);
@@ -5153,8 +5746,13 @@ function pintaIdees() {
   pintaCoincidencies();
 
   // Commutador Llista / Mapa
-  for (const b of document.querySelectorAll('#inspiracio-mode [data-inspiracio-vista]'))
-    b.classList.toggle('activa', b.dataset.inspiracioVista === inspiracioVista);
+  // La classe pinta i l'aria-pressed ho diu en veu alta: sempre totes dues,
+  // com explica el bloc «COM ES MARCA UN SELECTOR» del full d'estil.
+  for (const b of document.querySelectorAll('#inspiracio-mode [data-inspiracio-vista]')) {
+    const seva = b.dataset.inspiracioVista === inspiracioVista;
+    b.classList.toggle('activa', seva);
+    b.setAttribute('aria-pressed', seva ? 'true' : 'false');
+  }
 
   if (inspiracioVista === 'mapa') {
     $('mapa-idees').classList.remove('ocult');
@@ -5208,6 +5806,19 @@ function pintaIdees() {
 function nomEnllac(url) {
   try { return new URL(url).hostname.replace(/^www\./, ''); }
   catch (e) { return url.slice(0, 24); }
+}
+
+/* Un enllaç escrit a mà sol venir sense «https://» —s'escriu «cp.pt», no
+   «https://cp.pt»—, i sense això el navegador l'entén com una adreça DE DINS
+   de l'app: clicar-lo portava a …/viatges/cp.pt, que no existeix. I com que
+   el que es veu és el nom del domini ben escrit, l'enllaç semblava correcte.
+   Viu aquí, en un lloc de sol, perquè les tres portes d'entrada d'una idea
+   (la targeta d'afegir, el compartir del mòbil i el camp de la llista) el
+   desin igual: abans cadascuna ho feia a la seva manera i només una l'arreglava. */
+function enllacNet(valor) {
+  const t = String(valor || '').trim();
+  if (!t) return '';
+  return /^https?:\/\//i.test(t) ? t : 'https://' + t;
 }
 
 async function refrescaIdees() {
@@ -5268,7 +5879,7 @@ $('llista-idees').addEventListener('focusout', async e => {
   if (esborranyIdea === idea.id) esborranyIdea = null;
   if ((idea[quin] || '') === valor) return;
 
-  if (quin === 'enllac' && valor && !/^https?:\/\//i.test(valor)) valor = 'https://' + valor;
+  if (quin === 'enllac') valor = enllacNet(valor);
   await MagatzemIdees.actualitza(idea.id, { [quin]: valor });
   camp.value = valor;
   await refrescaIdees();
@@ -5320,9 +5931,15 @@ $('inspiracio-mode').addEventListener('click', e => {
    tria aportés res. Ara els tres camins acaben al mateix formulari.
    De retruc, la idea neix ja escrita: no cal crear-la buida a la base de
    dades i protegir-la perquè no s'esborri mentre l'omples. */
+/* El filtre NO es toca aquí: es buida en DESAR (a desaCompartit), que és quan
+   de debò cal, perquè la idea nova no quedi amagada per un filtre actiu.
+   Buidar-lo en obrir la targeta el feia desaparèixer encara que cancel·lessis,
+   i com que cancel·lar no repinta res, les píndoles es quedaven pintades com
+   si el filtre hi fos: la llista i les píndoles deien una cosa i l'app en
+   pensava una altra, fins que un repintat qualsevol —una sincronització— et
+   descartava el filtre sense que ho haguessis demanat. */
 $('btn-nova-idea').addEventListener('click', () => {
   compartitPendent = null;
-  filtreEtiquetes.clear();   // que la idea nova es vegi encara que hi hagi filtre
   obreCompartit({ text: '', enllac: '' }, false);
 });
 
@@ -5414,9 +6031,9 @@ async function desaCompartit() {
     return;
   }
   const camp = $('compartit-url');
-  const enllac = compartitDeFora
+  const enllac = enllacNet(compartitDeFora
     ? ((compartitPendent && compartitPendent.enllac) || '')
-    : (camp ? camp.value.trim() : '');
+    : (camp ? camp.value : ''));
   const etiquetes = $('compartit-etiquetes').value.split(',').map(s => s.trim()).filter(Boolean);
   await MagatzemIdees.afegeix({ text, zona: $('compartit-zona').value.trim(), etiquetes, enllac });
   tancaEnrere('compartit', tancaCompartit);
@@ -6163,12 +6780,13 @@ function pintaDetallViatge() {
       </div>
       <button class="subtil mini" id="btn-edita-viatge-detall">Edita</button>
     </div>
-    <div class="subpestanyes" role="tablist">
-      <button class="subpestanya${subvistaViatge === 'idees' ? ' activa' : ''}" data-subvista="idees">Idees</button>
-      <button class="subpestanya${subvistaViatge === 'agenda' ? ' activa' : ''}" data-subvista="agenda">Agenda</button>
-      <button class="subpestanya${subvistaViatge === 'pressupost' ? ' activa' : ''}" data-subvista="pressupost">Pressupost</button>
-      <button class="subpestanya${subvistaViatge === 'mapa' ? ' activa' : ''}" data-subvista="mapa">Mapa</button>
-      <button class="subpestanya${subvistaViatge === 'maleta' ? ' activa' : ''}" data-subvista="maleta">Maleta</button>
+    <div class="subpestanyes" role="group" aria-label="Parts del viatge">
+      ${['idees:Idees', 'agenda:Agenda', 'pressupost:Pressupost', 'mapa:Mapa', 'maleta:Maleta'].map(p => {
+        const [clau, nom] = p.split(':');
+        const seva = subvistaViatge === clau;
+        return `<button class="subpestanya${seva ? ' activa' : ''}" data-subvista="${clau}"
+          aria-pressed="${seva}">${nom}</button>`;
+      }).join('')}
     </div>
     <div class="subvista subvista-${subvistaViatge}">${cos}</div>`;
 
@@ -6531,9 +7149,11 @@ function agendaHTML(seves) {
   const v = viatges.find(x => x.id === viatgeObert);
   const sevesVisites = visites.filter(vi => vi.viatgeId === viatgeObert);
   const commutador = `
-    <div class="agenda-mode">
-      <button class="agenda-mode-opcio${agendaMode === 'complet' ? ' activa' : ''}" data-agenda-mode="complet">Itinerari complet</button>
-      <button class="agenda-mode-opcio${agendaMode === 'dia' ? ' activa' : ''}" data-agenda-mode="dia">Activitats del dia</button>
+    <div class="agenda-mode" role="group" aria-label="Manera de veure l’agenda">
+      <button class="agenda-mode-opcio${agendaMode === 'complet' ? ' activa' : ''}" data-agenda-mode="complet"
+        aria-pressed="${agendaMode === 'complet'}">Itinerari complet</button>
+      <button class="agenda-mode-opcio${agendaMode === 'dia' ? ' activa' : ''}" data-agenda-mode="dia"
+        aria-pressed="${agendaMode === 'dia'}">Activitats del dia</button>
     </div>`;
   const cos = agendaMode === 'dia'
     ? agendaDiaHTML(v, seves, sevesVisites)
@@ -6928,6 +7548,15 @@ async function desaDespesa(id) {
 async function treuDespesa(id) {
   const v = viatges.find(x => x.id === viatgeObert);
   if (!v) return;
+  // Es pregunta, com a tot arreu on s'esborra res. La × d'una despesa va
+  // enganxada a la fila que s'obre per editar-la, o sigui que el dit hi
+  // falla fàcilment, i una despesa esborrada no es pot recuperar.
+  // La pregunta diu QUINA, que si no has de recordar què acabaves de tocar.
+  const d = (v.despeses || []).find(x => x.id === id);
+  if (!d) return;
+  const quina = [d.concepte, importNum(d.import) != null ? formataImport(importNum(d.import)) : d.import]
+    .filter(Boolean).join(' · ');
+  if (!confirm('Vols esborrar aquesta despesa?' + (quina ? '\n\n«' + quina + '»' : ''))) return;
   despesaEnEdicio = null;
   const despeses = (v.despeses || []).filter(d => d.id !== id);
   await MagatzemViatges.actualitza(v.id, { despeses });
@@ -6996,7 +7625,7 @@ function conteParaula(clau, paraula) {
 /* Si un text conté una frase sencera («crema solar»): hi han de ser totes
    les seves paraules amb pes. Només es descarten les partícules de dues
    lletres («de», «el»). El llindar importa: amb tres, «Ulleres de neu» es
-   quedava demanant només «ulleres» i les de sol disparaven l'esquí. */
+   quedava demanant només «ulleres» i les de sol activaven l'esquí. */
 function textConte(clau, frase) {
   const mots = clauMaleta(frase).split(' ').filter(p => p.length > 2);
   return mots.length > 0 && mots.every(m => conteParaula(clau, m));
@@ -7004,7 +7633,7 @@ function textConte(clau, frase) {
 
 /* Coses que solen anar juntes. Són SUPOSICIONS meves, i per això van
    després del que hagis après tu mateixa amb les teves maletes: si tens
-   historial, mana el teu. Els disparadors van en singular i sense accents,
+   historial, mana el teu. Els activadors van en singular i sense accents,
    que és com queden després de clauMaleta(). */
 const COMPANYS_MALETA = [
   [['banyador', 'biquini'], ['Crema solar', 'Tovallola de platja', 'Xancletes', 'Ulleres de sol', 'Gorra']],
@@ -7040,9 +7669,9 @@ const COMPANYS_MALETA = [
   [['moneder', 'cartera'], ['Diners en efectiu', 'Targeta de crèdit']],
   [['diner', 'efectiu'], ['Moneder', 'Targeta de crèdit']],
   [['ulleres'], ['Funda de les ulleres', 'Líquid de lentilles']],
-  // «navalla» va de disparador encara que l'ítem ja hi sigui: la simetria
+  // «navalla» va d'activador encara que l'ítem ja hi sigui: la simetria
   // demana que hi siguin TOTES les paraules de l'ítem, i «Navalla (maleta
-  // facturada)» en té tres. Escrivint només «navalla» no dispararia res.
+  // facturada)» en té tres. Escrivint només «navalla» no activaria res.
   [['tenda', 'sac', 'navalla'],
     ['Llanterna', 'Màrfega', 'Matalàs inflable', 'Encenedor', 'Navalla (maleta facturada)']],
   [['americana', 'vestit'], ['Sabates de vestir', 'Cinturó']],
@@ -7091,19 +7720,19 @@ function companysDe(text) {
   const clau = clauMaleta(text);
   if (!clau) return [];
   const taula = [];
-  for (const [disparadors, sugs, bloquejadors] of COMPANYS_MALETA) {
+  for (const [activadors, sugs, bloquejadors] of COMPANYS_MALETA) {
     // Paraules que anul·len el grup encara que hi hagi coincidència.
     if (bloquejadors && bloquejadors.some(b => conteParaula(clau, b))) continue;
-    // Els disparadors escrits, i A MÉS qualsevol ítem del propi grup: així
+    // Els activadors escrits, i A MÉS qualsevol ítem del propi grup: així
     // no hi ha paraules «màgiques» i paraules mudes, i tant se val per on
     // entris. Alguns ítems surten a dos grups (la crema solar, a platja i a
-    // esquí) i llavors en disparen els dos; el sostre de cinc xips ho manté
+    // esquí) i llavors en activen els dos; el sostre de cinc xips ho manté
     // a ratlla.
-    const hi = disparadors.some(d => conteParaula(clau, d))
+    const hi = activadors.some(a => conteParaula(clau, a))
             || sugs.some(s => textConte(clau, s));
     if (hi) taula.push(...sugs);
   }
-  // Ni duplicats ni el mateix ítem que ha disparat la cerca.
+  // Ni duplicats ni el mateix ítem que ha activat la cerca.
   const vistos = new Set([clau]);
   return [...companysApresos(clau), ...taula].filter(t => {
     const k = clauMaleta(t);
@@ -7286,8 +7915,13 @@ function maletaHTML(v, seves) {
   // Els ítems que no són de ningú (els d'abans que hi hagués gent, o els
   // d'algú que ha deixat de sortir) tenen la seva pestanya, o quedarien
   // desats però inabastables.
+  // Va l'ÚLTIMA, no la primera: és el calaix de les excepcions, i posant-la
+  // davant obries la Maleta i el primer que et trobaves —i el que agafava
+  // gent[0] per defecte— era «Sense assignar», que gairebé mai és el que
+  // vols veure. També és l'ordre que ja fa el menú de moure un ítem a una
+  // altra persona, on «Sense assignar» va al final.
   const orfes = tots.some(it => !(it.persona || '').trim());
-  if (gent.length && orfes) gent.unshift('');
+  if (gent.length && orfes) gent.push('');
   // Sense participants definits, una sola llista i cap selector: és el cas
   // d'un viatge que et fas sol.
   if (!gent.length) personaMaleta = '';
@@ -7323,7 +7957,7 @@ function maletaHTML(v, seves) {
     : `<p class="despeses-buida">Encara no hi ha res a la maleta. Escriu-hi el primer, o toca un suggeriment.</p>`;
 
   // Companys de l'ÚLTIM que has afegit, no de tota la llista: si cada ítem
-  // en dispara tres, el bloc creix i s'acaba ignorant. Cinc com a màxim.
+  // en activa tres, el bloc creix i s'acaba ignorant. Cinc com a màxim.
   const amagats = Array.isArray(v.sugAmagats) ? v.sugAmagats : [];
   const xipsC = ultimMaleta ? xipsMaleta(companysDe(ultimMaleta).slice(0, 5), meus, amagats) : '';
 
@@ -7465,7 +8099,8 @@ function llistesAmbCoses(v) {
   const tots = Array.isArray(v.maleta) ? v.maleta : [];
   const gent = gentDelViatge(v, reserves.filter(r => r.viatgeId === v.id));
   const orfes = tots.some(it => !(it.persona || '').trim());
-  return [...(orfes ? [''] : []), ...gent]
+  // El mateix ordre que el selector: els orfes al final, no al principi.
+  return [...gent, ...(orfes ? [''] : [])]
     .filter(p => tots.some(it => (it.persona || '') === (p || '')));
 }
 
