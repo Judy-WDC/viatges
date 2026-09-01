@@ -169,7 +169,19 @@
   @media (max-width: 620px) {
     .mapa-idees, .mapa-viatge { height: 380px; }
   }
-  .mapa-nota { font-size: 12px; color: var(--tinta-tenue); margin-top: 8px; }
+  /* La nota de sota el mapa. Al mapa d'un viatge no és només un número:
+     anomena el que no hi surt, i cada nom és un botó que t'hi porta. Per
+     això és flex i no una línia de text. */
+  .mapa-nota { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px;
+    font-size: 12px; color: var(--tinta-tenue); margin-top: 8px; }
+  .mapa-nota:empty { display: none; }
+  .mapa-sense {
+    font-size: 12px; font-weight: 400; color: var(--accent);
+    padding: 3px 9px; border: 1px solid var(--vora); border-radius: 999px;
+    background: var(--superficie); cursor: pointer; max-width: 100%;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .mapa-sense:hover { background: var(--accent-fons); border-color: var(--accent-tenue); }
   .mapa-llegenda { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 8px 0 0 -6px; }
   /* Cada element de la llegenda és també un interruptor: clicar-ne un deixa
      al mapa només aquella categoria; clicant-ne més, s'hi van sumant. */
@@ -353,7 +365,7 @@
   .fitxa-sub { font-size: 13px; color: var(--tinta-suau); margin: 4px 0 16px; }
   .graella { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px 16px; }
   .camp label { display: block; font-size: 12px; font-weight: 500; color: var(--tinta-tenue); margin-bottom: 4px; }
-  .camp input {
+  .camp input, .camp textarea {
     width: 100%;
     padding: 8px 10px;
     border: 1px solid var(--vora-control);
@@ -364,7 +376,14 @@
     color: var(--tinta);
     background: var(--superficie);
   }
-  .camp.buit input { border-color: var(--ambre); background: var(--ambre-fons); }
+  /* Un camp de text llarg (les recomanacions de l'empresa) creix sol amb
+     fesGran, com la nota d'una visita; l'alçada d'aquí és només la de
+     sortida, perquè de buit no es vegi com una escletxa. */
+  /* Creix sol fins a un límit: les recomanacions d'aquest correu fan mig
+     metre de pantalla, i sense sostre empenyien les notes i el botó de
+     desar fora de la vista. A partir d'aquí, es mou a dins. */
+  .camp textarea { resize: vertical; line-height: 1.5; max-height: 320px; overflow-y: auto; }
+  .camp.buit input, .camp.buit textarea { border-color: var(--ambre); background: var(--ambre-fons); }
   .camp.buit label::after { content: ' — per completar'; color: var(--ambre); }
   .camp.ample { grid-column: 1 / -1; }
   .fitxa-peu { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
@@ -1115,6 +1134,36 @@
   .detall-camp p { margin: 2px 0 0; font-size: 13.5px; font-variant-numeric: tabular-nums; }
   .detall-camp p.absent { color: var(--tinta-tenue); font-style: italic; }
   .detall-camp.ample { grid-column: 1 / -1; }
+  /* ── El desplegable de dins d'una reserva ──
+     Les recomanacions de l'empresa (el punt de trobada, què cal portar, a
+     quina hora convé ser-hi) són text llarg i no els necessites cada cop
+     que obres una reserva. Van plegades: una línia quan no les mires, i
+     senceres quan sí. El fons subtil i la vora diuen que això és un bloc a
+     part i no un camp més de la graella. */
+  .reco { grid-column: 1 / -1; margin-top: 2px; }
+  .reco-cap {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; justify-content: flex-start;
+    background: var(--subtil); border: 1px solid var(--vora);
+    border-radius: var(--radi-petit); padding: 9px 12px;
+    font-size: 13px; font-weight: 500; color: var(--accent); cursor: pointer;
+  }
+  .reco-cap:hover { background: var(--accent-fons); border-color: var(--accent-tenue); }
+  /* La fletxa: avall quan és plegat i amunt quan és obert, com la de la
+     fila i la d'una activitat de l'agenda. La primera regla, a més, la
+     neutralitza de la volta que li dona «.fila.oberta .chev»: aquella és
+     per a la fletxa de la FILA, i aquesta viu dins de la fila oberta però
+     no és seva. Li cal el «.detall-graella» del davant per pesar igual que
+     aquella —tres classes contra tres— i guanyar-li l'empat per anar
+     després. */
+  .detall-graella .reco-cap .chev { flex: none; transform: none; }
+  .reco-cap[aria-expanded="true"] .chev { transform: rotate(180deg); }
+  /* El text ve del correu tal com el va escriure l'empresa: els salts de
+     línia són seus i s'han de respectar, o els paràgrafs es fondrien en un
+     totxo. */
+  .reco-cos { margin: 9px 2px 0; font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; }
+  .reco-cos.ocult { display: none; }
+  .reco-cos a { color: var(--accent); }
   .camp-viu {
     width: 100%;
     max-width: 280px;
@@ -1459,7 +1508,10 @@
       gap: 10px;
     }
     .cel-dates .xifra, .cel-dates .menuda { display: inline; }
-    .cel-dates .menuda::before { content: ' · '; }
+    /* El separador va amb el que separa: si el segon tros és buit —una
+       reserva d'un sol dia, que no té nits— quedava un punt penjant
+       («6 set ·»). */
+    .cel-dates .menuda:not(:empty)::before { content: ' · '; }
     .fila-detall { padding-left: 22px; }
   }
 
@@ -1583,6 +1635,17 @@
      en monoespaiada no es confonen ni el zero i la o, ni l'1 i la l. */
   .full-camp dd.full-codi { font-family: var(--mono); font-size: 10.4pt; letter-spacing: 0.03em; }
   .full-res-notes { margin: 7pt 0 0; font-size: 9.3pt; color: #333; font-style: italic; }
+  /* Les recomanacions de l'empresa, al full. A la pantalla van plegades;
+     en un paper no hi ha res per desplegar, o hi són o no hi són, i hi han
+     de ser: el punt de trobada i què cal portar és justament el que mires
+     quan et quedes sense bateria. Els salts de línia es respecten, que són
+     els paràgrafs del correu, i l'adreça web hi va SENCERA —en un paper el
+     nom del domini no es pot clicar, però un enllaç curt es pot teclejar—. */
+  .full-res-reco { margin: 7pt 0 0; font-size: 9.3pt; color: #222; white-space: pre-wrap; }
+  .full-res-reco b {
+    display: block; margin-bottom: 2pt; font-size: 8.2pt; font-weight: 600;
+    letter-spacing: 0.05em; text-transform: uppercase; color: #555;
+  }
   .full-doc-peu {
     margin-top: 18pt; border-top: 0.6pt solid #C8C8C8; padding-top: 6pt;
     display: flex; justify-content: space-between; gap: 10pt;
@@ -2152,7 +2215,24 @@ function normalitza(text) {
 }
 
 function detectaPlataforma(flat) {
-  // Accor primer: és la marca la que identifica el correu, no cap domini genèric
+  /* TuriTop primer, perquè és el senyal més segur de tots: no és cap marca
+     que es pugui esmentar de passada, és el remitent del correu
+     («no-reply@turitop.com») i el peu del sistema que l'ha enviat
+     («Powered by TuriTop Booking System»).
+     Ull, que això vol dir una cosa important: TuriTop NO és l'empresa que
+     et fa l'excursió. És el motor de reserves que fan servir moltes
+     empreses petites —coves, caiac, rutes guiades—, i totes envien el
+     mateix correu amb el seu nom a dins. Per això n'hi ha prou amb un
+     lector per a totes: qui et fa l'activitat va al camp «Empresa». */
+  if (/turitop/i.test(flat)) return 'TuriTop';
+  /* Els altres dos motors d'entrades, reconeguts igual i pel mateix motiu:
+     el remitent i el peu del sistema. Clorian és el dels museus grossos i
+     RuralGest el de molts espais patrimonials; en tots dos casos el que
+     envia el correu NO és qui et ven l'entrada, i qui te la ven va al camp
+     «Empresa» o al «Recinte». */
+  if (/clorian/i.test(flat)) return 'Clorian';
+  if (/ruralgest/i.test(flat)) return 'RuralGest';
+  // Accor: és la marca la que identifica el correu, no cap domini genèric
   if (/\baccor\b|\ball\.com\b|\b(?:ibis|novotel|mercure|pullman|sofitel|adagio|mama shelter)\b/i.test(flat)) {
     return /\bibis\b/i.test(flat) ? 'ibis (Accor)' : 'Accor';
   }
@@ -2515,6 +2595,373 @@ function netejaImport(s) {
   return t.trim();
 }
 
+/* ═══════════════ ACTIVITATS (TuriTop) ═══════════════
+   TuriTop no és cap empresa d'excursions: és el motor de reserves que fan
+   servir moltes empreses petites —coves, caiac, rutes guiades—, i totes
+   envien EL MATEIX correu amb el seu nom a dins. Per això el lector és de
+   TuriTop i no de cap empresa en concret: un de sol les llegeix totes, i
+   qui et fa l'activitat va al camp «Empresa».
+
+   El correu diu dues vegades el mateix, de dues maneres molt diferents:
+   · El RESUM del sistema, amb etiquetes fixes («Fecha del evento», «Nº
+     Reserva», «Total», «Estado»). Això és igual a tots els correus de
+     TuriTop, escrigui el que escrigui l'empresa.
+   · La CARTA que t'escriu l'empresa, en text lliure. És l'única part que
+     porta les coses pràctiques —el punt de trobada, què cal portar, a
+     quina hora convé ser-hi—, i cadascú l'escriu com vol.
+   Manen SEMPRE les etiquetes; de la carta només se n'agafa allò que no és
+   enlloc més. Escrit així, el lector no depèn de com escrigui les cartes
+   cap empresa en concret.
+
+   I una cosa que cap altre lector no necessita: aquest treballa també amb
+   el text ORIGINAL, no només amb el pla. Les recomanacions són paràgrafs, i
+   el text pla ja ha ajuntat totes les línies en una de sola; i porten
+   l'enllaç del mapa del punt de trobada, que el text pla ha esborrat
+   (esborra totes les adreces web, que als correus solen ser botons i
+   seguiment). Per a la resta de camps es fa servir el pla, com tothom. */
+
+/* Un text tot en MAJÚSCULES crida i costa de llegir enmig d'una fitxa. Si
+   no té ni una minúscula, se li posen com s'escriu un nom de lloc: inicial
+   a cada paraula, i els articles i les preposicions en minúscula. Si ja en
+   té cap, no s'hi toca: les majúscules són de qui ha escrit. */
+const MENORS_NOM = new Set(['de','del','dels','la','les','el','els','los','las','y','e','i','en','a','al','the','of','and','da','do','dos']);
+function capsSuaus(t) {
+  if (/\p{Ll}/u.test(t)) return t;
+  return t.toLowerCase().split(' ')
+    .map((p, i) => (i > 0 && MENORS_NOM.has(p)) ? p : p.charAt(0).toUpperCase() + p.slice(1))
+    .join(' ');
+}
+
+/* El punt de trobada d'una excursió és text lliure, i gairebé mai és un nom
+   de lloc: és una explicació sencera («entrada a la passarel·la del tub, al
+   centre tal, al costat oposat de la carretera»). Sencera va a les
+   recomanacions, que és on la llegiràs.
+   Al camp «Recinte» hi va NOMÉS si la frase amaga un nom de lloc curt, que
+   és l'única cosa que el mapa pot buscar: es treuen els parèntesis i, si hi
+   ha un «en el / a la…» seguit de majúscula, es pren el que ve al darrere.
+   Si el que en queda no té pinta de nom de lloc, el camp es deixa BUIT i el
+   completes tu. Val més buit que ple d'una frase de vint paraules: així el
+   cercador de mapes no hi trobaria res igualment, i a sobre la fitxa
+   semblaria completa quan no ho és. */
+function recinteDelPunt(punt) {
+  let t = String(punt || '').replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim().replace(/[.,;:]+$/, '');
+  const preps = [...t.matchAll(/(?:\ben el|\ben la|\ben els|\ben les|\ba la|\bal|\ba l['’]|\bat the|\bin the)\s+(?=\p{Lu})/giu)];
+  if (preps.length) {
+    const ultim = preps[preps.length - 1];
+    const cua = t.slice(ultim.index + ultim[0].length).trim();
+    if (cua.length >= 6) t = cua;
+  }
+  return (t.length >= 4 && t.length <= 60) ? capsSuaus(t) : '';
+}
+
+/* La carta de l'empresa, en paràgrafs. Va del final de la frase que et diu
+   què has reservat —que no s'hi inclou: repeteix el nom, la data i l'hora,
+   que ja són camps— fins al comiat.
+   Si no se'n troba ni el principi, no es desa RES. Un correu del qual no
+   sabem on comença la carta no és un correu del qual puguem endevinar-ne
+   les recomanacions: agafar-lo des de dalt ompliria el camp amb la
+   capçalera del client de correu. */
+function cartaTuriTop(original) {
+  const linies = String(original || '').replace(/\r/g, '').split('\n');
+  const OBRE = /gracias por reservar|graci[ae]s per reservar|gr[àa]cies per reservar|thank you for booking|thanks for booking/i;
+  const SALUTACIO = /^\s*(?:estimad|benvolgu|benvolgud|hola\b|dear\b|bonjour\b)/i;
+  const TANCA = /^\s*(?:te esperamos|t['’]esperem|us esperem|le esperamos|we look forward|we are looking forward|el equipo de|l['’]equip de|un saludo|una salutaci|salutacions|best regards|kind regards|fecha del evento|data de l['’]esdeveniment|event date|resumen del pedido|resum de la comanda|order summary)/i;
+
+  let des = linies.findIndex(l => OBRE.test(l));
+  if (des < 0) des = linies.findIndex(l => SALUTACIO.test(l));
+  if (des < 0) return '';
+  des += 1;
+
+  let fins = linies.findIndex((l, i) => i >= des && TANCA.test(l));
+  if (fins < 0) fins = linies.length;
+
+  return linies.slice(des, fins)
+    .map(l => l.replace(/\s+/g, ' ').trim())
+    .filter(l => l && !/^[·•–—\-_=]+$/.test(l))
+    .join('\n\n');
+}
+
+function parseTuriTop(flat, original) {
+  const r = { tipus: 'entrada' };
+  let m;
+
+  /* ── El resum del sistema ──
+     Dia, hora i nom de l'activitat viuen tots tres al mateix bloc, en
+     aquest ordre: «Fecha del evento (Sábado) 6 Septiembre 2025 15:15 Tubo
+     volcánico Cueva de Las Palomas». L'hora fa de frontissa: la data va
+     davant seu i el nom, just al darrere. */
+  const esdeveniment = fragment(flat,
+    /(?:Fecha del evento|Data de l['’]esdeveniment|Event date)\s*:?/i,
+    /A[ñn]adir a (?:Google )?Calendar|Afegeix a (?:Google )?Calendar|Add to (?:Google )?Calendar|Resumen del pedido|Resum de la comanda|Order summary|Descarga tu ticket/i,
+    300);
+  if (esdeveniment) {
+    const d = trobaData(esdeveniment);
+    if (d) r.checkinISO = dataISO(d);
+    const mh = esdeveniment.match(/\b(\d{1,2}:\d{2})\b/);
+    if (mh) {
+      r.checkinHora = mh[1];
+      const nom = esdeveniment.slice(mh.index + mh[0].length).trim().replace(/[.,;]+$/, '');
+      if (nomPlausible(nom)) r.allotjament = nom;
+    }
+  }
+  // Si el bloc no hi és, la data encara es pot pescar de la frase de la
+  // carta: «… para la fecha del (Sábado) 6 Septiembre 2025 a las 15:15».
+  if (!r.checkinISO) {
+    const frase = fragment(flat, /(?:para|per a|for) la (?:fecha|data|date)(?:\s+del?)?/i, /\.\s/, 90);
+    if (frase) {
+      const d = trobaData(frase);
+      if (d) r.checkinISO = dataISO(d);
+      const mh = frase.match(/\b(\d{1,2}:\d{2})\b/);
+      if (mh && !r.checkinHora) r.checkinHora = mh[1];
+    }
+  }
+
+  /* ── Qui et fa l'activitat ──
+     Tres llocs on pot sortir, del més fiable al menys. Cap porta el flag «i»:
+     el nom d'una empresa comença en majúscula, i amb «i» el \p{Lu} deixaria
+     de voler dir res. */
+  m = flat.match(/(?:^|\s)(\p{Lu}[\p{L}'’&.\- ]{1,48}?)\s*:\s*[Cc]onfirmaci[óo]n?\s+de\s+(?:la|su|tu)\s+reserva/u)
+   || flat.match(/(?:^|\s)(\p{Lu}[\p{L}'’&.\- ]{1,48}?)\s*:\s*(?:[Bb]ooking|[Rr]eservation)\s+confirmation/u)
+   || flat.match(/(?:reservar con|reservar amb|booking with)\s+(\p{Lu}[\p{L}\d'’&.\- ]{1,48}?)\s+(?:la|el|l['’]|the)\s+(?:excursi|actividad|activitat|visita|tour|experien|activity|experience)/u)
+   || flat.match(/(?:El equipo de|L['’]equip de|The team at)\s+(\p{Lu}[\p{L}\d'’&.\- ]{1,48}?)\s*(?:[,.]|Fecha del evento|$)/u);
+  if (m && nomPlausible(m[1])) r.companyia = m[1].replace(/\s+/g, ' ').trim();
+
+  /* ── El telèfon ──
+     El que interessa és el de l'empresa, no el teu, i tots dos hi són. El
+     seu és al PEU del correu, i el peu és l'últim que hi ha: es pren
+     l'últim telèfon marcat amb ☎. Si el correu ve en text pelat i s'hi han
+     perdut els símbols, es cau a la frase de contacte de la carta. */
+  const tels = [...flat.matchAll(/☎\s*(\+?\d[\d\s().-]{7,18}\d)/g)];
+  if (tels.length) r.telefon = tels[tels.length - 1][1].replace(/\s+/g, ' ').trim();
+  if (!r.telefon) {
+    m = flat.match(/(?:n[úu]mero de tel[ée]fono|tel[ée]fono|tel[èe]fon|telephone|phone)\s*:?\s*(\+?\d[\d\s().-]{7,18}\d)/i);
+    if (m) r.telefon = m[1].replace(/\s+/g, ' ').trim();
+  }
+
+  // Número de reserva: l'etiqueta del resum, i si no la frase de la carta.
+  m = flat.match(/N[.ºo°]{0,2}\s*(?:de\s+)?[Rr]eserva\s*:?\s*([A-Z0-9][A-Z0-9-]{3,24})/)
+   || flat.match(/(?:n[úu]mero de (?:la )?reserva|booking (?:number|reference)|order (?:number|reference))\s*:?\s*([A-Z0-9][A-Z0-9-]{3,24})/i);
+  if (m) r.numReserva = m[1];
+
+  /* Preu: la línia «Total», que és la que pagues. Ull amb «Subtotal», que
+     du «Total» a dins: la vora de paraula (\b) no s'obre entre la «b» i la
+     «T», o sigui que «\bTotal\b» no l'enganxa. */
+  m = flat.match(/\bTotal\b\s*:?\s*([\d.,]+)\s*(EUR|USD|GBP|CHF|[€$£])/i);
+  if (m) r.preu = importAmbMoneda(m[1], m[2]);
+
+  // Estat del pagament: «Estado: pagado (sis)» —el codi del datàfon de
+  // darrere no diu res a ningú i es queda fora—.
+  m = flat.match(/(?:Estado|Estat|Status)\s*:?\s*([\p{L} ]{3,24})/u);
+  if (m) {
+    const estat = m[1].toLowerCase();
+    if (/pagad|pagat|abonad|paid/.test(estat)) r.pagament = 'Pagat';
+    else if (/pendient|pendent|pending|unpaid|impagad/.test(estat)) r.pagament = 'Pendent de pagament';
+  }
+
+  /* Participants: «Adulto × 2», «Niño x 1». El nom del producte va en
+     SINGULAR i el número al costat, o sigui que primer es tradueix i
+     després es fa concordar; a l'inrevés, «childs» no seria enlloc. */
+  const gent = [...flat.matchAll(/\b(Adultos?|Adults?|Adultes?|Ni[ñn]os?|Nens?|Child(?:ren)?|Infantil|Senior|Jubilados?|Estudiantes?)\s*[×xX]\s*(\d{1,3})\b/g)]
+    .map(x => {
+      const mena = hostesEnCatala(x[1].toLowerCase());
+      return x[2] + ' ' + ((+x[2] > 1 && !/s$/.test(mena)) ? mena + 's' : mena);
+    });
+  if (gent.length) r.hostes = gent.join(' · ');
+
+  /* ── La carta de l'empresa ──
+     Va sencera a les recomanacions, amb els seus paràgrafs i el seu enllaç
+     del mapa. Del punt de trobada se n'intenta treure, a més, un nom de
+     lloc per al camp «Recinte». */
+  r.recomanacions = cartaTuriTop(original);
+  const trobada = r.recomanacions.split('\n\n')
+    .find(p => /^(?:Punto|Punt|Lugar|Lloc) de (?:encuentro|trobada)|^Meeting point/i.test(p));
+  if (trobada) {
+    const net = trobada.replace(/^[^:]{0,30}:\s*/, '').replace(/https?:\/\/\S+/g, ' ');
+    r.recinte = recinteDelPunt(net);
+  }
+
+  return r;
+}
+
+/* ═══════════════ ENTRADES (Clorian i RuralGest) ═══════════════
+   Els altres dos motors de reserves d'entrades. La idea és la mateixa que
+   amb TuriTop —el lector és de la plataforma i no de cap museu—, però el
+   correu no s'assembla gens: aquí no hi ha cap carta. Hi ha BLOCS amb un
+   títol i un text a sota («El preu inclou», «Inclou», «Les teves entrades»),
+   i el títol és imprescindible: «Entrada Teatre-Museu Dalí», tot sol, no vol
+   dir res.
+   Com el de TuriTop, tots dos reben també el text SENSE normalitzar: el
+   títol d'un bloc i el seu contingut són línies diferents, i el text pla ja
+   les ha ajuntat totes en una. */
+
+/* Els blocs amb títol que val la pena guardar-se, en paràgrafs «Títol: text».
+   Un bloc s'acaba a la primera línia buida, però se'n perdonen dues al
+   principi: uns correus deixen el text just a sota del títol i d'altres hi
+   posen una línia de per mig. Perdonar-ne més seria enganxar el bloc de
+   sota quan un títol no té contingut (les «Condicions de compra», que són
+   un enllaç i prou). */
+function blocsEtiquetats(original, etiquetes) {
+  const linies = String(original || '').replace(/\r/g, '').split('\n')
+    .map(l => l.replace(/\s+/g, ' ').trim());
+  const esTitol = l => etiquetes.some(([re]) => re.test(l));
+  const trossos = [];
+  for (const [re, titol] of etiquetes) {
+    const i = linies.findIndex(l => re.test(l));
+    if (i < 0) continue;
+    const cos = [];
+    let buits = 0;
+    for (let j = i + 1; j < linies.length && cos.length < 6; j++) {
+      if (!linies[j]) { if (cos.length || ++buits > 2) break; continue; }
+      if (esTitol(linies[j])) break;
+      cos.push(linies[j]);
+    }
+    if (cos.length) trossos.push(titol + ': ' + cos.join(' '));
+  }
+  return trossos.join('\n\n');
+}
+
+/* Quantes entrades has comprat. Els correus ho escriuen de mil maneres
+   («- 2 Tickets», «2 x General», «2 x Entrada general») i el nom del
+   producte no diu res que no sigui ja al títol de la reserva: es guarda
+   només el número, que és l'única part que t'importa recordar. */
+function tantesEntrades(n) {
+  const q = parseInt(n, 10);
+  if (!q || q < 1) return '';
+  return q === 1 ? '1 entrada' : q + ' entrades';
+}
+
+/* El poble, tret d'una adreça postal d'aquí: el codi postal de cinc xifres
+   i, just al darrere, el nom del poble. És la part més fiable d'una adreça
+   —l'ordre del carrer i el número canvia, això no— i és la que el mapa
+   necessita de debò. */
+function pobleDeAdreca(adr) {
+  const m = String(adr || '').match(/\b\d{5}\s+([\p{Lu}][\p{L}'’·\- ]{1,38}?)\s*(?:,|$)/u);
+  return m ? m[1].trim() : '';
+}
+
+/* ── Clorian ── (Teatre-Museu Dalí, i molts altres museus)
+   Tot el que importa viu al bloc «La teva visita», etiquetat pregunta a
+   pregunta: Quan?, On?, Localitzador de reserva, Inclou. El nom de qui et
+   ven l'entrada, en canvi, només és a l'assumpte. */
+function parseClorian(flat, original) {
+  const r = { tipus: 'entrada' };
+  let m;
+
+  m = flat.match(/(?:La teva visita|Tu visita|Your visit)\s+(.{3,80}?)\s+(?:icon\b|Quan\?|Cu[áa]ndo\?|When\?)/i);
+  if (m && nomPlausible(m[1])) r.allotjament = m[1].replace(/\s+/g, ' ').trim();
+
+  // L'assumpte: «Resum de la teva compra a {Recinte} [{localitzador}]»
+  m = flat.match(/(?:Resum de la teva compra a|Resumen de tu compra en|Summary of your purchase at)\s+(.{3,60}?)\s*\[/i);
+  if (m && nomPlausible(m[1])) r.recinte = m[1].replace(/\s+/g, ' ').trim();
+
+  m = flat.match(/(?:Quan\?|Cu[áa]ndo\?|When\?)\s*(\d{1,2}\/\d{1,2}\/\d{4})\s+(\d{1,2}:\d{2})/i);
+  if (m) { r.checkinISO = isoNumerica(m[1]); r.checkinHora = m[2]; }
+
+  /* De l'adreça només se'n guarda el POBLE. El carrer i el número no van
+     enlloc a posta: provat amb aquest correu, el mapa no troba «Plaça Gala
+     i Salvador Dalí, 5, 17600 Figueres, Girona», i sense el número cau en
+     un bar del costat. El nom del recinte és millor clau de cerca. */
+  m = flat.match(/(?:\bOn\?|D[óo]nde\?|Where\?)\s*(.{5,90}?)\s*(?:icon\b|Localitzador|Localizador|Booking|Inclou|Incluye)/i);
+  if (m) r.poblacio = pobleDeAdreca(m[1]);
+
+  m = flat.match(/(?:Localitzador de reserva|Localizador de reserva|Booking (?:locator|reference))\s*:?\s*([A-Za-z0-9-]{5,24})/i)
+   || flat.match(/localitzador de la reserva [ée]s el\s*([A-Za-z0-9-]{5,24})/i)
+   || flat.match(/\[(\d{6,12})\]/);
+  if (m) r.numReserva = m[1];
+
+  m = flat.match(/Total\s+(?:de la\s+)?(?:reserva|booking|order)\s*:?\s*([\d.,]+)\s*(EUR|[€$£])/i);
+  if (m) r.preu = importAmbMoneda(m[1], m[2]);
+
+  // Les entrades comprades, a la taula de pagament
+  m = flat.match(/(?:Informaci[óo] de pagament|Informaci[óo]n de pago|Payment information)[^]{0,120}?\b(\d{1,3})\s*x\s*\p{L}/iu);
+  if (m) r.hostes = tantesEntrades(m[1]);
+
+  if (/compra[^.]{0,60}(?:s[’']ha completat correctament|se ha completado|completed successfully)/i.test(flat)) {
+    r.pagament = 'Pagat';
+  }
+
+  r.recomanacions = blocsEtiquetats(original, [
+    [/^(?:icon \w+\s+)?(?:Inclou|Incluye|Includes)\s*:?$/i, 'Inclou'],
+    [/^(?:Les teves entrades|Tus entradas|Your tickets)\s*:?$/i, 'Les teves entrades']
+  ]);
+
+  return r;
+}
+
+/* ── RuralGest ── (Centre del Romànic de la Vall de Boí, i molts altres)
+   La capçalera del correu ja porta les dues coses que l'identifiquen, una
+   sota l'altra: el nom del recinte i el número de reserva. El que compres
+   aquí ÉS el lloc, o sigui que el nom i el recinte són el mateix; el camp
+   es desa igualment, perquè és el que situa el pin, i és la fila la que
+   calla per no dir-ho dues vegades (veure subtitolReserva). */
+function parseRuralGest(flat, original) {
+  const r = { tipus: 'entrada' };
+  const linies = String(original || '').replace(/\r/g, '').split('\n').map(l => l.trim());
+  let m;
+
+  const cap = String(original || '').match(/^[ \t]*(\S.{2,68}?)[ \t]*\n[ \t]*Reserva\s*:\s*([A-Za-z0-9][\w\/-]{3,24})/m);
+  if (cap) {
+    if (nomPlausible(cap[1])) { r.allotjament = cap[1].replace(/\s+/g, ' ').trim(); r.recinte = r.allotjament; }
+    r.numReserva = cap[2];
+  }
+  if (!r.numReserva) {
+    m = flat.match(/\bRef\s*:\s*([A-Za-z0-9][\w\/-]{3,24})/i);
+    if (m) r.numReserva = m[1];
+  }
+
+  /* Dia, hora i quantes entrades, tot a la mateixa línia del bloc de
+     l'esdeveniment: «16/06/2026 17:45 - 2 Tickets». */
+  m = flat.match(/(\d{1,2}\/\d{1,2}\/\d{4})\s+(\d{1,2}:\d{2})\s*-\s*(\d{1,3})\s*(?:Tickets?|Entrades?|Entradas?)/i);
+  if (m) {
+    r.checkinISO = isoNumerica(m[1]);
+    r.checkinHora = m[2];
+    r.hostes = tantesEntrades(m[3]);
+  } else {
+    m = flat.match(/(\d{1,2}\/\d{1,2}\/\d{4})\s+(\d{1,2}:\d{2})/);
+    if (m) { r.checkinISO = isoNumerica(m[1]); r.checkinHora = m[2]; }
+  }
+  // Si la capçalera no ha donat nom, el bloc de l'esdeveniment el porta
+  // just a sobre de la línia de la data.
+  if (!r.allotjament && m) {
+    const i = linies.findIndex(l => l.startsWith(m[1]));
+    const previ = i > 0 ? linies[i - 1] : '';
+    if (nomPlausible(previ)) { r.allotjament = previ; r.recinte = previ; }
+  }
+
+  m = flat.match(/(?:Import total|Importe total|Total amount)\s*:\s*([\d.,]+)\s*(EUR|[€$£])/i);
+  if (m) r.preu = importAmbMoneda(m[1], m[2]);
+
+  /* Pagament: aquests correus diuen QUANT s'ha avançat, i no és el mateix
+     tenir-ho tot pagat que haver deixat una paga i senyal. */
+  m = flat.match(/(?:Pagament anticipat|Pago anticipado|Prepayment)\s*:\s*([\d.,]+)\s*(EUR|[€$£])/i);
+  if (m) {
+    const avancat = importAmbMoneda(m[1], m[2]);
+    r.pagament = (r.preu && avancat === r.preu) ? 'Pagat' : 'Pagat ' + avancat + ' per endavant';
+  } else if (/\b(?:abonado|abonat|pagado|pagat|paid)\b/i.test(flat)) {
+    r.pagament = 'Pagat';
+  }
+
+  /* Qui t'ho ven: el correu ho porta en un bloc encapçalat literalment
+     «Empresa», amb el nom, els correus i el telèfon. El telèfon d'aquí és
+     el SEU; el teu és més amunt, al bloc de dades del client. */
+  const iEmp = linies.findIndex(l => /^Empresa\s*:?$/i.test(l));
+  if (iEmp >= 0) {
+    for (let j = iEmp + 1; j < Math.min(iEmp + 8, linies.length); j++) {
+      const l = linies[j];
+      if (!l) continue;
+      if (/@/.test(l)) continue;
+      if (!r.companyia && /\p{L}{3}/u.test(l) && nomPlausible(l)) { r.companyia = l; continue; }
+      if (!r.telefon && /^\+?[\d\s().-]{9,20}$/.test(l) && l.replace(/\D/g, '').length >= 9) r.telefon = l;
+    }
+  }
+
+  r.recomanacions = blocsEtiquetats(original, [
+    [/^(?:El preu inclou|El precio incluye|The price includes)\s*:?$/i, 'El preu inclou']
+  ]);
+
+  return r;
+}
+
 function parseGeneric(flat) {
   const r = {};
   // Dues primeres dates → entrada i sortida (a revisar)
@@ -2798,6 +3245,12 @@ function parseReserva(textOriginal) {
   let camps;
   if (plataforma === 'Booking.com') camps = parseBooking(flat);
   else if (/Accor/.test(plataforma)) camps = parseAccor(flat);
+  // El de TuriTop és l'únic que rep també el text SENSE normalitzar: en
+  // necessita els salts de línia (les recomanacions són paràgrafs) i les
+  // adreces web (la del mapa del punt de trobada), i el text pla ja no en té.
+  else if (plataforma === 'TuriTop') camps = parseTuriTop(flat, textOriginal);
+  else if (plataforma === 'Clorian') camps = parseClorian(flat, textOriginal);
+  else if (plataforma === 'RuralGest') camps = parseRuralGest(flat, textOriginal);
   else camps = parseGeneric(flat);
   return { plataforma, camps, pendents: [] };
 }
@@ -2812,9 +3265,11 @@ function parseReserva(textOriginal) {
    de documentació sobre el compte, que la 14 ja porta com a §10.)
    1. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    2. Parsing automàtic dels cotxes de lloguer (ara s'entren a mà). Els
-      vols ja es llegeixen (v122), de moment de Vueling, Ryanair i Aegean:
-      cada companyia nova vol el seu lector, i per escriure'l cal un correu
-      de debò d'aquella companyia.
+      vols ja es llegeixen (v122), de moment de Vueling, Ryanair i Aegean, i
+      les activitats i entrades des de la v139–v140 (TuriTop, Clorian i
+      RuralGest): cada companyia o plataforma nova vol el seu lector, i per
+      escriure'l cal un correu de debò d'aquella. Per a les activitats, les
+      següents serien GetYourGuide i Civitatis.
    3. Buscador d'idees quan n'hi hagi moltes.
    4. Correu de sortida propi a Supabase. Els correus de recuperació de
       contrasenya (v117) els envia ara el remitent de proves de Supabase,
@@ -2828,6 +3283,106 @@ function parseReserva(textOriginal) {
       treu un full en blanc. S'arreglaria amb l'esdeveniment «beforeprint»,
       omplint el full segons la pantalla on ets. LA CLARA HO VA DESCARTAR
       (25/08/2026): no li calia.
+   FET · La nota del mapa d'un viatge diu QUINS elements no hi surten, i t'hi
+      porta (v141).
+      · EL COMPTADOR JA HI ERA. La Clara va demanar «un comptador al mapa
+        que digui quantes reserves no hi surten» i resulta que la nota de
+        sota el mapa ja deia «N elements sense ubicació al mapa» des de
+        sempre. El que faltava no era comptar-los: era saber QUINS. Amb
+        quinze reserves, saber que te'n falta una no serveix de res si has
+        d'obrir-les totes per trobar-la. Ara la nota els anomena, i cada nom
+        és un botó que et porta a l'Agenda, obre aquella fila i t'hi baixa.
+      · DE QUÈ S'AVISA I DE QUÈ NO (calDirQueFalta). La regla és la MATEIXA
+        que avisLloc() aplica dins de cada fila, i ho és a posta: si els dos
+        llocs fessin servir criteris diferents, el mapa diria que en falten
+        tres i obrint-les només dues es queixarien. D'una RESERVA sempre
+        se n'avisa —hi vas i l'app no sap on és—; d'una visita o d'una idea,
+        només si en tenia dades de lloc i no s'han pogut resoldre. Una
+        visita acabada d'escriure encara no té lloc, i això no és cap error.
+        Abans es comptaven totes i el número sortia inflat.
+      · La nota segueix el filtre de la llegenda, com abans: si apagues una
+        categoria, el que en falta d'aquella tampoc no es compta.
+   FET · Dues plataformes d'entrades més: Clorian i RuralGest (v140).
+      Clorian és el motor dels museus grossos (Teatre-Museu Dalí) i
+      RuralGest el de molts espais patrimonials (Centre del Romànic de la
+      Vall de Boí). Com amb TuriTop, el lector és de la PLATAFORMA i no del
+      museu: qui et ven l'entrada va al camp «Empresa» o al «Recinte».
+      · AQUESTS CORREUS NO PORTEN CAP CARTA, i per això no serveix el lector
+        de TuriTop. Porten BLOCS amb un títol i un text a sota («El preu
+        inclou», «Inclou», «Les teves entrades»), i el títol és
+        imprescindible: «Entrada Teatre-Museu Dalí», tot sol, no vol dir
+        res. Els llegeix blocsEtiquetats(), que els torna en paràgrafs
+        «Títol: text». Un bloc s'acaba a la primera línia buida, però se'n
+        perdonen dues al principi —n'hi ha que deixen el text just sota del
+        títol i n'hi ha que hi posen una línia—; perdonar-ne més enganxava
+        el bloc de sota quan un títol no té contingut (les «Condicions de
+        compra», que són un enllaç i prou).
+      · EL DESPLEGABLE HA CANVIAT DE NOM, per encàrrec de la Clara: era
+        «Recomanacions de l'empresa» i ara és «Recomanacions i detalls de
+        l'empresa». Aquests correus no recomanen res, expliquen QUÈ INCLOU
+        l'entrada, i amb el nom vell l'etiqueta mentia.
+      · L'ADREÇA DEL CARRER NO ES DESA, i és a posta. El correu del Dalí en
+        porta una de sencera i la temptació era guardar-la; provada al
+        cercador de mapes: «Plaça Gala i Salvador Dalí, 5, 17600 Figueres,
+        Girona» no la troba, i sense el número cau en un bar del costat. En
+        canvi troba clavats «Teatre-Museu Dalí» i «Centre del Romànic de la
+        Vall de Boí». O sigui que el NOM DEL RECINTE és millor clau de cerca
+        que l'adreça, i no cal cap camp nou. De l'adreça se'n treu només el
+        poble, pel codi postal, que és la part que no canvia d'ordre.
+      · DE PASSADA, un error que això va destapar: quan el que compres ÉS el
+        lloc (un museu), el nom de la reserva i el del recinte són el
+        mateix, i la fila deia dues vegades seguides «Centre del Romànic de
+        la Vall de Boí». Ara el subtítol calla el recinte si ja és el títol.
+        Només calla: el camp es queda ple, que és el que situa el pin.
+      · EL QUE JA HI HAVIA I NO CALIA TOCAR: la Clara es va preocupar que el
+        mapa no trobés el Dalí i no avisés. Sí que avisa —avisLloc() ho fa
+        des de sempre—: dins de la reserva hi surt «No s'ha pogut situar
+        l'adreça. Al mapa, el pin va al poble: Figueres…» amb el botó per
+        arreglar-ho, i quan encerta diu ON ha posat el pin, que és el que et
+        deixa veure que ha caigut al carrer equivocat.
+   FET · Les reserves d'activitats es llegeixen soles (v139). Fins ara un
+      correu d'excursió entrava com un allotjament sense nom, amb el telèfon
+      de l'empresa desat com a número de reserva i sense hora ni preu.
+      · EL LECTOR ÉS DE TURITOP, no de cap empresa. TuriTop és el motor de
+        reserves que fan servir moltes empreses petites d'activitats, i
+        totes envien el mateix correu amb el seu nom a dins: un lector sol
+        les llegeix totes. Es reconeix pel remitent (turitop.com) i pel peu
+        del sistema, que són els senyals més segurs de tots —no és cap marca
+        que un altre correu pugui esmentar de passada—, i per això es mira
+        el primer de tots a detectaPlataforma().
+      · La reserva va al tipus ENTRADA, que hi encaixava gairebé del tot.
+        S'hi han afegit tres camps, tots amb identificadors que ja existien
+        («companyia», «telefon», «hostes»): una excursió té una EMPRESA que
+        te la fa, un TELÈFON per si et perds de camí i uns PARTICIPANTS.
+        Cada tipus posa nom als seus camps, o sigui que l'«hostes» d'una
+        entrada es diu «Participants» sense tocar res de ningú. Al full de
+        paper també, que per això FULL_ETIQUETES accepta ara una clau amb el
+        tipus al davant.
+      · LES RECOMANACIONS, que és la part que no cabia enlloc. El correu
+        d'una excursió porta mitja pàgina de coses pràctiques —el punt de
+        trobada, que cal calçat tancat, que val més ser-hi 10 minuts abans—
+        i tot això no són «notes»: les notes són teves. Va en un camp propi
+        i, a la pantalla, en un DESPLEGABLE DINS DEL DESPLEGABLE: una línia
+        quan no el mires, sencer quan sí. Va ser encàrrec seu, i és el que
+        salva la fitxa: la primera versió ho enganxava tot a les notes
+        separat amb «·» i no hi havia manera de llegir-ho.
+        Al full imprès hi va SENCER i desplegat: en un paper no hi ha res
+        per obrir, i és justament el que t'endús quan el mòbil es mor.
+      · AQUEST LECTOR REP EL TEXT SENSE NORMALITZAR, i és l'únic. En
+        necessita els salts de línia (les recomanacions són paràgrafs, i el
+        text pla ja els ha ajuntat tots en una línia) i les adreces web (la
+        del mapa del punt de trobada, que normalitza() esborra amb totes les
+        altres). L'enllaç es veu clicable, amb el nom del domini.
+      · EL QUE NO S'ENDEVINA ES DEIXA BUIT. La població no és enlloc del
+        correu, i sense població el pin no es mou: es prova amb el nom del
+        recinte i el cercador de mapes no coneix ni «Centro de
+        Interpretación Caños de Fuego» ni «Caños de Fuego, La Palma». O
+        sigui que el camp es queda en groc perquè l'omplis tu, que és
+        honest, en comptes de posar-hi una frase que faria la fitxa
+        completa sense ser-ho.
+      · DE PASSADA, un error de sempre: a la pantalla estreta, una reserva
+        d'un sol dia treia un punt penjant («6 set ·»). El separador el
+        posava el CSS encara que no hi hagués res al darrere.
    FET · Les visites i activitats tenen més espai per escriure, i saben on
       són exactament.
       · LA NOTA. Era un camp de dues línies amb l'etiqueta «Nota», i
@@ -3703,6 +4258,16 @@ const CAMPS_COMUNS = [
   { id: 'quiPaga',    nom: 'Qui ho paga' },
   { id: 'cancelacio', nom: 'Cancel\u00b7laci\u00f3 gratu\u00efta' },
   { id: 'numReserva', nom: 'N\u00fam. de reserva' },
+  /* Aix\u00f2 NO s\u00f3n les notes. Les notes s\u00f3n teves i hi escrius el que vulguis;
+     aix\u00f2 \u00e9s el text que ve del correu tal com l'ha escrit qui t'atendr\u00e0: el
+     punt de trobada, qu\u00e8 cal portar, a quina hora conv\u00e9 arribar-hi, qu\u00e8
+     inclou el preu. Va en un camp propi perqu\u00e8 es pugui ensenyar plegat:
+     enganxat a les notes i separat amb punts, no hi havia manera de
+     llegir-ho.
+     Es deia \u00abRecomanacions de l'empresa\u00bb i la Clara ho va ampliar (01/09/2026)
+     en veure que els correus d'entrades no recomanen res, expliquen QU\u00c8
+     INCLOU l'entrada: amb el nom vell, l'etiqueta mentia. */
+  { id: 'recomanacions', nom: 'Recomanacions i detalls de l\u2019empresa', ample: true, multilinia: true },
   { id: 'notes',      nom: 'Notes', ample: true }
 ];
 
@@ -3772,14 +4337,22 @@ const TIPUS = {
       { id: 'checkoutHora', nom: 'Hora de devolució' }
     ]
   },
+  /* Una entrada no és sempre un tiquet de museu: també és una excursió
+     guiada, i llavors importa QUI te la fa —a qui truques si et perds de
+     camí— i quanta gent hi va. Els identificadors són els de sempre
+     («companyia», «telefon», «hostes»): el que canvia és com es diuen aquí,
+     que cada tipus posa nom als seus camps. */
   entrada: {
     nom: 'Entrada', plural: 'Entrades', icona: 'tiquet',
     camps: [
       { id: 'allotjament', nom: 'Nom' },
+      { id: 'companyia',   nom: 'Empresa' },
+      { id: 'telefon',     nom: 'Telèfon' },
       { id: 'recinte',     nom: 'Recinte' },
       { id: 'poblacio',    nom: 'Població' },
       { id: 'checkinISO',  nom: 'Dia' },
-      { id: 'checkinHora', nom: 'Hora' }
+      { id: 'checkinHora', nom: 'Hora' },
+      { id: 'hostes',      nom: 'Participants' }
     ]
   },
   altres: {
@@ -4381,6 +4954,10 @@ function mostraFitxa(camps, plataforma, titol, sub) {
   // si la fitxa ja era oberta, «abans» ja és ella mateixa.
   if (!jaOberta) focusPreviFitxa = document.activeElement;
   $('fitxa').classList.add('visible');
+  // Els camps de text llarg s'han pintat amb la fitxa encara amagada, i
+  // llavors no tenen alçada: fesGran no hi podia fer res. Ara que ja es
+  // veuen, s'hi passa (el mateix cas que la nota d'una visita).
+  $('graella-camps').querySelectorAll('textarea').forEach(fesGran);
   $('fitxa').scrollIntoView({ behavior: 'smooth', block: 'start' });
   // El focus va a la fitxa, no a cap camp: al mòbil el teclat taparia mitja
   // pantalla abans de poder llegir què s'ha entès del correu. preventScroll
@@ -4450,17 +5027,25 @@ function pintaCampsFitxa() {
     const label = document.createElement('label');
     label.textContent = c.nom;
     label.htmlFor = 'camp-' + c.id;
-    const input = document.createElement('input');
+    // Un camp de text llarg és una caixa de diverses línies, no una ratlla:
+    // les recomanacions d'una empresa fan quatre paràgrafs i en una ratlla
+    // no se'n veu ni el principi.
+    const input = document.createElement(c.multilinia ? 'textarea' : 'input');
     input.id = 'camp-' + c.id;
     input.value = valor;
+    if (c.multilinia) input.rows = 3;
     // El pagament suggereix opcions segons el tipus, sense deixar de ser lliure
     if (c.id === 'pagament') {
       input.setAttribute('list', 'opcions-pagament');
       input.setAttribute('autocomplete', 'off');
     }
-    input.addEventListener('input', () => { div.classList.toggle('buit', !input.value.trim()); });
+    input.addEventListener('input', () => {
+      div.classList.toggle('buit', !input.value.trim());
+      if (c.multilinia) fesGran(input);
+    });
     div.append(label, input);
     g.append(div);
+    if (c.multilinia) fesGran(input);
   }
 
   const datalist = document.createElement('datalist');
@@ -4837,6 +5422,39 @@ function campDetall(etiqueta, valor, ample, extra) {
   </div>`;
 }
 
+/* Un text que ve d'un correu pot portar adreces web a dins —la del mapa del
+   punt de trobada, sobretot—. Escrites senceres no serveixen de res: es
+   volen clicar, i ocupen tres ratlles. Es parteix el text pels enllaços, es
+   deixa el nom del domini a la vista (com als enllaços de les idees) i TOTA
+   la resta passa per esc(): és text de fora i no pot entrar mai com a HTML. */
+function textAmbEnllacos(text) {
+  const re = /https?:\/\/[^\s<>"']+/g;
+  let html = '', des = 0, m;
+  while ((m = re.exec(text))) {
+    // Un enllaç al final d'una frase s'endú el punt final, i no n'és part.
+    const url = m[0].replace(/[.,;:!?)\]]+$/, '');
+    html += esc(text.slice(des, m.index))
+      + `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(nomEnllac(url))}</a>`;
+    des = m.index + url.length;
+    re.lastIndex = des;
+  }
+  return html + esc(text.slice(des));
+}
+
+/* El desplegable de dins d'una reserva. Només surt si hi ha recomanacions:
+   un botó que obre el buit és pitjor que cap botó.
+   L'identificador surt del de la reserva, com el del detall que l'envolta. */
+function blocRecomanacions(r) {
+  const text = (r.recomanacions || '').trim();
+  if (!text) return '';
+  return `<div class="reco">
+    <button class="reco-cap" type="button" aria-expanded="false" aria-controls="reco-${esc(r.id)}">
+      ${CHEVRON}Recomanacions i detalls de l’empresa
+    </button>
+    <div class="reco-cos ocult" id="reco-${esc(r.id)}">${textAmbEnllacos(text)}</div>
+  </div>`;
+}
+
 /* ── El que la llista mostra de cada reserva, segons el tipus ── */
 
 function nomReserva(r) {
@@ -4856,7 +5474,19 @@ function subtitolReserva(r) {
   const t = tipusDe(r);
   if (t === 'vol') return [r.companyia, r.numVol].filter(Boolean).join(' ');
   if (t === 'cotxe') return [r.companyia, r.llocRecollida].filter(Boolean).join(' · ');
-  if (t === 'entrada') return [r.recinte, r.poblacio].filter(Boolean).join(' · ');
+  /* El recinte NO es repeteix si ja és el títol. Passa sempre que el que
+     compres és el lloc mateix —un museu, un monument—: allà el nom de la
+     reserva i el del recinte són el mateix, i la fila deia dues vegades
+     seguides «Centre del Romànic de la Vall de Boí».
+     El camp es queda ple igualment, que no és cosmètic: és el que
+     adrecaMapa() fa servir per situar el pin, i el nom d'un recinte sol ser
+     millor clau de cerca que la seva adreça (provat: el mapa troba «Centre
+     del Romànic de la Vall de Boí» i no troba «Plaça Gala i Salvador Dalí,
+     5, 17600 Figueres»). Aquí només es calla, no es buida. */
+  if (t === 'entrada') {
+    const rec = (r.recinte || '').trim() === (r.allotjament || '').trim() ? '' : r.recinte;
+    return [rec, r.poblacio].filter(Boolean).join(' · ');
+  }
   if (t === 'altres') return r.llocRecollida || '';
   return poblacio(r.adreca);
 }
@@ -4904,8 +5534,9 @@ function detallReserva(r) {
     ];
   } else if (t === 'entrada') {
     propis = [
-      ['Nom', r.allotjament], ['Recinte', r.recinte], ['Població', r.poblacio],
-      ['Dia', entrada]
+      ['Nom', r.allotjament], ['Empresa', r.companyia], ['Telèfon', r.telefon],
+      ['Recinte', r.recinte], ['Població', r.poblacio],
+      ['Dia', entrada], ['Participants', r.hostes]
     ];
   } else if (t === 'altres') {
     propis = [
@@ -4974,6 +5605,7 @@ function filaReservaHTML(r) {
             ${campDetall('Cancel·lació', r.cancelacio, true)}
             ${campDetall('Núm. de reserva', r.numReserva)}
             ${campDetall('Notes', r.notes, true)}
+            ${blocRecomanacions(r)}
           </div>
           ${llocReservaHTML(r)}
           ${viatgeDeReserva(r) ? `<div class="detall-viatge">
@@ -5067,6 +5699,22 @@ $('detall-viatge-vista').addEventListener('input', e => {
 });
 $('cos-llista').addEventListener('click', gestionaToggleFila);
 $('detall-viatge-vista').addEventListener('click', gestionaToggleFila);
+
+/* El desplegable de DINS d'una reserva: les recomanacions de l'empresa.
+   Va a part de gestionaToggleFila perquè el seu botó no és el de la fila
+   —viu al detall, no a la capçalera—, i perquè plegar-lo no ha de plegar
+   la reserva sencera. Com la resta de la llista, obrir-lo NO repinta: només
+   s'ensenya el que ja hi és. */
+function gestionaToggleReco(e) {
+  const cap = e.target.closest('.reco-cap');
+  if (!cap) return;
+  const obert = cap.getAttribute('aria-expanded') === 'true';
+  cap.setAttribute('aria-expanded', obert ? 'false' : 'true');
+  const cos = document.getElementById(cap.getAttribute('aria-controls'));
+  if (cos) cos.classList.toggle('ocult', obert);
+}
+$('cos-llista').addEventListener('click', gestionaToggleReco);
+$('detall-viatge-vista').addEventListener('click', gestionaToggleReco);
 
 /* Plegar i desplegar el bloc de reserves passades. Com a la resta de la
    llista, no es repinta res: només s'ensenya o s'amaga el que ja hi és. */
@@ -5974,14 +6622,15 @@ function dibuixaPinsViatge(L, capa, v, seves, ajustaVista) {
   for (const r of seves) {
     const t = tipusDe(r);
     items.push(Object.assign(itemReserva(r), {
-      cat: categoriaMapa('reserva', t), tipus: (TIPUS[t].nom || 'Reserva'), nom: nomReserva(r)
+      cat: categoriaMapa('reserva', t), tipus: (TIPUS[t].nom || 'Reserva'), nom: nomReserva(r),
+      mena: 'reserva', id: r.id
     }));
   }
   // Passen per itemIdea(), igual que les reserves per itemReserva(): fins a
   // la v137 aquí hi havia «adreca: ''» a pèl i el pin d'una visita queia
   // sempre al mig del poble, encara que sabessis el carrer.
-  for (const vi of visites.filter(x => x.viatgeId === v.id)) items.push(Object.assign(itemIdea(vi), { cat: 'activitats', tipus: 'Visita', nom: (vi.text || 'Visita').split('\n')[0] }));
-  for (const i of ideesSuggerides(v, seves)) items.push(Object.assign(itemIdea(i), { cat: 'idea', tipus: 'Idea', nom: (i.text || 'Idea').split('\n')[0] }));
+  for (const vi of visites.filter(x => x.viatgeId === v.id)) items.push(Object.assign(itemIdea(vi), { cat: 'activitats', tipus: 'Visita', nom: (vi.text || 'Visita').split('\n')[0], mena: 'visita', id: vi.id }));
+  for (const i of ideesSuggerides(v, seves)) items.push(Object.assign(itemIdea(i), { cat: 'idea', tipus: 'Idea', nom: (i.text || 'Idea').split('\n')[0], mena: 'idea', id: i.id }));
 
   // Es resolen les coordenades un sol cop i s'apunta quines categories té el
   // viatge SENCER. La llegenda no pot dependre del filtre: si en apagar-ne una
@@ -5997,10 +6646,10 @@ function dibuixaPinsViatge(L, capa, v, seves, ajustaVista) {
   // Agrupa per lloc + categoria, i recorda quins grups té cada lloc
   const grups = new Map();
   const perLloc = new Map();
-  let sense = 0;
+  const sense = [];
   for (const it of items) {
     if (!categoriaVisible(it.cat)) continue;
-    if (!it.coords) { sense++; continue; }
+    if (!it.coords) { if (calDirQueFalta(it)) sense.push(it); continue; }
     const c = it.coords;
     const llocClau = c.lat.toFixed(4) + ',' + c.lon.toFixed(4);
     const clau = llocClau + '|' + it.cat;
@@ -6047,10 +6696,52 @@ function dibuixaPinsViatge(L, capa, v, seves, ajustaVista) {
       + `<span class="mapa-lleg-punt" style="background:${COLORS_MAPA[c]}"></span>${esc(ETIQ_MAPA[c])}</button>`;
   }).join('');
 
+  pintaNotaMapaViatge(sense);
+}
+
+/* De què s'ha de dir que falta al mapa. La regla és la MATEIXA que avisLloc()
+   aplica dins de cada fila, a posta: si els dos llocs fessin servir criteris
+   diferents, el mapa diria que en falten tres i obrint-les només dues es
+   queixarien.
+   D'una RESERVA sempre se n'avisa —hi vas i l'app no sap on és—. D'una visita
+   o d'una idea, només si en tenia dades de lloc i no s'han pogut resoldre:
+   una que acabes d'escriure encara no en té, i això no és cap error. */
+function calDirQueFalta(it) {
+  return it.mena === 'reserva' || !!(it.zona || it.adreca);
+}
+
+/* La nota de sota el mapa. Abans deia només QUANTS n'hi havia, i saber que
+   te'n falta un no serveix de gaire si has d'obrir totes les reserves per
+   trobar quin és. Ara els anomena i cadascun és un botó que t'hi porta. */
+function pintaNotaMapaViatge(sense) {
   const nota = $('mapa-viatge-nota');
-  if (nota) nota.textContent = sense
-    ? sense + (sense === 1 ? ' element sense ubicació al mapa' : ' elements sense ubicació al mapa')
-    : '';
+  if (!nota) return;
+  if (!sense.length) { nota.innerHTML = ''; return; }
+  const quantes = sense.length === 1 ? '1 element no surt al mapa:' : sense.length + ' elements no surten al mapa:';
+  nota.innerHTML = `<span>${quantes}</span>` + sense.map(it => {
+    let nom = it.nom || '(sense nom)';
+    if (nom.length > 46) nom = nom.slice(0, 46) + '…';
+    return `<button type="button" class="mapa-sense" data-mapa-sense="${esc(it.mena)}:${esc(it.id)}"`
+      + ` title="Obre ${esc(it.nom || '')} per posar-hi el lloc">${esc(nom)}</button>`;
+  }).join('');
+}
+
+/* Anar del mapa a l'element que no hi surt, per completar-li el lloc. Les
+   reserves i les visites viuen a l'itinerari de l'Agenda i s'hi obren; una
+   idea encara candidata viu a la pestanya d'Idees, que no té files per obrir
+   i per això només s'hi canvia. */
+function vesAlQueFalta(clau) {
+  const tall = clau.indexOf(':');
+  const mena = clau.slice(0, tall), id = clau.slice(tall + 1);
+  if (mena === 'idea') { subvistaViatge = 'idees'; pintaDetallViatge(); return; }
+  subvistaViatge = 'agenda';
+  agendaMode = 'complet';
+  filesObertes.add(id);
+  pintaDetallViatge();
+  // Després del repintat, que es vegi: si no, obres una fila que és a mig
+  // itinerari i sembla que no hagi passat res.
+  const fila = $('detall-viatge-vista').querySelector('[data-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
+  if (fila) fila.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function pintaIdees() {
@@ -7434,6 +8125,7 @@ function detallReservaLecturaHTML(r) {
     ${r.cancelacio ? campDetall('Cancel·lació', r.cancelacio, true) : ''}
     ${r.numReserva ? campDetall('Núm. de reserva', r.numReserva) : ''}
     ${r.notes ? campDetall('Notes', r.notes, true) : ''}
+    ${blocRecomanacions(r)}
   </div>`;
 }
 
@@ -8565,19 +9257,24 @@ const FULL_COMUNS = ['numReserva', 'cancelacio', 'quiPaga'];
      en dues línies, que desnivella les files del costat. La més curta que
      segueixi dient el mateix.
    Ull amb el cotxe: «Recollida» és la DATA i «Recollida a» és el LLOC. Van
-   una sota l'altra i s'han de poder distingir. */
+   una sota l'altra i s'han de poder distingir.
+   Una clau pot dur-hi el tipus al davant quan la mateixa clau vol dir coses
+   diferents segons on és: l'«hostes» d'un allotjament són hostes, i el
+   d'una entrada són els participants d'una excursió. Escurçar-lo a «Hostes»
+   allà no l'escurçaria, el canviaria de significat. */
 const FULL_ETIQUETES = {
-  cancelacio:    'Cancel·lació',
-  hostes:        'Hostes',
-  numReserva:    'Reserva',
-  client:        'Client',
-  numVol:        'Núm. de vol',
-  llocRecollida: 'Recollida a',
-  llocDevolucio: 'Devolució a'
+  cancelacio:        'Cancel·lació',
+  hostes:            'Hostes',
+  'entrada.hostes':  'Participants',
+  numReserva:        'Reserva',
+  client:            'Client',
+  numVol:            'Núm. de vol',
+  llocRecollida:     'Recollida a',
+  llocDevolucio:     'Devolució a'
 };
 
-function fullEtiqueta(camp) {
-  return FULL_ETIQUETES[camp.id] || camp.nom;
+function fullEtiqueta(camp, tipus) {
+  return FULL_ETIQUETES[tipus + '.' + camp.id] || FULL_ETIQUETES[camp.id] || camp.nom;
 }
 
 /* L'any no surt enlloc de l'app —a la pantalla ja se sap quin any és— però
@@ -8640,7 +9337,7 @@ function blocReservaHTML(r) {
     if (mateixLloc && (c.id === 'llocRecollida' || c.id === 'llocDevolucio')) continue;
     const val = (r[c.id] || '').trim();
     if (!val || val === plataforma) continue;
-    esq += fullCamp(fullEtiqueta(c), val);
+    esq += fullCamp(fullEtiqueta(c, t), val);
   }
 
   let dreta = '';
@@ -8648,7 +9345,7 @@ function blocReservaHTML(r) {
     const val = (r[id] || '').trim();
     if (!val) continue;
     const def = CAMPS_COMUNS.find(c => c.id === id);
-    dreta += fullCamp(def ? fullEtiqueta(def) : id, val, id === 'numReserva');
+    dreta += fullCamp(def ? fullEtiqueta(def, t) : id, val, id === 'numReserva');
   }
 
   // NO hi va cap línia de trajecte. A la mostra n'hi havia una («BCN 09:40 →
@@ -8671,6 +9368,8 @@ function blocReservaHTML(r) {
       <dl class="full-res-col">${dreta}</dl>
     </div>
     ${(r.notes || '').trim() ? `<p class="full-res-notes">${esc(r.notes.trim())}</p>` : ''}
+    ${(r.recomanacions || '').trim()
+      ? `<p class="full-res-reco"><b>Recomanacions i detalls de l’empresa</b>${esc(r.recomanacions.trim())}</p>` : ''}
   </div>`;
 }
 
@@ -9081,6 +9780,12 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   const catMapa = e.target.closest('[data-cat-mapa]');
   if (catMapa) {
     alternaCategoriaMapa(catMapa.dataset.catMapa);
+    return;
+  }
+  // Del nom d'un element que no surt al mapa, a l'element mateix.
+  const faltant = e.target.closest('[data-mapa-sense]');
+  if (faltant) {
+    vesAlQueFalta(faltant.dataset.mapaSense);
     return;
   }
   const mode = e.target.closest('[data-agenda-mode]');
