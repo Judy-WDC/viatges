@@ -774,12 +774,20 @@
   .visita-camp { display: flex; flex-direction: column; gap: 4px; }
   .visita-camp.ample { grid-column: 1 / -1; }
   .visita-camp span { font-size: 12px; font-weight: 500; color: var(--tinta-tenue); }
+  /* L'etiqueta d'un camp amb l'enllaç clicable al costat. */
+  .visita-camp-cap { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
   .visita-camp input, .visita-camp textarea {
     border: 1px solid var(--vora-control); border-radius: 7px; padding: 7px 9px;
     font-family: inherit; font-size: 13.5px; color: var(--tinta);
     background: var(--superficie); resize: vertical;
   }
   .visita-camp input:focus, .visita-camp textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  /* La nota d'una visita. És el text sencer de la idea i la seva primera
+     línia fa de títol, o sigui que s'ha de veure d'una tirada: sis línies
+     de terra i creix sola (fesGran). Interlineat una mica més ample que la
+     resta de camps, que aquí s'hi llegeix un paràgraf i no una dada. */
+  .visita-camp textarea.visita-nota { line-height: 1.5; min-height: 7.5em; }
+  .visita-camp textarea.visita-nota::placeholder { color: var(--tinta-tenue); font-style: italic; }
 
   /* ── La maleta ── */
   .maleta-qui { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
@@ -2820,6 +2828,55 @@ function parseReserva(textOriginal) {
       treu un full en blanc. S'arreglaria amb l'esdeveniment «beforeprint»,
       omplint el full segons la pantalla on ets. LA CLARA HO VA DESCARTAR
       (25/08/2026): no li calia.
+   FET · Les visites i activitats tenen més espai per escriure, i saben on
+      són exactament.
+      · LA NOTA. Era un camp de dues línies amb l'etiqueta «Nota», i
+        l'etiqueta mentia: això és el TEXT SENCER de la idea, i la seva
+        primera línia és el títol que es veu a la fila plegada. Amb dues
+        línies, escrivint-ne quatre te'n quedaven dues amagades. Ara en fa
+        sis i creix sola (fesGran). Fora l'etiqueta, i al seu lloc un text de
+        fons que diu el que ningú no endevina: que la primera línia fa de
+        títol. Es veu quan és buida, que és quan cal.
+        Obrir una fila NO repinta —la regla de la casa—, o sigui que la nota
+        arribava a la pantalla sense haver passat mai per fesGran (mentre era
+        plegada no tenia alçada). S'hi passa en obrir-la.
+      · L'ENLLAÇ. Fins ara es VEIA si ja n'hi havia, però no hi havia cap
+        camp per posar-n'hi: havies d'anar a Inspiració. Ara hi és, i el
+        vincle clicable va a la mateixa línia que l'etiqueta —a sota,
+        l'adreça quedava escrita dues vegades seguides—.
+      · L'ADREÇA EXACTA, que és la grossa. La «zona» es queda igual i segueix
+        sent la que creua idees amb viatges (va a escala de poble o comarca);
+        l'adreça és el lloc concret i és la que posa el pin al seu lloc.
+        Gairebé tot ja hi era: origenCoords({zona, adreca}) no sap ni li
+        importa si el que li passes és una reserva o una idea, i ja porta la
+        memòria cau, la cua d'una consulta per segon i el filtre dels 100 km.
+        El que faltava era donar-li l'adreça: on es dibuixen els pins hi
+        havia «adreca: ''» a pèl per a les visites i les idees, i el pin
+        queia sempre al mig del poble encara que sabessis el carrer. Ara
+        passen per itemIdea(), germà d'itemReserva().
+        Si el que hi escrius no és una adreça que Nominatim entengui («la
+        cantonada de dalt»), no es perd: es llegeix igual i el pin recula al
+        poble, dient per què.
+        La línia que diu on ha anat a parar el pin ara la comparteixen les
+        reserves i les idees (avisLloc): des que una idea pot portar adreça,
+        els casos són els mateixos, i tenir-ne dos jocs de paraules acabaria
+        amb els dos dient coses diferents. L'única diferència: una idea sense
+        zona ni adreça CALLA. Una reserva sense dades de lloc és un problema;
+        una idea acabada d'escriure encara no en té, i no és cap error.
+        El «No és aquest lloc?» d'una adreça d'idea desa al magatzem d'idees
+        i no al de reserves (mode «adrecaIdea»), i la correcció es replanta
+        en carregar, com la de les reserves.
+      · El camp és als DOS llocs, per encàrrec seu: la fila d'una visita i
+        Inspiració. L'adreça es desa a la IDEA, no a la visita, o sigui que
+        sense el camp a Inspiració una visita tornada a la wishlist se la
+        quedava desada però amagada i intocable.
+      · DE PASSADA, un error: el camp d'enllaç de les idees suggerides d'un
+        viatge desava el que hi escrivies TAL QUAL. És el mateix de la v124
+        —«cp.pt» sense protocol el navegador l'entén com una adreça de dins
+        de l'app i l'enllaç queda trencat, tot i que el domini es veu ben
+        escrit—, que es va arreglar a tres portes; aquesta es va obrir
+        després i no en va passar. Ara enllacNet() també és en aquest camí,
+        que és el mateix on va el camp nou de les visites (v138).
    FET · Es poden imprimir les reserves d'un viatge. Un botó al peu de
       l'itinerari en fa el dossier de paper: el que t'endús perquè el mòbil
       es queda sense bateria o perquè no tens dades a l'estranger.
@@ -4232,7 +4289,7 @@ async function refresca() {
   reserves = await Magatzem.llista();
   reserves.sort(comparaCronologic);
   sembraLlocsCorregits(reserves, poblacioReserva);
-  sembraAdrecesCorregides(reserves);
+  sembraAdrecesCorregides(reserves, adrecaMapa);
   $('comptador').textContent = reserves.length === 1 ? '1 reserva' : reserves.length + ' reserves';
   pintaLlista();
   pintaTaula();
@@ -4999,7 +5056,15 @@ function gestionaToggleFila(e) {
   detall.classList.toggle('ocult', !obert);
   cap.setAttribute('aria-expanded', obert ? 'true' : 'false');
   if (obert) filesObertes.add(fila.dataset.id); else filesObertes.delete(fila.dataset.id);
+  // Obrir una fila NO repinta (la regla de la casa: un canvi visual amb un
+  // camp de text al costat es fa al DOM). O sigui que la nota d'una visita
+  // arriba aquí sense haver passat mai per fesGran, perquè mentre era
+  // plegada no tenia alçada. S'hi passa ara, que ja es veu.
+  if (obert) detall.querySelectorAll('.visita-nota').forEach(fesGran);
 }
+$('detall-viatge-vista').addEventListener('input', e => {
+  if (e.target.classList.contains('visita-nota')) fesGran(e.target);
+});
 $('cos-llista').addEventListener('click', gestionaToggleFila);
 $('detall-viatge-vista').addEventListener('click', gestionaToggleFila);
 
@@ -5572,15 +5637,20 @@ async function geocodificaPendents() {
       if (jer && jer.length) noves++;
     }
 
-    // Adreces exactes de les reserves (allotjaments, recollides, recintes…),
-    // per situar-ne el pin al lloc real. Només les que aporten més detall
-    // que el poble; les que no es resolguin recauran al poble igualment.
+    // Adreces exactes de les reserves (allotjaments, recollides, recintes…)
+    // i de les idees i visites que en tinguin, per situar-ne el pin al lloc
+    // real. Només les que aporten més detall que el poble; les que no es
+    // resolguin recauran al poble igualment.
     const adreces = new Set();
     for (const r of reserves) {
       const a = adrecaMapa(r);
       if (!a) continue;
       const z = (poblacioReserva(r) || '').toLowerCase();
       if (a.toLowerCase() !== z) adreces.add(a);
+    }
+    for (const i of [...idees, ...visites]) {
+      const { adreca } = itemIdea(i);
+      if (adreca) adreces.add(adreca);
     }
     for (const a of adreces) {
       if (a.toLowerCase() in cauCoordsAdr) continue;
@@ -5744,7 +5814,9 @@ function dibuixaPinsIdees(L) {
   const punts = [];
   let sense = 0;
   for (const i of visibles) {
-    const c = coordsDe(i.zona);
+    // Primer l'adreça exacta i, si no s'ha resolt, el poble: el mateix que
+    // fan el mapa d'un viatge i les reserves.
+    const c = coordsItem(itemIdea(i));
     if (!c) { sense++; continue; }
     let titol = (i.text || 'Idea').split('\n')[0];
     if (titol.length > 80) titol = titol.slice(0, 80) + '…';
@@ -5886,6 +5958,17 @@ function itemReserva(r) {
   return { zona, adreca: (adr && adr.toLowerCase() !== (zona || '').toLowerCase()) ? adr : '' };
 }
 
+/* El mateix, per a una idea o una visita. La «zona» diu de quin poble o
+   comarca és (i és la que creua idees amb viatges); l'«adreça» és el lloc
+   concret, i és la que posa el pin al seu lloc de debò. Igual que a les
+   reserves, si l'adreça no diu res més que el poble no es fa servir: seria
+   una consulta a Nominatim per arribar al mateix pin. */
+function itemIdea(i) {
+  const zona = (i.zona || '').trim();
+  const adr = netejaAdreca(i.adreca);
+  return { zona, adreca: (adr && adr.toLowerCase() !== zona.toLowerCase()) ? adr : '' };
+}
+
 function dibuixaPinsViatge(L, capa, v, seves, ajustaVista) {
   const items = [];
   for (const r of seves) {
@@ -5894,8 +5977,11 @@ function dibuixaPinsViatge(L, capa, v, seves, ajustaVista) {
       cat: categoriaMapa('reserva', t), tipus: (TIPUS[t].nom || 'Reserva'), nom: nomReserva(r)
     }));
   }
-  for (const vi of visites.filter(x => x.viatgeId === v.id)) items.push({ zona: vi.zona, adreca: '', cat: 'activitats', tipus: 'Visita', nom: (vi.text || 'Visita').split('\n')[0] });
-  for (const i of ideesSuggerides(v, seves)) items.push({ zona: i.zona, adreca: '', cat: 'idea', tipus: 'Idea', nom: (i.text || 'Idea').split('\n')[0] });
+  // Passen per itemIdea(), igual que les reserves per itemReserva(): fins a
+  // la v137 aquí hi havia «adreca: ''» a pèl i el pin d'una visita queia
+  // sempre al mig del poble, encara que sabessis el carrer.
+  for (const vi of visites.filter(x => x.viatgeId === v.id)) items.push(Object.assign(itemIdea(vi), { cat: 'activitats', tipus: 'Visita', nom: (vi.text || 'Visita').split('\n')[0] }));
+  for (const i of ideesSuggerides(v, seves)) items.push(Object.assign(itemIdea(i), { cat: 'idea', tipus: 'Idea', nom: (i.text || 'Idea').split('\n')[0] }));
 
   // Es resolen les coordenades un sol cop i s'apunta quines categories té el
   // viatge SENCER. La llegenda no pot dependre del filtre: si en apagar-ne una
@@ -6037,6 +6123,13 @@ function pintaIdees() {
           value="${esc(i.zona || '')}" placeholder="sense zona" size="12" autocomplete="off">
         <input class="fitxa-camp etiquetes" data-camp="etiquetes" list="etiquetes-conegudes"
           value="${esc((i.etiquetes || []).join(', '))}" placeholder="etiquetes" size="14" autocomplete="off">
+        <!-- L'adreça exacta va DESPRÉS de la zona i no al seu lloc: la zona
+             és la que creua idees amb viatges i l'adreça la que posa el pin
+             al carrer. Aquí hi és perquè una idea que hagi estat visita se
+             la queda desada, i sense camp no hauries pogut ni veure-la ni
+             tocar-la fins a tornar-la a fer visita. -->
+        <input class="fitxa-camp" data-camp="adreca"
+          value="${esc(i.adreca || '')}" placeholder="adreça exacta" size="16" autocomplete="off">
         ${i.enllac
           ? `<a class="idea-enllac" href="${esc(i.enllac)}" target="_blank" rel="noopener noreferrer">${esc(nomEnllac(i.enllac))}</a>`
           : ''}
@@ -6082,6 +6175,8 @@ function enllacNet(valor) {
 async function refrescaIdees() {
   const totes = await MagatzemIdees.llista();
   sembraLlocsCorregits(totes);
+  // Les idees i visites també poden portar adreça exacta corregida a mà.
+  sembraAdrecesCorregides(totes, i => itemIdea(i).adreca);
   // Una idea amb viatgeId és una VISITA d'un viatge: surt de la wishlist
   // i del creuament, i es mostra dins del viatge. La resta són idees
   // lliures, que és el que es veu a la pestanya d'Idees.
@@ -6362,27 +6457,23 @@ function zonaNoTrobada(zona) {
   return !!c && !c.nom && jerBuida(c);
 }
 
-/* La línia sota una idea o una visita. La zona l'has escrit tu, així que
-   sempre val la pena dir com s'ha entès. */
+/* La línia sota una idea o una visita. Diu on ha anat a parar el pin, i
+   passa pel mateix avisLloc() que les reserves: des que una idea pot portar
+   adreça exacta, els casos són exactament els mateixos (el pin a l'adreça,
+   el pin recaigut al poble i per què, o res situat) i tenir-ne dos jocs de
+   paraules acabaria amb els dos dient coses diferents.
+   L'única diferència: una idea sense zona ni adreça CALLA. Una reserva
+   sense dades de lloc és un problema i s'ha de dir; una idea acabada
+   d'escriure encara no en té, i no és cap error. */
 function llocIdeaHTML(i) {
-  if (!i.zona) return '';
-  const nom = nomLlocDeZona(i.zona);
-  // S'ha trobat un lloc: es diu quin, i pots dir que no és aquell.
-  if (nom) {
-    return `<div class="idea-lloc">
-      <span class="idea-lloc-nom" title="${esc(nom)}">${esc(nom)}</span>
-      <button data-canvia-lloc="idea:${esc(i.id)}">No és aquest lloc?</button>
-    </div>`;
-  }
-  // No s'ha trobat res: preguntar-te si «és aquest lloc» no tindria sentit,
-  // perquè no n'hi ha cap. El que pots fer és buscar-lo tu.
-  if (zonaNoTrobada(i.zona)) {
-    return `<div class="idea-lloc">
-      <span class="idea-lloc-nom">No s’ha trobat «${esc(i.zona)}» al mapa</span>
-      <button data-canvia-lloc="idea:${esc(i.id)}">Situa-la</button>
-    </div>`;
-  }
-  return '';   // encara s'està consultant: no es diu res
+  const it = itemIdea(i);
+  if (!it.zona && !it.adreca) return '';
+  const a = avisLloc(it, true);
+  if (!a) return '';
+  return `<div class="idea-lloc">
+    <span class="idea-lloc-nom">${a.text}</span>
+    ${a.boto ? `<button data-canvia-lloc="${a.mode || 'idea'}:${esc(i.id)}">${a.boto}</button>` : ''}
+  </div>`;
 }
 
 /* La línia dins del detall d'una reserva. Només quan el pin surt del POBLE:
@@ -6415,8 +6506,10 @@ const MOTIU_TEXT = {
    · No s'ha pogut situar res → avís, i es pot situar a mà.
    Mentre quedi alguna consulta pendent, silenci: no s'acusa el geocodificador
    abans que hagi respost. */
-function avisLlocReserva(r) {
-  const it = itemReserva(r);
+/* Val igual per a una reserva i per a una idea o visita: només vol un item
+   {zona, adreca}, i tots dos en saben fer un. «esIdea» és només per saber a
+   quin magatzem ha d'anar la correcció de l'adreça. */
+function avisLloc(it, esIdea) {
 
   if (!it.zona && !it.adreca) {
     return { text: 'Encara no té dades de lloc, així que no surt al mapa.', boto: '' };
@@ -6431,7 +6524,7 @@ function avisLlocReserva(r) {
     const nom = nomAdreca(it.adreca);
     if (!nom) return null;   // resolta abans que en guardéssim el nom
     return { text: 'Al mapa, a <strong>' + esc(nom) + '</strong>',
-             boto: 'No és aquest lloc?', mode: 'adreca' };
+             boto: 'No és aquest lloc?', mode: esIdea ? 'adrecaIdea' : 'adreca' };
   }
 
   const motiu = motiuPoble(it);
@@ -6452,9 +6545,8 @@ function avisLlocReserva(r) {
     boto: it.zona ? 'Situa-la' : ''
   };
 }
-
 function llocReservaHTML(r) {
-  const a = avisLlocReserva(r);
+  const a = avisLloc(itemReserva(r), false);
   if (!a) return '';
   return `<div class="lloc-fila">
       <span class="idea-lloc-nom">${a.text}</span>
@@ -6462,24 +6554,34 @@ function llocReservaHTML(r) {
     </div>`;
 }
 
-/* clau és «tipus:id»: d'on ve el clic. La zona d'una idea és el text que hi
-   has escrit; la d'una reserva es dedueix dels seus camps. */
+/* clau és «tipus:id»: d'on ve el clic. N'hi ha quatre menes, i es
+   distingeixen en dos eixos —què es corregeix i de qui és—, perquè cada
+   combinació desa en un lloc diferent:
+     reserva     → la zona (el poble) d'una reserva
+     adreca      → l'adreça exacta d'una reserva
+     idea        → la zona d'una idea o visita
+     adrecaIdea  → l'adreça exacta d'una idea o visita
+   La zona d'una idea és el text que hi has escrit; la d'una reserva es
+   dedueix dels seus camps. */
 function obreTriaLloc(clau) {
   const tall = String(clau || '').indexOf(':');
   const tipus = String(clau).slice(0, tall);
   const id = String(clau).slice(tall + 1);
-  const obj = (tipus === 'reserva' || tipus === 'adreca')
-    ? reserves.find(x => x.id === id)
-    : (idees.find(x => x.id === id) || visites.find(x => x.id === id));
+  const esAdreca = tipus === 'adreca' || tipus === 'adrecaIdea';
+  const esIdea = tipus === 'idea' || tipus === 'adrecaIdea';
+  const obj = esIdea
+    ? (idees.find(x => x.id === id) || visites.find(x => x.id === id))
+    : reserves.find(x => x.id === id);
   if (!obj) return;
-  // El text que estem situant: l'adreça exacta d'una reserva, el poble que
-  // se n'ha deduït, o la zona que has escrit tu en una idea.
-  const text = tipus === 'adreca' ? adrecaMapa(obj)
+  // El text que estem situant: l'adreça exacta, el poble que se n'ha deduït,
+  // o la zona que has escrit tu.
+  const text = esAdreca
+    ? (esIdea ? itemIdea(obj).adreca : adrecaMapa(obj))
     : (tipus === 'reserva' ? poblacioReserva(obj) : obj.zona);
   if (!text) return;
   llocObjectiu = { tipus, id, text };
   llocCandidats = [];
-  const nom = tipus === 'adreca' ? nomAdreca(text) : nomLlocDeZona(text);
+  const nom = esAdreca ? nomAdreca(text) : nomLlocDeZona(text);
   $('lloc-ara').textContent = nom
     ? 'Ara «' + text + '» s’entén com a: ' + nom
     : '«' + text + '» no s’ha pogut situar.';
@@ -6532,14 +6634,17 @@ async function triaLloc(n) {
   const info = jerDeResultat(d);
   const clau = (text || '').trim().toLowerCase();
 
-  if (tipus === 'adreca') {
+  if (tipus === 'adreca' || tipus === 'adrecaIdea') {
     // Les adreces no entren mai al creuament d'idees: només situen el pin,
     // així que amb les coordenades i el nom n'hi ha prou. Sense jerarquia.
     if (clau && isFinite(info.lat)) {
       cauCoordsAdr[clau] = { lat: info.lat, lon: info.lon, nom: info.nom };
       desaCauCoordsAdr();
     }
-    await Magatzem.actualitza(id, { llocAdreca: { nom: info.nom, lat: info.lat, lon: info.lon } });
+    // Al magatzem d'on ha sortit: una visita és una idea, i desar-la a les
+    // reserves no faria res (allà no hi ha cap id que hi coincideixi).
+    const magatzem = tipus === 'adrecaIdea' ? MagatzemIdees : Magatzem;
+    await magatzem.actualitza(id, { llocAdreca: { nom: info.nom, lat: info.lat, lon: info.lon } });
   } else {
     if (clau && info.jer && info.jer.length) {
       cauJerarquies[clau] = { jer: info.jer, local: info.local, nom: info.nom };
@@ -6573,13 +6678,15 @@ function sembraLlocsCorregits(llista, zonaDe) {
 }
 
 /* El mateix per a les adreces exactes corregides a mà, que viuen en una
-   memòria cau pròpia i sense jerarquia. */
-function sembraAdrecesCorregides(llista) {
+   memòria cau pròpia i sense jerarquia. «adrecaDe» diu com se'n treu
+   l'adreça, que no és igual en una reserva (es dedueix del tipus) que en una
+   idea (és el camp que hi has escrit). */
+function sembraAdrecesCorregides(llista, adrecaDe) {
   let canvi = false;
   for (const r of llista) {
     const l = r && r.llocAdreca;
     if (!l || !isFinite(l.lat)) continue;
-    const adr = adrecaMapa(r);
+    const adr = adrecaDe(r);
     if (!adr) continue;
     const clau = adr.trim().toLowerCase();
     const ja = cauCoordsAdr[clau];
@@ -7048,6 +7155,10 @@ function pintaDetallViatge() {
     </div>
     <div class="subvista subvista-${subvistaViatge}">${cos}</div>`;
 
+
+  // Les notes d'una visita oberta arrenquen a sis línies i creixen si el que
+  // hi ha escrit no hi cap: obrir una fila no ha de deixar text amagat.
+  cont.querySelectorAll('.visita-nota').forEach(fesGran);
   if (subvistaViatge === 'mapa') mostraMapaViatge(v, seves);
 }
 
@@ -7190,9 +7301,14 @@ function filaVisitaHTML(vi, ambNansa) {
     </button></div>
     <div class="fila-detall${obert ? '' : ' ocult'}" id="visita-${esc(vi.id)}">
       <div class="visita-edita">
+        <!-- Sense etiqueta. Deia «Nota» i no ho és: això és el TEXT sencer
+             de la idea, i la seva primera línia fa de títol a la fila
+             plegada. Ho diu el text de fons, que es veu justament quan cal:
+             quan és buida i encara no has escrit res. Sis línies, i creix
+             sola si n'escrius més (fesGran). -->
         <label class="visita-camp ample">
-          <span>Nota</span>
-          <textarea data-visita-camp="text" data-vid="${esc(vi.id)}" rows="2">${esc(vi.text || '')}</textarea>
+          <textarea class="visita-nota" data-visita-camp="text" data-vid="${esc(vi.id)}" rows="6"
+            placeholder="Què és, i el que en vulguis recordar. La primera línia fa de títol.">${esc(vi.text || '')}</textarea>
         </label>
         <div class="visita-graella">
           <label class="visita-camp"><span>Dia</span>
@@ -7200,12 +7316,26 @@ function filaVisitaHTML(vi, ambNansa) {
           <label class="visita-camp"><span>Hora</span>
             <input data-visita-camp="horaVisita" data-vid="${esc(vi.id)}" value="${esc(vi.horaVisita || '')}" placeholder="10:00"></label>
           <label class="visita-camp"><span>Zona</span>
-            <input data-visita-camp="zona" data-vid="${esc(vi.id)}" value="${esc(vi.zona || '')}"></label>
+            <input data-visita-camp="zona" data-vid="${esc(vi.id)}" value="${esc(vi.zona || '')}" placeholder="el poble o la comarca"></label>
           <label class="visita-camp"><span>Etiquetes</span>
             <input data-visita-camp="etiquetes" data-vid="${esc(vi.id)}" value="${esc(etiq)}"></label>
         </div>
+        <!-- L'adreça NO substitueix la zona: la zona és la que creua idees
+             amb viatges (i va a escala de poble o comarca), i l'adreça és la
+             que posa el pin al seu lloc. Va ampla perquè hi cap un carrer. -->
+        <label class="visita-camp ample"><span>Adreça exacta</span>
+          <input data-visita-camp="adreca" data-vid="${esc(vi.id)}" value="${esc(vi.adreca || '')}"
+            placeholder="carrer i número, o el nom del lloc"></label>
+        <!-- L'enllaç clicable va a la MATEIXA línia que l'etiqueta i no a
+             sota del camp: a sota, l'adreça quedava escrita dues vegades
+             seguides, una al camp i l'altra al vincle. -->
+        <label class="visita-camp ample">
+          <span class="visita-camp-cap">Enllaç${vi.enllac
+            ? ` <a class="idea-enllac" href="${esc(vi.enllac)}" target="_blank" rel="noopener noreferrer">${esc(nomEnllac(vi.enllac))}</a>`
+            : ''}</span>
+          <input data-visita-camp="enllac" data-vid="${esc(vi.id)}" value="${esc(vi.enllac || '')}"
+            inputmode="url" autocomplete="off" placeholder="https://…"></label>
         ${llocIdeaHTML(vi)}
-        ${vi.enllac ? `<a class="idea-enllac" href="${esc(vi.enllac)}" target="_blank" rel="noopener noreferrer">${esc(nomEnllac(vi.enllac))}</a>` : ''}
       </div>
       <div class="detall-accions">
         <button class="subtil" data-treu-visita="${esc(vi.id)}">Torna a Inspiració</button>
@@ -9091,7 +9221,9 @@ document.addEventListener('pointermove', mouArrossegant);
 document.addEventListener('pointerup', acabaArrossegar);
 document.addEventListener('pointercancel', acabaArrossegar);
 
-/* Editar en línia els camps d'una visita (dia, hora, zona, etiquetes, nota) */
+/* Editar en línia els camps d'una idea o visita des de dins d'un viatge: el
+   text, el dia, l'hora, la zona, les etiquetes, l'adreça exacta i l'enllaç.
+   Ho fan servir la fila d'una visita i la fila d'una idea suggerida. */
 $('detall-viatge-vista').addEventListener('change', async e => {
   const camp = e.target.closest('[data-visita-camp]');
   if (!camp) return;
@@ -9099,6 +9231,13 @@ $('detall-viatge-vista').addEventListener('change', async e => {
   const quin = camp.dataset.visitaCamp;
   let valor = camp.value.trim();
   if (quin === 'dataVisita') valor = interpretaData(valor);
+  // El mateix arranjament que la v124, que aquí faltava. Un enllaç escrit
+  // «cp.pt», sense protocol, el navegador l'entén com una adreça de dins de
+  // l'app i queda trencat, tot i que a la pantalla el domini es veu ben
+  // escrit. Ho arreglava Inspiració i no aquesta porta, que es va obrir
+  // després: el camp d'enllaç de les idees suggerides d'un viatge desava el
+  // que hi escrivies tal qual (v138).
+  if (quin === 'enllac') valor = enllacNet(valor);
   if (quin === 'etiquetes') {
     const llista = valor.split(',').map(s => s.trim()).filter(Boolean);
     await MagatzemIdees.actualitza(vid, { etiquetes: llista });
