@@ -304,6 +304,9 @@
     margin-bottom: 18px;
   }
   #fitxa.visible { display: block; }
+  /* En obrir-se rep el focus del teclat (veure mostraFitxa). És un
+     contenidor, no una cosa que es cliqui: sense requadre. */
+  #fitxa:focus { outline: none; }
   .fitxa-cap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .fitxa-titol { font-size: 16px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
   .tria-tipus { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 18px; }
@@ -758,6 +761,9 @@
   .dia-nit-icona { width: 17px; height: 17px; flex: none; }
   .agenda-nota { font-size: 12.5px; color: var(--tinta-suau); margin: 0 0 10px; }
   .agenda-bloc .fila { margin-bottom: 9px; }
+  /* El peu de l'itinerari: de moment només el botó d'imprimir, alineat a la
+     dreta com el de la maleta. */
+  .agenda-peu { display: flex; justify-content: flex-end; margin-top: 4px; }
 
   /* Visita: icona i to propis, per distingir-la d'una reserva */
   .fila.visita { border-left-color: var(--mostassa-actiu); }
@@ -1469,6 +1475,11 @@
        fora de pantalla i no hi ha manera de tancar-la sense endevinar-ho. */
     max-height: calc(100vh - 40px); overflow-y: auto;
   }
+  /* En obrir-se, el focus del teclat entra a la finestra i no en surt fins
+     que es tanca (veure obreModal, a la secció «LES FINESTRES MODALS I EL
+     TECLAT»). El requadre de focus no s'hi dibuixa: la finestra és un
+     contenidor, no una cosa que es cliqui. */
+  .novetats:focus { outline: none; }
   .novetats-x {
     position: absolute; top: 12px; right: 12px; width: 32px; height: 32px;
     border: none; background: none; color: var(--tinta-tenue); font-size: 22px; line-height: 1;
@@ -1521,6 +1532,54 @@
   }
   .full-item.fet .full-text { text-decoration: line-through; color: #666; }
   .full-buida { font-size: 11pt; color: #555; font-style: italic; }
+
+  /* ── El full de les reserves ──
+     Germà del de la maleta: mateixa capçalera (.full-cap), blanc i negre i
+     mides en punts. La idea de la graella és que cada columna tingui UNA
+     feina: a l'esquerra la reserva (quan, on, qui), que és el que mires
+     viatjant; a la dreta el paperam (número i condicions), que és el que
+     mires en un taulell. Així no cal llegir el bloc sencer per trobar una
+     cosa. Els preus no hi surten a posta. */
+  .full-doc { line-height: 1.3; }
+  .full-compte { font-size: 9pt; color: #333; text-align: right; flex: none; }
+  .full-cap { display: flex; align-items: flex-end; justify-content: space-between; gap: 12pt; }
+  /* El títol d'una mena. A la dreta hi va el nom del viatge, petit: un full
+     solt s'ha de poder identificar sense anar a buscar el primer. */
+  .full-grup {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12pt;
+    margin: 20pt 0 9pt; border-bottom: 0.8pt solid #000; padding-bottom: 4pt;
+  }
+  .full-grup:first-of-type { margin-top: 16pt; }
+  .full-grup h2 {
+    font-size: 10.5pt; font-weight: 700; margin: 0;
+    text-transform: uppercase; letter-spacing: 0.14em; color: #000;
+  }
+  .full-grup-de { font-size: 8.5pt; color: #6E6E6E; text-align: right; }
+  .full-res { padding: 9pt 0 10pt; }
+  .full-res + .full-res { border-top: 0.6pt solid #C8C8C8; }
+  .full-res-cap { display: flex; align-items: baseline; justify-content: space-between; gap: 10pt; }
+  .full-res-nom { font-size: 12.5pt; font-weight: 600; margin: 0; color: #000; }
+  .full-res-plat { font-size: 8.5pt; color: #6E6E6E; flex: none; }
+  .full-res-on { font-size: 10pt; color: #333; margin: 2pt 0 0; }
+  .full-res-dades { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16pt; margin-top: 7pt; }
+  .full-res-col { margin: 0; }
+  .full-camp { display: flex; gap: 8pt; align-items: baseline; padding: 1pt 0; }
+  .full-camp dt {
+    font-size: 7.5pt; color: #6E6E6E; text-transform: uppercase; letter-spacing: 0.06em;
+    /* Prou ample per a la més llarga («Cancel·lació»): una etiqueta que es
+       parteixi en dues línies desnivella la fila del costat. */
+    width: 80pt; flex: none; line-height: 1.5;
+  }
+  .full-camp dd { font-size: 9.8pt; margin: 0; color: #000; }
+  /* El número de reserva és l'única dada que es llegeix en veu alta a algú:
+     en monoespaiada no es confonen ni el zero i la o, ni l'1 i la l. */
+  .full-camp dd.full-codi { font-family: var(--mono); font-size: 10.4pt; letter-spacing: 0.03em; }
+  .full-res-notes { margin: 7pt 0 0; font-size: 9.3pt; color: #333; font-style: italic; }
+  .full-doc-peu {
+    margin-top: 18pt; border-top: 0.6pt solid #C8C8C8; padding-top: 6pt;
+    display: flex; justify-content: space-between; gap: 10pt;
+    font-size: 8.5pt; color: #6E6E6E;
+  }
   /* El peu de la maleta: el comptador a l'esquerra i imprimir a la dreta. */
   .maleta-peu { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .maleta-peu .maleta-compte { margin: 0; }
@@ -1538,6 +1597,11 @@
   .full-persona { break-after: page; page-break-after: always; }
   .full-persona:last-child { break-after: auto; page-break-after: auto; }
   .full-item { break-inside: avoid; page-break-inside: avoid; }
+  /* Cap reserva partida entre dues pàgines: val més un full amb un pam de
+     blanc al peu que un telèfon a cavall de dues cares. El títol d'una mena
+     no es pot quedar tot sol al final d'un full. */
+  .full-res { break-inside: avoid; page-break-inside: avoid; }
+  .full-grup { break-after: avoid; page-break-after: avoid; break-inside: avoid; }
 }
 </style>
 </head>
@@ -1635,7 +1699,7 @@
      prémer «Des d'un enllaç». Cap camp no s'enfoca sol: al mòbil el teclat
      taparia la targeta abans de poder llegir què ha arribat. -->
 <div class="novetats-overlay" id="compartit-overlay">
-  <div class="novetats" role="dialog" aria-modal="true" aria-labelledby="compartit-titol">
+  <div class="novetats" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="compartit-titol">
     <button class="novetats-x" id="compartit-x" aria-label="Tanca">&times;</button>
     <h2 class="novetats-titol" id="compartit-titol">Nova idea</h2>
     <p class="compartit-font" id="compartit-font"></p>
@@ -1662,7 +1726,7 @@
      La cerca va amb botó i mai mentre escrius: la política de Nominatim
      prohibeix l'autocompletat i l'app la respecta. -->
 <div class="novetats-overlay" id="lloc-overlay">
-  <div class="novetats" role="dialog" aria-modal="true" aria-labelledby="lloc-titol">
+  <div class="novetats" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="lloc-titol">
     <button class="novetats-x" id="lloc-x" aria-label="Tanca">&times;</button>
     <h2 class="novetats-titol" id="lloc-titol">On és, exactament?</h2>
     <div class="novetats-cos">
@@ -1680,7 +1744,7 @@
 
 <!-- Activar o treure el codi, des del menú Compte. -->
 <div class="novetats-overlay" id="codi-overlay">
-  <div class="novetats" role="dialog" aria-modal="true" aria-labelledby="codi-titol">
+  <div class="novetats" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="codi-titol">
     <button class="novetats-x" id="codi-x" aria-label="Tanca">&times;</button>
     <h2 class="novetats-titol" id="codi-titol">Codi d'obertura</h2>
     <div id="codi-cos"></div>
@@ -1721,7 +1785,17 @@
     <div class="avis" id="avis-enganxa"></div>
   </section>
 
-  <div id="fitxa" aria-live="polite">
+  <!-- La fitxa NO porta aria-live. El va portar fins a la v134 i era pitjor
+       que no dir res: qualsevol canvi aquí dins —triar el tipus, que repinta
+       tots els camps— feia que un lector de pantalla recités el formulari
+       sencer, etiquetes i valors, cada vegada. aria-live és per a un avís
+       curt que arriba tot sol, no per a una pantalla de treball.
+       El que hi ha ara: la fitxa és una regió amb nom, i en obrir-se el focus
+       hi va a dins (veure mostraFitxa), que és el que anuncia que ha sortit,
+       diu com es diu i deixa la lectura on l'has de començar. Els avisos de
+       debò els diu #avis-veu. -->
+  <div id="fitxa" role="region" tabindex="-1"
+       aria-labelledby="fitxa-titol" aria-describedby="fitxa-sub">
     <div class="fitxa-cap">
       <p class="fitxa-titol" id="fitxa-titol">Fitxa de la reserva</p>
       <span class="segell" id="segell">Booking.com</span>
@@ -1878,7 +1952,7 @@
 <!-- Només surt quan el viatge té més d'una llista: amb una de sola, preguntar
      de qui és seria un pas de més per a una resposta òbvia. -->
 <div class="novetats-overlay" id="imprimir-overlay">
-  <div class="novetats" role="dialog" aria-modal="true" aria-labelledby="imprimir-titol">
+  <div class="novetats" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="imprimir-titol">
     <button class="novetats-x" id="imprimir-x" aria-label="Tanca">&times;</button>
     <h2 class="novetats-titol" id="imprimir-titol">Quines llistes vols imprimir?</h2>
     <div id="imprimir-gent"></div>
@@ -1890,11 +1964,19 @@
   </div>
 </div>
 
+<!-- La veu dels avisos. Els avisos es pinten a catorze llocs diferents (cada
+     formulari té el seu .avis), i cap d'ells no es llegia en veu alta: qui fa
+     servir un lector de pantalla premia «Llegeix el correu» i no s'assabentava
+     ni de si s'havia entès la plataforma ni de quants camps s'havien omplert.
+     La veu és una de sola i sempre la mateixa —aquesta— perquè se senti
+     surti d'on surti; hi escriu avisa(), que és per on passen tots. -->
+<div id="avis-veu" class="sr-only" role="status" aria-live="polite"></div>
+
 <!-- El full que se'n va a la impressora. Buit fins que es demana. -->
 <div id="full-imprimir"></div>
 
 <div class="novetats-overlay" id="novetats-overlay">
-  <div class="novetats" role="dialog" aria-modal="true" aria-labelledby="novetats-titol">
+  <div class="novetats" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="novetats-titol">
     <button class="novetats-x" id="novetats-x" aria-label="Tanca">&times;</button>
     <!-- EN PAUSA · La benvinguda personal que hi havia fins ara. Es guarda
          perquè es vol recuperar amb un text genèric, que valgui per a
@@ -2715,10 +2797,11 @@ function parseReserva(textOriginal) {
 /* ═══════════════ APLICACIÓ ═══════════════ */
 
 /* ── PENDENT PER A LA PROPERA TANDA ──────────────────────────────────
-   (Se n'han tret tres el 17/08/2026 que ja estaven fets i despistaven:
-   agrupar les reserves per viatge, el pressupost del viatge i el vincle
-   anada-tornada dels vols, que es va resoldre sol en existir els viatges.
-   La llista de pendents BONA és la §14 de la documentació.)
+   (Aquesta llista és la de mà, per tenir-la a prop mentre es toca el codi.
+   La BONA és la §16 de com-funciona-l-app-15.md, que les porta totes i diu
+   per què. Es neteja de tant en tant: el 17/08/2026 se'n van treure tres que
+   ja estaven fets i despistaven, i el 25/08/2026 l'encàrrec de l'apartat nou
+   de documentació sobre el compte, que la 14 ja porta com a §10.)
    1. Millorar les icones dels tipus (les actuals són SVG fets a mà).
    2. Parsing automàtic dels cotxes de lloguer (ara s'entren a mà). Els
       vols ja es llegeixen (v122), de moment de Vueling, Ryanair i Aegean:
@@ -2731,10 +2814,98 @@ function parseReserva(textOriginal) {
       Per a poca gent va bé; si creix, cal configurar-hi un SMTP propi a
       Authentication → Emails. Va lligat a l'adreça de tornada autoritzada
       a Authentication → URL Configuration, que ja està posada.
-      ENCÀRREC DE LA CLARA (17/08/2026): la propera documentació
-      (com-funciona-l-app-14.md, que tocarà a la v126) ha de portar un
-      APARTAT NOU dedicat a això —el compte, l'accés i el que depèn de la
-      configuració de Supabase—, no una línia més a «Què queda pendent».
+   5. Imprimir des de qualsevol pantalla amb Ctrl+P. Ara els fulls es fan
+      quan prems un botó (la maleta i les reserves), i la regla d'impressió
+      amaga tot el que no sigui #full-imprimir: si el full és buit, Ctrl+P
+      treu un full en blanc. S'arreglaria amb l'esdeveniment «beforeprint»,
+      omplint el full segons la pantalla on ets. LA CLARA HO VA DESCARTAR
+      (25/08/2026): no li calia.
+   FET · Es poden imprimir les reserves d'un viatge. Un botó al peu de
+      l'itinerari en fa el dossier de paper: el que t'endús perquè el mòbil
+      es queda sense bateria o perquè no tens dades a l'estranger.
+      NO és un itinerari —això ja ho fa l'Agenda—: és cada reserva amb totes
+      les seves dades, agrupada per menes i cronològica dins de cada mena,
+      perquè dins d'un grup tots els blocs tenen els mateixos camps al mateix
+      lloc i n'aprens la forma un cop.
+      Els grups van SEGUITS. La primera idea era començar full nou a cada
+      mena —«els allotjaments en un full, l'avió i el cotxe en un altre»—, i
+      mirant-ho fet era dolent: un viatge amb dos vols i un cotxe hauria tret
+      tres fulls amb una cinquena part plena. Els títols amb ratlla ja
+      separen prou.
+      Cada bloc va en DUES COLUMNES amb una feina cadascuna: a l'esquerra la
+      reserva (quan, on, qui), que és el que mires viatjant; a la dreta el
+      paperam (número i condicions), que és el que mires en un taulell. Surt
+      del model de dades sol: l'esquerra són els camps propis del tipus
+      (TIPUS[t].camps) i la dreta els comuns (CAMPS_COMUNS).
+      ELS PREUS NO HI SURTEN, per encàrrec seu: el full ha de poder-se
+      ensenyar a algú altre. Vol dir fora «preu» i també fora «estat del
+      pagament», que porta l'import escrit a dins («Pagat (236,00 €)»).
+      Detalls que només es van veure posant-hi dades de debò:
+      · La línia de trajecte d'un vol que hi havia a la mostra («BCN 09:40 →
+        LIS 11:05») repetia el títol, perquè tots dos surten del mateix camp.
+        Fora. Extreure'n el codi d'aeroport no serviria: n'hi ha companyies
+        que no el desen (Aegean no el diu enlloc del correu).
+      · «Cancel·lació gratuïta» amb el valor «No reemborsable» al costat es
+        contradiu a si mateixa. Al full, «Cancel·lació».
+      · Les etiquetes llargues es partien en dues línies i desnivellaven la
+        fila del costat: n'hi ha set que al full es diuen més curt
+        (FULL_ETIQUETES).
+      · L'any no surt enlloc de l'app —a la pantalla ja se sap quin any és—
+        però en un paper que et trobes al calaix, sí.
+      · Un camp que repetiria la plataforma no es pinta: la companyia d'un
+        vol de Vueling ja la diu el segell de la dreta.
+      El nom del viatge es repeteix a cada títol de mena perquè un full solt
+      es pugui identificar: un peu que es repeteixi a cada pàgina demana
+      position:fixed, i no tots els navegadors l'imprimeixen a totes.
+      La finestra de triar és la MATEIXA que la de la maleta (modeImprimir
+      diu qui l'ha oberta): la pregunta és la mateixa i muntar-ne una segona
+      voldria duplicar-ne el tancar, l'Escape i l'atrapada del focus. Amb una
+      sola mena no pregunta res, com ja feia la maleta amb una llista sola.
+      Segueix sense fabricar-se cap PDF: el diàleg d'imprimir de tots els
+      aparells ja ofereix «Desa com a PDF» (v137).
+   FET · Còpia congelada app-viatges-15.html i documentació nova
+      com-funciona-l-app-15.md, totes dues completes fins aquí. Toquen cada
+      deu versions, en arribar a una acabada en 6.
+      S'hi ha posat al dia el que apuntava a fitxers que encara no existien:
+      la llista de còpies d'arxiu del final del registre —que no havia
+      recollit ni la 14— i la referència d'aquest bloc a la documentació
+      bona, que deia §14 quan a la 15 és la §16.
+      Els pendents de dalt també: fora l'encàrrec de l'apartat del compte,
+      que la documentació 14 ja va servir com a §10, i endins el full en
+      blanc de l'imprimir, que és l'única cosa del repàs del 24/08/2026 que
+      queda oberta (v136).
+   FET · La fitxa de revisió ja no es recita sencera. Portava aria-live a tot
+      el <div>, que vol dir «llegeix en veu alta tot el que canviï aquí dins».
+      Cada cop que es triava un tipus es repinten tots els camps, i el lector
+      de pantalla es posava a dir el formulari sencer —etiqueta i valor, un
+      per un— mentre tu ja n'estaves omplint un. aria-live és per a un avís
+      curt que arriba tot sol, no per a una pantalla de treball.
+      Ara la fitxa és una REGIÓ amb nom (role="region" + aria-labelledby al
+      títol, i aria-describedby a la línia de sota) i, en obrir-se, hi va el
+      focus. Això anuncia que ha sortit, com es diu i què s'hi espera, i et
+      deixa el cursor al principi; després, cada camp es llegeix quan hi
+      arribes, que és quan el vols sentir. El focus va a la fitxa i no al
+      primer camp: al mòbil el teclat taparia mitja pantalla abans de poder
+      llegir què s'ha entès del correu.
+      El que sí que s'ha de sentir sol són els AVISOS («Email de Booking
+      reconegut: 6 de 9 camps omplerts», «Tria almenys una llista»). N'hi ha
+      catorze escampats per l'app, un per formulari, i cap no es llegia mai:
+      aquell aria-live els tapava per casualitat només a la fitxa. S'hi ha
+      posat una sola veu, #avis-veu, on escriu avisa(), que és per on passen
+      tots els avisos de l'app. Un lloc, no catorze (v135).
+   FET · Les finestres modals atrapen el focus del teclat. Les cinc s'obrien
+      afegint la classe «visible» a l'overlay i res més. Amb el ratolí no es
+      notava —el fons queda tapat i no s'hi pot clicar—, però amb el tabulador
+      el focus se n'anava als botons de sota: es podien prémer sense veure'ls
+      i un lector de pantalla llegia una pàgina que ja no manava.
+      Ara hi ha obreModal() i tancaModal(): el focus entra a la finestra (a la
+      finestra, no a cap camp: al mòbil el teclat la taparia), hi dóna voltes
+      mentre és oberta i, en tancar, torna al botó d'on ha sortit. Els botons
+      es compten en prémer Tab i no en obrir, perquè n'hi ha que canvien de
+      cos —el codi d'obertura en té tres per al mateix marc—.
+      De passada: la finestra d'imprimir era l'única que no es tancava amb
+      Escape ni clicant a fora. Amb el focus atrapat es notaria més que enlloc,
+      i ara es tanca com les altres quatre (v134).
    FET · Els cinc selectors de l'app diuen quina opció està triada. Qui fa
       servir un lector de pantalla no veu quin botó està pintat: si no ho diu
       una etiqueta, no ho sap. N'hi havia quatre maneres de fer la mateixa
@@ -3365,6 +3536,8 @@ function parseReserva(textOriginal) {
       NO S'HA PERDUT RES: les entrades velles viuen a les còpies congelades,
       que fan d'arxiu. Si busques per què es va fer una cosa i aquí no hi és,
       mira-les de la més nova a la més vella:
+        app-viatges-15.html → fins a la v136 (45 entrades, ja podat)
+        app-viatges-14.html → fins a la v127 (36 entrades, ja podat)
         app-viatges-13.html → fins a la v116 (95 entrades)
         app-viatges-12.html → fins a la v106 (85 entrades)
         app-viatges-11.html → fins a la v96  (75 entrades)
@@ -3616,6 +3789,67 @@ let editantId = null;
 let plataformaActual = '';
 
 const $ = id => document.getElementById(id);
+
+/* ═══════════════ LES FINESTRES MODALS I EL TECLAT ═══════════════
+   Regla de la casa: UNA FINESTRA MODAL ES TANCA ABANS DE PODER TOCAR RES
+   DEL DARRERE. Si tapa la pàgina i demana una resposta, el tabulador no
+   n'ha de poder sortir.
+
+   Fins a la v133 en sortia. Les cinc finestres s'obrien afegint la classe
+   «visible» a l'overlay i prou. Amb el ratolí no es notava —el fons queda
+   tapat i no s'hi pot clicar—, però amb el tabulador el focus se n'anava
+   als botons de sota: es podien prémer sense veure'ls, i un lector de
+   pantalla es posava a llegir una pàgina que ja no manava.
+
+   Qui obri una finestra nova, que faci servir obreModal() i tancaModal()
+   en comptes de tocar la classe a mà: així el focus hi entra, hi dóna
+   voltes i, en tancar, torna al botó d'on ha sortit. La finestra ha de
+   portar tabindex="-1" per poder rebre'l. */
+const modalsOberts = [];   // pila: mana l'última, per si algun dia se n'obre una damunt de l'altra
+
+function obreModal(overlay) {
+  modalsOberts.push({ overlay, focusPrevi: document.activeElement });
+  overlay.classList.add('visible');
+  // El focus va a la finestra, no a cap camp: al mòbil el teclat taparia
+  // la targeta abans de poder llegir què hi diu.
+  const finestra = overlay.querySelector('.novetats');
+  if (finestra) finestra.focus();
+}
+
+function tancaModal(overlay) {
+  overlay.classList.remove('visible');
+  const i = modalsOberts.findIndex(m => m.overlay === overlay);
+  if (i === -1) return;
+  const previ = modalsOberts[i].focusPrevi;
+  modalsOberts.splice(i, 1);
+  // Tornar el focus d'on venia. Si no venia d'enlloc —l'app tot just s'obre
+  // amb una idea compartida— no es toca: enviar-lo al <body> no diu res.
+  if (previ && previ !== document.body && document.contains(previ) && previ.focus) previ.focus();
+}
+
+/* Els que el tabulador pot visitar, en l'ordre en què els visita. Es compten
+   en prémer Tab i no en obrir la finestra, perquè n'hi ha que es repinten
+   per dins: el codi d'obertura té tres cossos diferents per al mateix marc. */
+function focusablesDe(dins) {
+  return [...dins.querySelectorAll('a[href], button, input, select, textarea, [tabindex]')]
+    .filter(el => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Tab' || !modalsOberts.length) return;
+  const overlay = modalsOberts[modalsOberts.length - 1].overlay;
+  const quins = focusablesDe(overlay);
+  if (!quins.length) { e.preventDefault(); return; }
+  const primer = quins[0], darrer = quins[quins.length - 1];
+  const actiu = document.activeElement;
+  const fora = !overlay.contains(actiu);
+  // Sortint per baix es torna al primer, per dalt al darrer, i si el focus
+  // s'ha escapat mai (o encara no hi ha entrat) se'l fa tornar a dins.
+  if (e.shiftKey ? (fora || actiu === primer) : (fora || actiu === darrer)) {
+    e.preventDefault();
+    (e.shiftKey ? darrer : primer).focus();
+  }
+});
 
 /* ═══════════════ MAGATZEM ═══════════════
    Única porta d'entrada i sortida de les dades. Avui escriu al navegador;
@@ -4017,6 +4251,9 @@ function dataBonica(iso) {
 function avisa(el, text, tipus) {
   el.textContent = text;
   el.className = 'avis ' + tipus;
+  // I que es digui en veu alta, un cop, allà on surti (veure #avis-veu).
+  const veu = $('avis-veu');
+  if (veu) veu.textContent = text;
   clearTimeout(el._t);
   el._t = setTimeout(() => { el.className = 'avis'; }, 5000);
 }
@@ -4053,6 +4290,19 @@ let tipusFitxa = 'allotjament';
 let volsPendents = [];
 const SUB_FITXA = 'Revisa les dades i completa els camps marcats abans de desar.';
 
+/* Ara que en obrir-la el focus del teclat hi entra, en tancar-la l'ha de
+   tornar a treure: si no, es queda dins d'un tros de pantalla que ja no es
+   veu i el navegador el llença al principi del document. Les tres maneres de
+   tancar la fitxa —enrere, «Descarta» i desar— passen per aquí. */
+let focusPreviFitxa = null;
+
+function tancaFitxa() {
+  $('fitxa').classList.remove('visible');
+  const previ = focusPreviFitxa;
+  focusPreviFitxa = null;
+  if (previ && previ !== document.body && document.contains(previ) && previ.focus) previ.focus();
+}
+
 function mostraFitxa(camps, plataforma, titol, sub) {
   campsFitxa = { ...camps };
   tipusFitxa = tipusDe(camps);
@@ -4070,9 +4320,17 @@ function mostraFitxa(camps, plataforma, titol, sub) {
   // no s'apunta cap pas nou: la capa és la mateixa i una sola pitjada
   // d'enrere l'ha de tancar.
   const jaOberta = $('fitxa').classList.contains('visible');
+  // D'on venies, per poder-t'hi tornar en tancar. Només la primera vegada:
+  // si la fitxa ja era oberta, «abans» ja és ella mateixa.
+  if (!jaOberta) focusPreviFitxa = document.activeElement;
   $('fitxa').classList.add('visible');
   $('fitxa').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  if (!jaOberta) apuntaEnrere('fitxa', () => { $('fitxa').classList.remove('visible'); editantId = null; });
+  // El focus va a la fitxa, no a cap camp: al mòbil el teclat taparia mitja
+  // pantalla abans de poder llegir què s'ha entès del correu. preventScroll
+  // perquè no s'hi llenci de cop i deixi fer la baixada suau de la línia de
+  // sobre.
+  $('fitxa').focus({ preventScroll: true });
+  if (!jaOberta) apuntaEnrere('fitxa', () => { tancaFitxa(); editantId = null; });
 }
 
 function pintaTriaTipus() {
@@ -4158,7 +4416,7 @@ $('btn-descarta').addEventListener('click', () => {
   // Descartar un vol descarta també els que quedaven del mateix correu:
   // si no els vols, no han de tornar a sortir sols més endavant.
   volsPendents = [];
-  tancaEnrere('fitxa', () => { $('fitxa').classList.remove('visible'); editantId = null; });
+  tancaEnrere('fitxa', () => { tancaFitxa(); editantId = null; });
 });
 
 $('btn-desa').addEventListener('click', async () => {
@@ -4196,7 +4454,7 @@ $('btn-desa').addEventListener('click', async () => {
   // dient la veritat i no cal tocar l'historial, que és asíncron: el
   // history.go() d'oblidaEnrere arriba DESPRÉS i tancaria la fitxa que tot
   // just acabem d'obrir.
-  if (!seguent) $('fitxa').classList.remove('visible');
+  if (!seguent) tancaFitxa();
   await refresca();
   if (reserves.length && !seguent) obrePanell(false);
   // Desar tanca la fitxa i, si escau, el panell: es retiren les seves marques
@@ -6014,12 +6272,12 @@ function obreCompartit(dades, deFora) {
     : `<label class="compartit-camp"><span>Enllaç</span>
         <input id="compartit-url" inputmode="url" autocomplete="off" spellcheck="false"
           placeholder="https://…" value="${esc(dades.enllac || '')}"></label>`;
-  $('compartit-overlay').classList.add('visible');
+  obreModal($('compartit-overlay'));
   apuntaEnrere('compartit', () => tancaCompartit());
 }
 
 function tancaCompartit() {
-  $('compartit-overlay').classList.remove('visible');
+  tancaModal($('compartit-overlay'));
   compartitPendent = null;
 }
 
@@ -6228,13 +6486,13 @@ function obreTriaLloc(clau) {
   $('lloc-camp').value = text;
   $('lloc-resultats').innerHTML = '';
   $('lloc-nota').textContent = '';
-  $('lloc-overlay').classList.add('visible');
+  obreModal($('lloc-overlay'));
   apuntaEnrere('lloc', () => tancaTriaLloc());
   setTimeout(() => $('lloc-camp').focus(), 60);
 }
 
 function tancaTriaLloc() {
-  $('lloc-overlay').classList.remove('visible');
+  tancaModal($('lloc-overlay'));
   llocObjectiu = null;
   llocCandidats = [];
 }
@@ -7211,6 +7469,17 @@ function agendaCompletHTML(v, seves, sevesVisites) {
       + `</div></div>`;
   }
 
+  // El document de paper que t'endús. Va al peu de l'itinerari perquè és on
+  // hi ha les reserves del viatge, i només si n'hi ha: un botó que
+  // imprimiria un full buit val més que no hi sigui.
+  // Botó normal, amb vora: un .subtil tot sol enmig d'una pantalla es
+  // llegeix com a text i ningú no el clica (ja va passar a la v120).
+  if (seves.length) {
+    html += `<div class="agenda-peu">
+      <button class="mini" data-imprimeix-reserves>Imprimeix les reserves</button>
+    </div>`;
+  }
+
   return html;
 }
 
@@ -8111,6 +8380,249 @@ function imprimeixMaleta(quins) {
   window.print();
 }
 
+/* ═══════════════ IMPRIMIR LES RESERVES D'UN VIATGE ═══════════════
+   El document que t'endús de paper perquè el mòbil es queda sense bateria o
+   perquè no tens dades a l'estranger. NO és un itinerari —això ja ho fa
+   l'Agenda—: és el dossier amb TOTES les dades de cada reserva.
+
+   Va agrupat per menes i cronològic dins de cada mena, perquè dins d'un grup
+   tots els blocs tenen els mateixos camps al mateix lloc i n'aprens la forma
+   un cop. Els grups van SEGUITS i no un full per mena: un viatge amb dos
+   vols i un cotxe hauria tret tres fulls amb una cinquena part plena.
+
+   ELS PREUS NO HI SURTEN, a posta: el full ha de poder-se ensenyar a qui et
+   guarda el gat. Això vol dir fora «preu» i també fora «estat del pagament»,
+   que porta l'import escrit a dins («Pagat (236,00 €)»). Qui vulgui els
+   números, el Pressupost del viatge els té tots.
+
+   Es fabrica dins de #full-imprimir i s'imprimeix això, com la maleta: no
+   s'amaga l'app amb estils d'impressió, perquè les files de reserva porten
+   botons i desplegables que en paper no volen dir res. I no es fabrica cap
+   PDF: el diàleg d'imprimir de tots els aparells ja ofereix «Desa com a PDF». */
+
+/* Els camps que no van a la graella perquè ja surten al títol, a la línia de
+   sota o al trajecte. Es diuen aquí i no s'endevinen enlloc més. */
+const FULL_PROMOGUTS = {
+  allotjament: ['allotjament', 'adreca'],
+  vol:         ['origen', 'desti'],
+  cotxe:       [],
+  entrada:     ['allotjament', 'recinte', 'poblacio'],
+  altres:      ['allotjament', 'llocRecollida']
+};
+
+/* Com es diuen les dues dates de cada mena quan es fonen data i hora en una
+   línia sola. NO es dedueix del nom del camp («Data d'entrada» → «entrada»):
+   a les entrades i als altres el camp ja es diu «Dia» i no hi ha cap prefix
+   a treure, i una regla que falla en dos casos de cinc no és cap regla. */
+const FULL_QUAN = {
+  allotjament: { in: 'Entrada',   out: 'Sortida' },
+  vol:         { in: 'Sortida',   out: 'Arribada' },
+  cotxe:       { in: 'Recollida', out: 'Devolució' },
+  entrada:     { in: 'Dia',       out: '' },
+  altres:      { in: 'Data',      out: '' }
+};
+
+/* Els comuns que sí que van al full, en aquest ordre. Falten «preu» i
+   «pagament» (els diners) i «notes», que va a part perquè és llarg. */
+const FULL_COMUNS = ['numReserva', 'cancelacio', 'quiPaga'];
+
+/* Al full, algunes etiquetes es diuen d'una altra manera. A la fitxa hi van
+   bé, perquè allà hi ha tota l'amplada de la pantalla; en una columna de
+   paper, no:
+   · «Cancel·lació gratuïta» amb el valor «No reemborsable» al costat es
+     contradiu a si mateixa. Al full, «Cancel·lació» i el valor que sigui.
+   · La resta són massa llargues per a l'ample de l'etiqueta i es parteixen
+     en dues línies, que desnivella les files del costat. La més curta que
+     segueixi dient el mateix.
+   Ull amb el cotxe: «Recollida» és la DATA i «Recollida a» és el LLOC. Van
+   una sota l'altra i s'han de poder distingir. */
+const FULL_ETIQUETES = {
+  cancelacio:    'Cancel·lació',
+  hostes:        'Hostes',
+  numReserva:    'Reserva',
+  client:        'Client',
+  numVol:        'Núm. de vol',
+  llocRecollida: 'Recollida a',
+  llocDevolucio: 'Devolució a'
+};
+
+function fullEtiqueta(camp) {
+  return FULL_ETIQUETES[camp.id] || camp.nom;
+}
+
+/* L'any no surt enlloc de l'app —a la pantalla ja se sap quin any és— però
+   en un paper que et trobes al calaix, sí. Si el viatge canvia d'any pel
+   mig, els diu tots dos. */
+function fullAnys(v) {
+  const a = aData(v.dataInici), b = aData(v.dataFi);
+  const anys = [...new Set([a && a.getFullYear(), b && b.getFullYear()].filter(Boolean))];
+  return anys.join('–');
+}
+
+function fullData(iso, hora) {
+  const dia = iso ? diaBonic(iso) : '';
+  if (!dia) return hora || '';
+  return hora ? dia + ' · ' + hora : dia;
+}
+
+function fullCamp(nom, valor, codi) {
+  return `<div class="full-camp"><dt>${esc(nom)}</dt>`
+    + `<dd${codi ? ' class="full-codi"' : ''}>${esc(valor)}</dd></div>`;
+}
+
+/* La línia de sota el nom. Al full hi va l'adreça SENCERA, no el poble sol
+   com a la llista: en paper l'adreça és justament el que vas a buscar. */
+function fullOn(r) {
+  const t = tipusDe(r);
+  if (t === 'allotjament') return r.adreca || '';
+  if (t === 'vol') return '';   // el trajecte ja ho diu
+  if (t === 'cotxe') {
+    const a = (r.llocRecollida || '').trim(), b = (r.llocDevolucio || '').trim();
+    // El cas de sempre: es recull i es torna al mateix lloc. Dir-ho una
+    // vegada estalvia dues línies de la graella i es llegeix millor.
+    if (a && a === b) return 'Recollida i devolució a ' + a;
+    return '';
+  }
+  return subtitolReserva(r);
+}
+
+function blocReservaHTML(r) {
+  const t = tipusDe(r);
+  const quan = FULL_QUAN[t] || FULL_QUAN.altres;
+  const on = fullOn(r);
+  const mateixLloc = t === 'cotxe' && on;
+
+  // Les dues dates, fusionades amb la seva hora.
+  let esq = '';
+  const entrada = fullData(r.checkinISO, r.checkinHora);
+  const sortida = fullData(r.checkoutISO, r.checkoutHora);
+  if (entrada) esq += fullCamp(quan.in, entrada);
+  if (sortida && quan.out) esq += fullCamp(quan.out, sortida);
+
+  // I la resta de camps propis del tipus. Fora els que ja surten al títol o
+  // a la línia de sobre, els de data (ja fusionats), els buits, i els que
+  // repetirien la plataforma (la companyia d'un vol o d'un cotxe).
+  const fora = FULL_PROMOGUTS[t] || [];
+  const plataforma = (r.plataforma || '').trim();
+  for (const c of (TIPUS[t] || TIPUS.allotjament).camps) {
+    if (fora.includes(c.id)) continue;
+    if (/ISO$|Hora$/.test(c.id)) continue;
+    if (mateixLloc && (c.id === 'llocRecollida' || c.id === 'llocDevolucio')) continue;
+    const val = (r[c.id] || '').trim();
+    if (!val || val === plataforma) continue;
+    esq += fullCamp(fullEtiqueta(c), val);
+  }
+
+  let dreta = '';
+  for (const id of FULL_COMUNS) {
+    const val = (r[id] || '').trim();
+    if (!val) continue;
+    const def = CAMPS_COMUNS.find(c => c.id === id);
+    dreta += fullCamp(def ? fullEtiqueta(def) : id, val, id === 'numReserva');
+  }
+
+  // NO hi va cap línia de trajecte. A la mostra n'hi havia una («BCN 09:40 →
+  // LIS 11:05»), i posant-hi dades de debò es va veure que sobra: allà els
+  // aeroports anaven amb el codi i el títol amb el nom, o sigui que deien
+  // coses diferents. A l'app tots dos surten de nomReserva() i del mateix
+  // camp, i quedava «Barcelona (BCN) → Lisboa» dues vegades seguides.
+  // Extreure'n el codi tampoc no serviria: n'hi ha companyies que no el
+  // desen (Aegean no el diu enlloc del correu). Les hores ja les diuen les
+  // files de sortida i arribada, amb el dia, que és més complet.
+
+  return `<div class="full-res">
+    <div class="full-res-cap">
+      <p class="full-res-nom">${esc(nomReserva(r))}</p>
+      ${plataforma ? `<span class="full-res-plat">${esc(plataforma)}</span>` : ''}
+    </div>
+    ${on ? `<p class="full-res-on">${esc(on)}</p>` : ''}
+    <div class="full-res-dades">
+      <dl class="full-res-col">${esq}</dl>
+      <dl class="full-res-col">${dreta}</dl>
+    </div>
+    ${(r.notes || '').trim() ? `<p class="full-res-notes">${esc(r.notes.trim())}</p>` : ''}
+  </div>`;
+}
+
+function fullReservesHTML(v, menes, seves) {
+  const anys = fullAnys(v);
+  const quan = rangViatge(v) + (anys ? " de " + anys : "");
+  const identificacio = esc(v.nom || "Viatge sense nom") + " · " + esc(quan);
+  const quantes = seves.filter(r => menes.includes(tipusDe(r))).length;
+
+  const grups = ORDRE_TIPUS.filter(t => menes.includes(t)).map(t => {
+    const seus = seves.filter(r => tipusDe(r) === t).sort(comparaCronologic);
+    if (!seus.length) return '';
+    // El nom del viatge es repeteix a cada títol de mena: no es pot posar un
+    // peu de pàgina que es repeteixi (només ho fa position:fixed, i no tots
+    // els navegadors l'imprimeixen a totes les pàgines), i així un full solt
+    // es pot identificar igualment.
+    return `<div class="full-grup">
+        <h2>${esc(TIPUS[t].plural || TIPUS[t].nom)}</h2>
+        <span class="full-grup-de">${identificacio}</span>
+      </div>`
+      + seus.map(blocReservaHTML).join('');
+  }).join('');
+
+  return `<div class="full-doc">
+    <div class="full-cap">
+      <div>
+        <h1 class="full-viatge">${esc(v.nom || 'Viatge sense nom')}</h1>
+        <p class="full-dates">${esc(quan)}</p>
+      </div>
+      <div class="full-compte">${quantes} ${quantes === 1 ? 'reserva' : 'reserves'}</div>
+    </div>
+    ${grups}
+    <div class="full-doc-peu">
+      <span>${identificacio}</span>
+      <span>Imprès el ${esc(dataLlarga(new Date()))} de ${new Date().getFullYear()}</span>
+    </div>
+  </div>`;
+}
+
+function imprimeixReserves(menes) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v || !menes.length) return;
+  const seves = reserves.filter(r => r.viatgeId === v.id);
+  $('full-imprimir').innerHTML = fullReservesHTML(v, menes, seves);
+  window.print();
+}
+
+/* Les menes que aquest viatge té, amb quantes en té de cada una. Preguntar
+   per zero cotxes és soroll: les que no hi són no surten al diàleg. */
+function menesAmbReserves(seves) {
+  return ORDRE_TIPUS
+    .map(t => ({ t, quantes: seves.filter(r => tipusDe(r) === t).length }))
+    .filter(x => x.quantes);
+}
+
+function obreTriaImprimirReserves() {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const seves = reserves.filter(r => r.viatgeId === v.id);
+  const menes = menesAmbReserves(seves);
+  if (!menes.length) return;
+  // Amb una sola mena no hi ha res a triar: s'imprimeix i avall, com fa la
+  // maleta quan el viatge té una llista sola.
+  if (menes.length === 1) { imprimeixReserves([menes[0].t]); return; }
+  modeImprimir = 'reserves';
+  $('imprimir-titol').textContent = 'Quines reserves vols imprimir?';
+  $('imprimir-gent').innerHTML = menes.map(x =>
+    `<label class="imprimir-opcio">
+      <input type="checkbox" value="${esc(x.t)}" checked>
+      <span>${esc(TIPUS[x.t].plural || TIPUS[x.t].nom)} (${x.quantes})</span>
+    </label>`).join('');
+  $('avis-imprimir').textContent = '';
+  obreModal($('imprimir-overlay'));
+  apuntaEnrere('imprimir', () => tancaTriaImprimir());
+}
+
+/* La finestra d'imprimir la comparteixen la maleta i les reserves: la
+   pregunta és la mateixa («de tot això, què vols?») i muntar-ne una segona
+   voldria duplicar-ne el tancar, l'Escape i l'atrapada del focus. Això diu
+   qui l'ha oberta, perquè el botó «Imprimeix» sàpiga on ha d'anar a parar. */
+let modeImprimir = 'maleta';
+
 function obreTriaImprimir() {
   const v = viatges.find(x => x.id === viatgeObert);
   if (!v) return;
@@ -8119,31 +8631,41 @@ function obreTriaImprimir() {
   if (llistes.length <= 1) { imprimeixMaleta(llistes.length ? llistes : [personaMaleta || '']); return; }
   // Ve marcada la que estàs mirant; si aquella és buida, la primera que hi hagi.
   const marcada = llistes.includes(personaMaleta || '') ? (personaMaleta || '') : llistes[0];
+  modeImprimir = 'maleta';
+  $('imprimir-titol').textContent = 'Quines llistes vols imprimir?';
   $('imprimir-gent').innerHTML = llistes.map(p =>
     `<label class="imprimir-opcio">
       <input type="checkbox" value="${esc(p)}"${p === marcada ? ' checked' : ''}>
       <span>${p ? esc(p) : 'Sense assignar'}</span>
     </label>`).join('');
   $('avis-imprimir').textContent = '';
-  $('imprimir-overlay').classList.add('visible');
+  obreModal($('imprimir-overlay'));
   apuntaEnrere('imprimir', () => tancaTriaImprimir());
 }
 
-function tancaTriaImprimir() { $('imprimir-overlay').classList.remove('visible'); }
+function tancaTriaImprimir() { tancaModal($('imprimir-overlay')); }
 const tancaTriaImprimirUI = () => tancaEnrere('imprimir', tancaTriaImprimir);
 
 $('imprimir-x').addEventListener('click', tancaTriaImprimirUI);
 $('imprimir-cancela').addEventListener('click', tancaTriaImprimirUI);
+// Era l'única de les cinc finestres que no es tancava amb Escape, i ara que
+// el focus hi queda a dins es notaria més que a cap altra.
+$('imprimir-overlay').addEventListener('click', e => { if (e.target === $('imprimir-overlay')) tancaTriaImprimirUI(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('imprimir-overlay').classList.contains('visible')) tancaTriaImprimirUI();
+});
 $('imprimir-fes').addEventListener('click', () => {
   const quins = [...$('imprimir-gent').querySelectorAll('input:checked')].map(c => c.value);
+  // «esReserves» i no «reserves»: aquí dins, «reserves» taparia la llista global.
+  const esReserves = modeImprimir === 'reserves';
   if (!quins.length) {
-    avisa($('avis-imprimir'), 'Tria almenys una llista.', 'mal');
+    avisa($('avis-imprimir'), esReserves ? 'Tria almenys una mena de reserva.' : 'Tria almenys una llista.', 'mal');
     return;
   }
   tancaTriaImprimirUI();
   // Es deixa tancar l'overlay abans d'obrir la impressió, o el navegador
   // el retrataria damunt del full.
-  setTimeout(() => imprimeixMaleta(quins), 60);
+  setTimeout(() => esReserves ? imprimeixReserves(quins) : imprimeixMaleta(quins), 60);
 });
 
 /* Amagar un suggeriment que no vols veure més en aquest viatge, i tornar-los
@@ -8500,8 +9022,10 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   // Crear una idea des de dins del viatge (pestanya Idees)
   if (e.target.closest('[data-afegeix-idea-viatge]')) { await afegeixIdeaViatge(); return; }
   if (e.target.closest('[data-afegeix-activitat]')) { await afegeixActivitat(); return; }
-  // Maleta
+  // Imprimir: les dues finestres comparteixen diàleg (veure modeImprimir).
+  if (e.target.closest('[data-imprimeix-reserves]')) { obreTriaImprimirReserves(); return; }
   if (e.target.closest('[data-imprimeix-maleta]')) { obreTriaImprimir(); return; }
+  // Maleta
   const qui = e.target.closest('[data-maleta-persona]');
   if (qui) { personaMaleta = qui.dataset.maletaPersona; ultimMaleta = ''; pintaDetallViatge(); return; }
   const marca = e.target.closest('[data-maleta-toggle]');
@@ -8681,13 +9205,13 @@ const CLAU_NOVETATS = 'novetats-vista';
 function mostrarNovetats() {
   try { if (localStorage.getItem(CLAU_NOVETATS) === VERSIO_NOVETATS) return; } catch (e) {}
   const ov = $('novetats-overlay');
-  if (ov) ov.classList.add('visible');
+  if (ov) obreModal(ov);
   apuntaEnrere('novetats', () => tancarNovetats());
 }
 function tancarNovetats() {
   try { localStorage.setItem(CLAU_NOVETATS, VERSIO_NOVETATS); } catch (e) {}
   const ov = $('novetats-overlay');
-  if (ov) ov.classList.remove('visible');
+  if (ov) tancaModal(ov);
 }
 const tancaNovetatsUI = () => tancaEnrere('novetats', tancarNovetats);
 $('novetats-x').addEventListener('click', tancaNovetatsUI);
@@ -9083,11 +9607,11 @@ function obreCodiModal() {
   tancaMenuCompte();
   codiPrimer = '';
   pintaCodiModal(codiActiu() ? 'actiu' : 'crear');
-  $('codi-overlay').classList.add('visible');
+  obreModal($('codi-overlay'));
   apuntaEnrere('codi', () => tancaCodiModal());
 }
 function tancaCodiModal() {
-  $('codi-overlay').classList.remove('visible');
+  tancaModal($('codi-overlay'));
   codiPrimer = '';
 }
 
