@@ -3283,6 +3283,156 @@ function parseReserva(textOriginal) {
       treu un full en blanc. S'arreglaria amb l'esdeveniment «beforeprint»,
       omplint el full segons la pantalla on ets. LA CLARA HO VA DESCARTAR
       (25/08/2026): no li calia.
+   FET · El full imprès: fora «qui ho paga», i la cancel·lació només mentre
+      serveixi (v146).
+      · QUI PAGA QUÈ ÉS COSA DE CASA, i el full s'ha de poder ensenyar a algú
+        altre. És la MATEIXA raó per la qual el full ja no porta preus ni
+        estat del pagament (v137, decisió d'ella). Ara FULL_COMUNS només té
+        el número de reserva i la cancel·lació.
+      · LA CANCEL·LACIÓ, NOMÉS MENTRE SERVEIXI. Un termini vençut o un «no
+        reemborsable» en paper no és informació: és una línia que has de
+        llegir per descobrir que no et diu res. Ho decideix cancelVigent(),
+        que s'obre pel mateix senyal que ja movia el semàfor de la llista:
+        la classe «cancel-apagat» és, exactament, el nom de les que ja no cal
+        vigilar. No calia cap regla nova, només fer-la servir.
+      · UNA SENSE DATA SÍ QUE HI VA. «Gratis fins 3 dies abans de l'arribada»
+        no es pot situar al calendari, i callar-la seria decidir per ella que
+        ja ha passat. Es queda.
+   FET · Un punt exacte escrit al camp d'adreça: coordenades o l'enllaç llarg
+      de Maps (v145).
+      · EL FORAT QUE TAPA. Hi ha llocs que no tenen adreça —un mirador,
+        l'inici d'un camí, un aparcament a peu de platja— i que cap
+        cercador no troba. Fins ara no hi havia manera de posar-hi el pin:
+        el botó «Situa-la» també cerca per nom. Ara, si al camp hi ha un
+        punt, l'app no pregunta res a ningú.
+      · DUES FORMES, UN SOL LECTOR (coordsDelText). «28.65169, -17.87935»,
+        i l'enllaç llarg de Maps, que les porta escrites a dins. De
+        l'enllaç es pren el tros «!3d…!4d…», que és EL LLOC, i no el «@…»
+        que hi ha abans, que és on estava centrat el mapa quan es va
+        copiar: no són el mateix punt (a la prova, 28.6516899 contra
+        28.6516946). El «@…» queda de última reserva, per si l'enllaç no
+        porta l'altre.
+      · ELS CURTS (maps.app.goo.gl) NO. No porten el punt a dins i seguir-los
+        des del navegador no es pot: salten a un altre domini i el navegador
+        no deixa llegir on envien. Caldria passar per Supabase i la Clara ho
+        va descartar (02/09/2026). Ara, si n'enganxes un, l'app ho DIU
+        (MOTIU_TEXT, «enllac-curt») en comptes de callar, i no l'envia mai a
+        Maps com a paraules a buscar, que era el que feia el ridícul.
+      · PER ON HI ENTRA, i per què és un canvi petit en un lloc delicat.
+        Tot el que va al mapa passa per netejaAdreca() i per coordsAdreca(),
+        i n'hi ha prou amb tocar aquests dos: el primer deixa passar el text
+        sencer sense trossejar-lo per les comes, i el segon mira el text
+        ABANS que la memòria cau. A partir d'aquí ja hi arriba sol el mapa
+        del viatge, el d'Inspiració, la línia de la fila i la nota del que
+        no surt al mapa. No s'ha tocat ni la cua de consultes ni el que hi
+        ha desat.
+      · TRES DETALLS QUE NO ES VEUEN PERÒ HI SÓN. (1) Un punt no passa pel
+        filtre dels 100 km d'origenCoords: aquell filtre desconfia del que
+        endevina el geocodificador, i aquí no ha endevinat ningú. (2) Un
+        punt no es consulta mai a Nominatim ni s'hi desa a la memòria cau,
+        que és de respostes seves. (3) La fila diu «al punt que hi has
+        posat» i NO ofereix «No és aquest lloc?»: no hi ha res per triar
+        quan el lloc el dius tu; si t'has equivocat, es canvia al camp.
+      · ELS NÚMEROS DEMANEN DECIMALS a totes dues bandes a posta, i així un
+        parell de codis postals junts —«38750, 38700»— no es pot confondre
+        mai amb un punt del món.
+      · QUEDA OBERT: en una ENTRADA, un enllaç curt no diu res. És perquè
+        l'Adreça d'una entrada no arriba a avisLloc() si no porta punt (la
+        decisió de la v144), i allà l'avís es mira el text que sí que hi
+        arriba. El pin cau al recinte, que és el que toca; només falta la
+        frase. A un allotjament o una visita sí que la diu.
+   FET · Les entrades tenen camp d'Adreça, i la xinxeta de Maps busca UNA
+      sola cosa (v144).
+      · LA v143 NO N'HI VA HAVER PROU. Treure el títol comercial deixava
+        «Oficina la Palma Natural, C. Manuel Taño, 11, 38750 El Paso, Santa
+        Cruz de Tenerife», i Maps en treia TRES llocs diferents. La regla de
+        debò no és «treu el reclam»: és que una adreça de carrer sencera ja
+        és única, i qualsevol nom al davant li fa competència.
+      · ARA, a les entrades: si hi ha Adreça, es busca NOMÉS l'adreça. Si no
+        n'hi ha però la Població ja porta un carrer escrit —les entrades
+        velles, que no tenien on posar-lo—, es busca només la Població. I si
+        no, Recinte + Població, com sempre. Ho decideix semblaAdreca(), que
+        busca dos senyals als trossos separats per comes: un número de
+        portal («11») o un codi postal al davant («38750 El Paso»). Amb
+        «Villa de Mazo», «Sant Joan de les Abadesses» o «Santa Cruz de
+        Tenerife» no salta.
+      · EL CAMP D'ADREÇA CONTRADIU UNA DECISIÓ DE L'1/09/2026? No, i val la
+        pena saber per què. Aquell dia es va decidir NO posar-n'hi cap, i
+        amb raó provada: Nominatim —qui posa el pin al mapa— troba
+        «Teatre-Museu Dalí» i no troba «Plaça Gala i Salvador Dalí, 5, 17600
+        Figueres». Però qui falla ara és Google, que vol just el contrari.
+        Són dos cercadors amb gustos oposats, i ara cadascun rep el que li
+        va bé: adrecaMapa() (el pin) segueix amb Recinte + Població i NO
+        mira l'Adreça; enllacMaps() (la xinxeta) sí. Qui toqui cap dels dos
+        que no els torni a ajuntar pensant que s'ha oblidat un camp.
+      · LA XINXETA ES MOU DE CAMP. Abans anava sempre al costat de
+        «Població»; ara, a les entrades, va al de l'Adreça quan n'hi ha.
+        Ho diu campGeografic(), que substitueix la llista que hi havia
+        escrita a mà a DOS llocs (la fila i la vista del dia) i que per tant
+        s'havia de tocar dues vegades cada cop.
+      · PENDENT: que el lector de TuriTop ompli l'Adreça sol, del paràgraf
+        del punt de trobada. No s'ha fet perquè per escriure-ho cal un
+        correu de debò al davant i endevinar-ne el format seria inventar.
+   FET · La xinxeta de Maps d'una entrada busca el LLOC, no el reclam (v143).
+      · QUÈ PASSAVA. Clicant la xinxeta d'una activitat, Maps s'obria en un
+        altre lloc encara que l'adreça del carrer fos ben escrita al camp
+        «Població». enllacMaps() enganxava Nom + Recinte + Població i ho
+        enviava tot junt com a text a buscar, o sigui:
+          «Descubre el volcán Tajogaite: ruta completa de 7 km, Oficina la
+           Palma Natural, C. Manuel Taño, 11, 38750 El Paso, Santa Cruz de
+           Tenerife»
+        Maps busca la frase sencera i amb un reclam al davant no arriba mai
+        al carrer.
+      · POSAR EL NOM AL DAVANT NO ERA CAP ERROR: per a un allotjament rural
+        l'adreça sovint és vaga i el nom de la casa és el que la desfà. El
+        que ha canviat és QUI omple el camp. Des que les activitats es
+        llegeixen soles (v139–v140), el «Nom» d'una entrada és el títol
+        comercial del producte tal com el ven l'empresa, que no és cap lloc.
+        La regla seguia sent bona i el camp havia deixat de ser-ho.
+      · ARA les entrades busquen per Recinte + Població, que és el MATEIX
+        parell que adrecaMapa() dona al mapa del viatge. Per això el pin del
+        mapa ja queia bé mentre la xinxeta fallava: anaven per camins
+        diferents. Ara van pel mateix, i el que arregli l'un arregla l'altre.
+        La xinxeta d'una entrada només es pinta si hi ha Població (és el seu
+        camp geogràfic), o sigui que el parell no pot quedar mai buit.
+      · La resta de tipus no es mouen: allotjament, cotxe i «altres»
+        segueixen amb el nom al davant, que allà és el nom d'un lloc.
+   FET · Cap identificador repetit: les recomanacions ja es despleguen des de
+      dins d'un viatge (v142).
+      · DOS BLOCS AMB EL MATEIX id. El botó de les recomanacions girava la
+        fletxa i no sortia res. La causa: blocRecomanacions() batejava el
+        cos «reco-<id de la reserva>», i d'una mateixa reserva n'hi ha DOS
+        a la pàgina alhora. La llista de Reserves les pinta TOTES, també les
+        que són d'un viatge, i canviar de vista no la buida: només li posa
+        «ocult» a sobre. O sigui que mentre mires un viatge, a #cos-llista
+        hi ha el bloc bessó, amagat i primer de tot. getElementById() torna
+        sempre el primer, i el que s'obria era aquell.
+      · ON ES NOTAVA. Des de la llista de Reserves funcionava; des de dins
+        d'un viatge, no. No era cosa del mòbil: al mòbil s'entra més per
+        l'agenda del viatge, i per això allà semblava trencat i a
+        l'ordinador no.
+      · EL MATEIX PARANY, DUES VEGADES MÉS. Repassant tots els id fets amb
+        el d'una reserva n'hi havia dos més: el camp «Qui ho paga»
+        («paga-<id>», amb el seu «label for») i el detall de la fila
+        («detall-<id>», amb el seu «aria-controls»). El del pagador es
+        notava: dins d'un viatge, clicar les paraules «Qui ho paga» no
+        enfocava el camp, perquè el navegador se n'anava al bessó amagat de
+        la llista. El de la fila no es notava —gestionaToggleFila busca el
+        detall DINS de la fila, que és la manera de la casa i per això no ha
+        fallat mai—, però l'«aria-controls» apuntava a un detall que no era
+        el seu, i això ho llegeix el lector de pantalla.
+      · LA REPARACIÓ, EN DUES PECES. idUnic() dona un número propi a cada
+        tros pintat, i els tres identificadors hi passen. I gestionaToggleReco
+        busca el text dins del bloc del botó, com fa la fila: encara que un
+        dia tornessin a haver-hi dos id iguals, el desplegable no se
+        n'assabentaria. Ull: els id són per a la pàgina; les DADES segueixen
+        anant per «data-id» i «data-paga», que són els que nomenen la
+        reserva de debò i la tornen a trobar al magatzem.
+      · REPASSAT I NET: «visita-<id>» surt a l'Agenda i prou —una visita és
+        o a l'itinerari o a «per encaixar», mai a totes dues—, els camps de
+        les despeses només es pinten per a la que estàs editant, i la resta
+        d'id de dins del JS són d'una vista sencera, que n'hi ha una de
+        pintada cada cop.
    FET · La nota del mapa d'un viatge diu QUINS elements no hi surten, i t'hi
       porta (v141).
       · EL COMPTADOR JA HI ERA. La Clara va demanar «un comptador al mapa
@@ -4350,6 +4500,13 @@ const TIPUS = {
       { id: 'telefon',     nom: 'Telèfon' },
       { id: 'recinte',     nom: 'Recinte' },
       { id: 'poblacio',    nom: 'Població' },
+      /* L'adreça és NOMÉS per a la xinxeta de Google Maps, i per això és
+         l'últim camp dels tres i pot quedar buida. El pin del mapa del
+         viatge NO la fa servir: el pin el posa Nominatim, i allà està
+         provat que el nom del recinte hi cau i el carrer no («Teatre-Museu
+         Dalí» sí, «Plaça Gala i Salvador Dalí, 5, 17600 Figueres» no). Els
+         dos cercadors volen coses diferents i cadascun rep la seva. */
+      { id: 'adreca',      nom: 'Adreça', ample: true },
       { id: 'checkinISO',  nom: 'Dia' },
       { id: 'checkinHora', nom: 'Hora' },
       { id: 'hostes',      nom: 'Participants' }
@@ -5200,6 +5357,16 @@ function infoCancel(r) {
   return { text, classe: 'cancel-calma' };
 }
 
+/* Si la cancel·lació encara serveix de res. «Apagat» és justament el nom de
+   les que ja no cal vigilar: les no reemborsables, les buides i les que ja
+   han vençut. Una que no porta data —«gratis fins 3 dies abans»— compta com
+   a vigent: no sabem quan s'acaba, i callar-la seria decidir per tu que ja
+   ha passat. Ho fa servir el full imprès, que només porta el que et pot
+   caldre el dia que el duguis a sobre. */
+function cancelVigent(r) {
+  return infoCancel(r).classe !== 'cancel-apagat';
+}
+
 /* ── QUAN TOCA COBRAR ─────────────────────────────────────────────
    La data del càrrec no és sempre la mateixa cosa: amb cancel·lació
    gratuïta cau quan s'acaba el termini, i si es paga a l'allotjament
@@ -5338,6 +5505,54 @@ function capitalitza(t) {
 /* Un tros que és NOMÉS un codi postal, sense res al darrere. */
 const CODI_POSTAL = /^\d{4,6}(?:[-\s]\d{3,4})?$/;
 
+/* ── UN PUNT EXACTE ESCRIT AL CAMP D'ADREÇA ───────────────────────────
+   Hi ha llocs que no tenen adreça —un mirador, l'inici d'un camí, un
+   aparcament a peu de platja— i que cap cercador no sap trobar. D'aquests,
+   el que sí que tens és el punt: o bé les coordenades copiades de l'app de
+   Maps (dit a sobre del mapa i te les dona), o bé l'adreça web llarga de
+   Maps, que les porta escrites a dins.
+   Quan al camp hi ha un punt, l'app no ha de preguntar res a ningú: ja sap
+   on és. Per això mana sobre tot el que hi hagi, i per això no passa pel
+   filtre dels 100 km —aquell filtre hi és per desconfiar del que endevina
+   el geocodificador, i això no ho ha endevinat ningú, ho has dit tu.
+   ELS ENLLAÇOS CURTS (maps.app.goo.gl) NO PORTEN EL PUNT A DINS. Són un
+   salt cap a l'enllaç llarg, i seguir-lo des del navegador no es pot: va a
+   un altre domini i el navegador no deixa llegir on envia. Amb un de curt,
+   coordsDelText() torna null i l'app ho diu amb paraules (MOTIU_TEXT).
+   Els números demanen decimals a totes dues bandes a posta: així un parell
+   de codis postals junts —«38750, 38700»— no es pot confondre mai amb un
+   punt del món. */
+const PARELL_COORDS = /^\s*(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)\s*$/;
+function coordsDelText(text) {
+  const t = String(text || '').trim();
+  if (!t) return null;
+  const m = t.match(PARELL_COORDS)                            // «28.65169, -17.87935»
+    // El LLOC d'un enllaç llarg. Va primer que el «@…», que és una altra
+    // cosa: on estava centrat el mapa quan es va copiar l'enllaç.
+    || t.match(/!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/)
+    || t.match(/[?&](?:q|query|ll|daddr)=(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/)
+    || t.match(/@(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/);
+  if (!m) return null;
+  const lat = parseFloat(m[1]), lon = parseFloat(m[2]);
+  if (!isFinite(lat) || !isFinite(lon)) return null;
+  if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+  return { lat, lon };
+}
+
+/* Una adreça web qualsevol. Serveix per no enviar-la mai al geocodificador
+   (no és cap pregunta que Nominatim sàpiga respondre) i per poder dir per
+   què un enllaç curt no ha situat res. */
+function esAdrecaWeb(text) {
+  return /^https?:\/\//i.test(String(text || '').trim());
+}
+
+/* Com s'anomena un punt a la pantalla. Amb coma decimal, com la resta de
+   números de l'app. */
+function nomPunt(p) {
+  const n = x => x.toFixed(5).replace('.', ',');
+  return n(p.lat) + ' / ' + n(p.lon);
+}
+
 /* L'adreça preparada per preguntar-la al geocodificador. Se li treuen els
    codis postals que van sols al final, perquè quan no coincideixen amb la
    resta de l'adreça fan que Nominatim no trobi RES (i llavors el pin recau
@@ -5346,7 +5561,12 @@ const CODI_POSTAL = /^\d{4,6}(?:[-\s]\d{3,4})?$/;
    38700» no es troba, i sense el 38700 —que a més era erroni— sí.
    El país es respecta: aquest sí que ajuda a situar el lloc. */
 function netejaAdreca(adreca) {
-  const trossos = String(adreca || '').split(/\s*(?:,|\s-\s|·)\s*/).map(t => t.trim()).filter(Boolean);
+  // Un punt exacte o un enllaç no és cap adreça per trossejar per les comes:
+  // es deixa igual. Passa per aquí tot el que va al mapa, també les visites,
+  // o sigui que amb això n'hi ha prou perquè arribi sencer a coordsAdreca().
+  const cru = String(adreca || '').trim();
+  if (coordsDelText(cru) || esAdrecaWeb(cru)) return cru;
+  const trossos = cru.split(/\s*(?:,|\s-\s|·)\s*/).map(t => t.trim()).filter(Boolean);
   while (trossos.length > 1 && CODI_POSTAL.test(trossos[trossos.length - 1])) trossos.pop();
   return trossos.join(', ');
 }
@@ -5374,18 +5594,68 @@ const CHEVRON = '<svg class="chev" viewBox="0 0 24 24" width="14" height="14" ar
 /* Enllaç a Google Maps. Cerquem pel nom de l'allotjament i l'adreça junts:
    els allotjaments rurals tenen adreces que Maps sovint no situa bé, i el
    nom sol desfer l'ambigüitat. L'adreça web universal obre l'app al mòbil
-   i el web a l'ordinador, sense haver de detectar el dispositiu. */
+   i el web a l'ordinador, sense haver de detectar el dispositiu.
+   LES ENTRADES EN VAN A PART, i el nom NO hi entra. La regla de dalt val
+   quan el nom és el d'un lloc; el d'una entrada llegida d'un correu és el
+   títol comercial del producte —«Descubre el volcán Tajogaite: ruta
+   completa de 7 km»—, i posat davant de l'adreça se l'endú: Maps busca la
+   frase sencera i no arriba mai al carrer. Aquí el lloc són el recinte i la
+   població, que és el mateix parell que adrecaMapa() dona al mapa del
+   viatge; per això el pin queia bé i la icona no. */
 const ICONA_MAPA = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">'
   + '<path d="M12 21s7-6.4 7-11a7 7 0 1 0-14 0c0 4.6 7 11 7 11z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>'
   + '<circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>';
 
+/* Si un text ja és una adreça de carrer i no un nom de poble. Mira els
+   trossos separats per comes i en busca dos senyals: un número de portal
+   («11», «11 B») o un codi postal al davant d'un tros («38750 El Paso»).
+   Serveix per a les entrades velles, que porten el carrer escrit al camp
+   «Població» perquè fins ara no n'hi havia cap altre. */
+const NUM_PORTAL = /^\d{1,4}\s*[a-zA-Z]?$/;
+const OBRE_CODI = /^\d{4,6}(?:[-\s]\d{3,4})?(?:\s|$)/;
+function semblaAdreca(text) {
+  return String(text || '').split(/\s*,\s*/)
+    .some(t => NUM_PORTAL.test(t.trim()) || OBRE_CODI.test(t.trim()));
+}
+
+/* Quin camp du la xinxeta de Maps. És el camp de lloc de cada tipus, i a
+   les entrades depèn del que hi hagi: l'Adreça si l'has escrita, i si no la
+   Població, que és on el lloc vivia abans. */
+function campGeografic(r) {
+  const t = tipusDe(r);
+  if (t === 'entrada') return (r.adreca || '').trim() ? 'Adreça' : 'Població';
+  return { allotjament: 'Adreça', cotxe: 'Lloc de recollida', altres: 'Lloc' }[t];
+}
+
 function enllacMaps(r) {
   const t = tipusDe(r);
+  // Un punt exacte al camp d'adreça se les endú totes: ja és únic, i posar-hi
+  // res al davant només li faria competència. Maps entén «lat,lon» de dret.
+  const punt = coordsDelText(r.adreca);
+  if (punt) return enllacMapsDe(punt.lat + ',' + punt.lon);
+  /* Una adreça web que NO ha donat cap punt —un enllaç curt— no és text per
+     buscar. Enviar-la a Maps com a paraules és exactament el que fallava
+     abans de la v143: Maps no la segueix, i et deixa en un lloc qualsevol.
+     Val més fer com si no hi fos i buscar pel que sí que en sabem. */
+  const adr = esAdrecaWeb(r.adreca) ? '' : (r.adreca || '').trim();
   let parts;
-  if (t === 'entrada') parts = [r.allotjament, r.recinte, r.poblacio];
+  if (t === 'entrada') {
+    // Una adreça de carrer sencera ja és única: qualsevol nom al davant la
+    // hi fa competència i Maps t'ofereix tres llocs en comptes d'un. Quan
+    // no n'hi ha cap, el recinte torna a ser el que t'hi porta.
+    if (adr) parts = [adr];
+    else if (semblaAdreca(r.poblacio)) parts = [r.poblacio];
+    else parts = [r.recinte, r.poblacio];
+  }
   else if (t === 'altres') parts = [r.allotjament, r.llocRecollida];
-  else parts = [r.allotjament, r.adreca];
-  const cerca = parts.filter(Boolean).join(', ').trim();
+  else parts = [r.allotjament, adr];
+  return enllacMapsDe(parts.filter(Boolean).join(', ').trim());
+}
+
+/* La xinxeta pròpiament dita, a partir del que s'hagi de buscar. L'adreça
+   web universal obre l'app al mòbil i el web a l'ordinador, sense haver de
+   detectar el dispositiu. */
+function enllacMapsDe(cerca) {
   if (!cerca) return '';
   const url = 'https://www.google.com/maps/search/?api=1&amp;query=' + encodeURIComponent(cerca);
   // L'espai dur manté la icona enganxada a l'última paraula quan l'adreça salta de línia
@@ -5393,13 +5663,30 @@ function enllacMaps(r) {
     + ' title="Obre a Google Maps" aria-label="Obre ' + esc(cerca) + ' a Google Maps">' + ICONA_MAPA + '</a>';
 }
 
+/* ── Un identificador que no es repeteixi mai ──
+   Una mateixa reserva es pinta a DOS llocs alhora: a la llista de Reserves
+   —que les mostra totes, també les que ja són d'un viatge— i, si obres el
+   viatge, a l'itinerari. Les dues vistes viuen totes dues a la pàgina: la
+   que no mires només porta la classe «ocult» a sobre. Per això un id fet
+   només del de la reserva hi surt dues vegades, i tot el que hi apunta per
+   nom —«aria-controls», «label for», getElementById()— es queda amb el
+   PRIMER que troba, que és el de la vista amagada. Passava a les
+   recomanacions (v142): la fletxa girava i el text s'obria al lloc que no
+   miraves. Amb aquest comptador, cada tros pintat s'emporta un número seu.
+   Ull: això és per als identificadors, no per a les dades. El «data-id» i
+   el «data-paga» segueixen sent el de la reserva, que és qui la nomena de
+   debò i qui la torna a trobar al magatzem. */
+let comptadorId = 0;
+const idUnic = arrel => `${arrel}-${++comptadorId}`;
+
 /* Aquest camp no l'omple mai el parser: «Nom del client» és a nom de qui
    va la reserva, que no vol dir que sigui qui la paga. S'edita aquí mateix
    per no haver d'obrir la fitxa sencera cada vegada. */
 function campQuiPaga(r) {
+  const idCamp = idUnic(`paga-${esc(r.id)}`);
   return `<div class="detall-camp ample">
-    <span><label for="paga-${esc(r.id)}">Qui ho paga</label></span>
-    <input class="camp-viu" id="paga-${esc(r.id)}" list="noms-pagadors"
+    <span><label for="${idCamp}">Qui ho paga</label></span>
+    <input class="camp-viu" id="${idCamp}" list="noms-pagadors"
       value="${esc(r.quiPaga || '')}" placeholder="sense assignar"
       autocomplete="off" spellcheck="false" data-paga="${esc(r.id)}">
   </div>`;
@@ -5443,15 +5730,16 @@ function textAmbEnllacos(text) {
 
 /* El desplegable de dins d'una reserva. Només surt si hi ha recomanacions:
    un botó que obre el buit és pitjor que cap botó.
-   L'identificador surt del de la reserva, com el del detall que l'envolta. */
+   L'identificador surt d'idUnic(), no del de la reserva: mira-hi el perquè. */
 function blocRecomanacions(r) {
   const text = (r.recomanacions || '').trim();
   if (!text) return '';
+  const idCos = idUnic(`reco-${esc(r.id)}`);
   return `<div class="reco">
-    <button class="reco-cap" type="button" aria-expanded="false" aria-controls="reco-${esc(r.id)}">
+    <button class="reco-cap" type="button" aria-expanded="false" aria-controls="${idCos}">
       ${CHEVRON}Recomanacions i detalls de l’empresa
     </button>
-    <div class="reco-cos ocult" id="reco-${esc(r.id)}">${textAmbEnllacos(text)}</div>
+    <div class="reco-cos ocult" id="${idCos}">${textAmbEnllacos(text)}</div>
   </div>`;
 }
 
@@ -5509,7 +5797,16 @@ function adrecaMapa(r) {
   const t = tipusDe(r);
   if (t === 'vol') return '';
   if (t === 'cotxe') return netejaAdreca(r.llocRecollida);
-  if (t === 'entrada') return netejaAdreca([r.recinte, r.poblacio].filter(Boolean).join(', '));
+  /* L'Adreça d'una entrada NO entra aquí, i és a posta. Això és el que va a
+     Nominatim, que posa el pin al mapa, i allà el recinte hi cau i el carrer
+     no —provat l'1/09/2026 amb llocs de debò—. La xinxeta de Google sí que
+     la fa servir (enllacMaps): són dos cercadors amb gustos contraris. */
+  /* Excepció de l'excepció: un PUNT sí que hi entra. El que Nominatim no
+     sap trobar és un carrer; un punt no l'ha de trobar ningú, ja hi és. */
+  if (t === 'entrada') {
+    if (coordsDelText(r.adreca)) return String(r.adreca).trim();
+    return netejaAdreca([r.recinte, r.poblacio].filter(Boolean).join(', '));
+  }
   if (t === 'altres') return netejaAdreca(r.llocRecollida);
   return netejaAdreca(r.adreca);   // allotjament
 }
@@ -5535,7 +5832,7 @@ function detallReserva(r) {
   } else if (t === 'entrada') {
     propis = [
       ['Nom', r.allotjament], ['Empresa', r.companyia], ['Telèfon', r.telefon],
-      ['Recinte', r.recinte], ['Població', r.poblacio],
+      ['Recinte', r.recinte], ['Població', r.poblacio], ['Adreça', r.adreca, true],
       ['Dia', entrada], ['Participants', r.hostes]
     ];
   } else if (t === 'altres') {
@@ -5567,9 +5864,11 @@ function filaReservaHTML(r) {
   const icona = TIPUS[tipusDe(r)].icona;
   const pregunta = preguntaCobrament(r);
   const obert = filesObertes.has(r.id);
+  // Per què no «detall-<id de la reserva>» i prou: veure idUnic().
+  const idDetall = idUnic(`detall-${esc(r.id)}`);
 
   return `<div class="fila${pregunta ? ' te-pregunta' : ''}${obert ? ' oberta' : ''}${reservaPassada(r) ? ' passada' : ''}" data-id="${esc(r.id)}">
-        <button class="fila-cap graella-fila" aria-expanded="${obert ? 'true' : 'false'}" aria-controls="detall-${esc(r.id)}">
+        <button class="fila-cap graella-fila" aria-expanded="${obert ? 'true' : 'false'}" aria-controls="${idDetall}">
           <span class="cel-punt">
             <span class="icona-tipus${revisar ? ' revisar' : ''}"
               role="img" aria-label="${esc(TIPUS[tipusDe(r)].nom)}${revisar ? ', cal revisar' : ''}">${iconaSVG(icona)}</span>
@@ -5590,11 +5889,11 @@ function filaReservaHTML(r) {
           <span class="cel-chev">${CHEVRON}</span>
         </button>
         ${pregunta}
-        <div class="fila-detall${obert ? '' : ' ocult'}" id="detall-${esc(r.id)}">
+        <div class="fila-detall${obert ? '' : ' ocult'}" id="${idDetall}">
           <div class="detall-graella">
             ${(() => {
               // L'enllaç de Maps s'enganxa al camp geogràfic de cada tipus
-              const geo = { allotjament: 'Adreça', entrada: 'Població', cotxe: 'Lloc de recollida', altres: 'Lloc' }[tipusDe(r)];
+              const geo = campGeografic(r);
               return detallReserva(r).map(([et, val, ample]) =>
                 (et === geo && val) ? campDetall(et, val, ample, enllacMaps(r)) : campDetall(et, val, ample)
               ).join('');
@@ -5710,7 +6009,12 @@ function gestionaToggleReco(e) {
   if (!cap) return;
   const obert = cap.getAttribute('aria-expanded') === 'true';
   cap.setAttribute('aria-expanded', obert ? 'false' : 'true');
-  const cos = document.getElementById(cap.getAttribute('aria-controls'));
+  // El cos es busca DINS del bloc del botó, com gestionaToggleFila busca el
+  // seu detall dins de la fila. Buscar-lo per id per tota la pàgina és el que
+  // fallava: de la mateixa reserva n'hi pot haver dos blocs alhora, i el
+  // primer és sempre el de la llista de reserves, que mentre mires un viatge
+  // està amagada. La fletxa girava i no sortia res.
+  const cos = cap.parentElement.querySelector('.reco-cos');
   if (cos) cos.classList.toggle('ocult', obert);
 }
 $('cos-llista').addEventListener('click', gestionaToggleReco);
@@ -6124,6 +6428,11 @@ function desaCauCoordsAdr() {
 /* Coordenades d'una adreça exacta des de la memòria cau (síncron), o null
    (si no s'ha resolt encara o es va consultar sense trobar-la). */
 function coordsAdreca(adreca) {
+  // Un punt escrit al camp no s'ha de consultar ni recordar: ja hi és. Va
+  // abans que la memòria cau perquè mana sobre qualsevol cosa que s'hagués
+  // consultat abans amb aquest mateix text.
+  const punt = coordsDelText(adreca);
+  if (punt) return { lat: punt.lat, lon: punt.lon, nom: nomPunt(punt), exacte: true };
   const k = (adreca || '').trim().toLowerCase();
   const v = k && cauCoordsAdr[k];
   return (v && isFinite(v.lat)) ? v : null;
@@ -6237,6 +6546,10 @@ function zonesCoincideixen(zonaA, zonaB) {
 async function coordsDeAdrecaRemot(adreca) {
   const clau = (adreca || '').trim().toLowerCase();
   if (!clau) return null;
+  // Ni un punt ni una adreça web són preguntes per a Nominatim: el primer ja
+  // porta la resposta i la segona no en té cap. No es consulten ni es
+  // guarden a la memòria cau, que és de respostes del geocodificador.
+  if (coordsDelText(clau) || esAdrecaWeb(clau)) return null;
   if (clau in cauCoordsAdr) {
     const v = cauCoordsAdr[clau];
     return (v && isFinite(v.lat)) ? v : null;
@@ -6592,7 +6905,10 @@ function kmEntre(a, b) {
 function origenCoords(it) {
   const cz = coordsDe(it.zona);
   const ca = it.adreca ? coordsAdreca(it.adreca) : null;
-  if (ca && (!cz || kmEntre(ca, cz) <= MAX_KM_ADRECA)) return { coords: ca, de: 'adreca' };
+  // «exacte» és un punt que has escrit tu, i aquell no passa pel filtre de
+  // distància: el filtre desconfia del que endevina el geocodificador, i
+  // aquí no ha endevinat ningú.
+  if (ca && (ca.exacte || !cz || kmEntre(ca, cz) <= MAX_KM_ADRECA)) return { coords: ca, de: 'adreca' };
   return { coords: cz || null, de: cz ? 'zona' : null };
 }
 function coordsItem(it) { return origenCoords(it).coords; }
@@ -7139,6 +7455,8 @@ function nomLlocDeZona(zona) {
    «s'ha trobat però no és el lloc bo» (llavors sí que hi ha un nom). */
 /* El nom sencer del lloc on ha caigut una adreça resolta, o ''. */
 function nomAdreca(adreca) {
+  const punt = coordsDelText(adreca);
+  if (punt) return nomPunt(punt);
   const v = cauCoordsAdr[(adreca || '').trim().toLowerCase()];
   return (v && v.nom) || '';
 }
@@ -7177,6 +7495,10 @@ function llocIdeaHTML(i) {
    resposta no s'ha d'acusar ningú d'haver fallat. */
 function motiuPoble(it) {
   if (!it.adreca) return 'sense-adreca';
+  // Una adreça web que no porta cap punt a dins: els curts de Maps. No hi ha
+  // consulta pendent ni fallada, hi ha un enllaç que no es pot desplegar, i
+  // dir-ho amb aquestes paraules és l'única manera que sàpigues què fer-hi.
+  if (esAdrecaWeb(it.adreca)) return 'enllac-curt';
   const v = cauCoordsAdr[it.adreca.trim().toLowerCase()];
   if (!v) return null;            // encara no s'ha preguntat
   if (v.buit) return 'no-trobada';
@@ -7186,7 +7508,8 @@ function motiuPoble(it) {
 const MOTIU_TEXT = {
   'sense-adreca': 'Al mapa s’entén que és a ',
   'no-trobada': 'No s’ha pogut situar l’adreça. Al mapa, el pin va al poble: ',
-  'descartada': 'L’adreça queia molt lluny del poble i s’ha descartat. El pin va a '
+  'descartada': 'L’adreça queia molt lluny del poble i s’ha descartat. El pin va a ',
+  'enllac-curt': 'Aquest enllaç de Maps no porta el punt a dins i l’app no el pot obrir per veure’l. Obre’l tu una vegada i enganxa’n l’adreça llarga o les coordenades. Mentrestant el pin va a '
 };
 
 /* Què s'ha de dir del lloc d'una reserva, o null si no cal dir res. Els
@@ -7214,6 +7537,11 @@ function avisLloc(it, esIdea) {
   if (o.de === 'adreca') {
     const nom = nomAdreca(it.adreca);
     if (!nom) return null;   // resolta abans que en guardéssim el nom
+    // Un punt que has escrit tu no es corregeix des d'aquí: no hi ha res per
+    // triar, el lloc ja el dius tu. Si t'has equivocat, es canvia al camp.
+    if (coordsDelText(it.adreca)) {
+      return { text: 'Al mapa, al punt que hi has posat: <strong>' + esc(nom) + '</strong>', boto: '' };
+    }
     return { text: 'Al mapa, a <strong>' + esc(nom) + '</strong>',
              boto: 'No és aquest lloc?', mode: esIdea ? 'adrecaIdea' : 'adreca' };
   }
@@ -8112,7 +8440,7 @@ function diesDelViatge() {
    camps que a l'itinerari complet, sense els botons d'acció ni els camps
    editables. */
 function detallReservaLecturaHTML(r) {
-  const geo = { allotjament: 'Adreça', entrada: 'Població', cotxe: 'Lloc de recollida', altres: 'Lloc' }[tipusDe(r)];
+  const geo = campGeografic(r);
   const camps = detallReserva(r).map(([et, val, ample]) =>
     (et === geo && val) ? campDetall(et, val, ample, enllacMaps(r)) : campDetall(et, val, ample)
   ).join('');
@@ -9246,7 +9574,9 @@ const FULL_QUAN = {
 
 /* Els comuns que sí que van al full, en aquest ordre. Falten «preu» i
    «pagament» (els diners) i «notes», que va a part perquè és llarg. */
-const FULL_COMUNS = ['numReserva', 'cancelacio', 'quiPaga'];
+/* «Qui ho paga» NO hi és, per la mateixa raó que no hi ha els preus: el full
+   s'ha de poder ensenyar a algú altre, i qui paga què és cosa de casa. */
+const FULL_COMUNS = ['numReserva', 'cancelacio'];
 
 /* Al full, algunes etiquetes es diuen d'una altra manera. A la fitxa hi van
    bé, perquè allà hi ha tota l'amplada de la pantalla; en una columna de
@@ -9344,6 +9674,10 @@ function blocReservaHTML(r) {
   for (const id of FULL_COMUNS) {
     const val = (r[id] || '').trim();
     if (!val) continue;
+    // La cancel·lació, només mentre serveixi. Un termini vençut o un «no
+    // reemborsable» al paper no és informació: és una línia que has de
+    // llegir per descobrir que no et diu res.
+    if (id === 'cancelacio' && !cancelVigent(r)) continue;
     const def = CAMPS_COMUNS.find(c => c.id === id);
     dreta += fullCamp(def ? fullEtiqueta(def, t) : id, val, id === 'numReserva');
   }
