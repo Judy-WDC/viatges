@@ -137,7 +137,7 @@
   .menu-compte-opcio:hover { background: var(--subtil); }
   .menu-compte-nota { font-size: 11.5px; color: var(--tinta-tenue); font-weight: 400; }
   .menu-compte-opcio.surt { color: var(--vermell); border-top: 1px solid var(--vora); border-radius: 0; margin-top: 3px; }
-  #fitxer-importa { display: none; }
+  #fitxer-importa, #fitxer-foto { display: none; }
 
   main { max-width: 1120px; margin: 0 auto; padding: 24px 28px 40px; }
   .pista { color: var(--tinta-suau); font-size: 13.5px; margin: 0 0 12px; }
@@ -788,13 +788,70 @@
   .fila.visita { border-left-color: var(--mostassa-actiu); }
   .fila.visita.oberta { border-left-color: var(--accio); }
   .visita-icona { background: var(--accent-fons); color: var(--accent); }
+  /* Una visita oberta es LLEGEIX (v148): el text sencer amb els seus
+     paràgrafs, i a sota la graella de dades de sempre. Els camps només es
+     tornen editables prement «Edita». */
+  .visita-lectura { display: flex; flex-direction: column; gap: 14px; }
+  /* La foto de record (v151), dins del detall obert d'una activitat (sota
+     el text) o d'una reserva (després de les dades). Mida de record, no de
+     galeria: 460 px d'ample com a molt, tot l'ample al mòbil. */
+  .foto-record { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .fila-detall > .foto-record, .activitat-detall > .foto-record { margin-top: 16px; }
+  .foto-img { max-width: 100%; width: 460px; max-height: 340px; object-fit: cover; border-radius: 10px; display: block; box-shadow: 0 2px 10px rgba(51, 39, 46, 0.12); }
+  .foto-img:not([src]) { display: none; }
+  .foto-accions { display: flex; gap: 2px; }
+  .foto-afegeix {
+    display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px;
+    border: 1px dashed var(--vora-control); border-radius: 10px; background: none;
+    color: var(--tinta-suau); font-size: 13px;
+  }
+  .foto-afegeix:hover { background: var(--accent-fons); color: var(--accent); border-color: var(--accent-clar); }
+  .foto-afegeix:disabled { opacity: 0.7; cursor: wait; }
+  .foto-afegeix svg { width: 18px; height: 18px; }
+  /* ── Com va anar (v153) ──
+     Una frase i una nota de l'1 al 5, dins de l'element obert, només quan
+     el seu dia ha passat. Camp que creix (fesGran) i es desa en deixar-lo. */
+  .va-anar { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; }
+  .va-anar-cap { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--tinta-suau); }
+  .va-anar-text {
+    border: 1px solid var(--vora-control); border-radius: 7px; padding: 7px 9px;
+    font-family: inherit; font-size: 13.5px; color: var(--tinta); background: var(--superficie);
+    resize: none; line-height: 1.45; max-width: 560px;
+  }
+  .va-anar-text:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .va-anar-text::placeholder { color: var(--tinta-tenue); font-style: italic; }
+  .va-anar-nota { display: flex; gap: 4px; }
+  .va-anar-punt {
+    width: 30px; height: 30px; padding: 0; border-radius: 50%; font-size: 12.5px;
+    border: 1px solid var(--vora-control); background: none; color: var(--tinta-suau);
+  }
+  .va-anar-punt:hover { background: var(--accent-fons); color: var(--accent); }
+  .va-anar-punt.ple { background: var(--accent); border-color: var(--accent); color: #F6EFE9; }
+  /* ── La foto de portada d'un viatge (v153) ── */
+  .detall-cap-esq { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .portada-mini { width: 56px; height: 56px; border-radius: 10px; overflow: hidden; flex: none; background: var(--accent-fons); display: block; }
+  .portada-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .portada-mini img:not([src]) { display: none; }
+  .foto-afegeix.portada-buida { flex-direction: column; gap: 2px; width: 56px; height: 56px; padding: 0; font-size: 10px; border-radius: 10px; }
+  .portada-accions { margin: 2px 0 0 -10px; display: flex; gap: 0; }
+  .viatge-cap.amb-portada { flex-direction: row; align-items: center; gap: 12px; }
+  .viatge-cap.amb-portada .portada-mini { width: 44px; height: 44px; border-radius: 8px; }
+  .viatge-cap-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .visita-text { margin: 0; font-size: 13.5px; line-height: 1.55; white-space: pre-line; }
   .visita-edita { display: flex; flex-direction: column; gap: 12px; }
   .visita-graella { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
   .visita-camp { display: flex; flex-direction: column; gap: 4px; }
   .visita-camp.ample { grid-column: 1 / -1; }
-  .visita-camp span { font-size: 12px; font-weight: 500; color: var(--tinta-tenue); }
-  /* L'etiqueta d'un camp amb l'enllaç clicable al costat. */
+  /* El rètol d'un camp (Dia, Hora, Zona…), el mateix aquí, al detall d'una
+     reserva i a la lectura d'una visita: majúscules petites, que a la mida
+     i el color del text es confonien amb la dada (v148). */
+  .visita-camp span, .detall-camp > span {
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--tinta-suau);
+  }
+  /* L'etiqueta d'un camp amb l'enllaç clicable al costat. L'enllaç és un
+     nom de web i es queda en minúscules. */
   .visita-camp-cap { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .visita-camp-cap .idea-enllac { text-transform: none; letter-spacing: 0; font-weight: 400; }
   .visita-camp input, .visita-camp textarea {
     border: 1px solid var(--vora-control); border-radius: 7px; padding: 7px 9px;
     font-family: inherit; font-size: 13.5px; color: var(--tinta);
@@ -850,7 +907,11 @@
   .maleta-nansa svg { width: 16px; height: 16px; }
   /* «Per encaixar»: la nansa va DINS de la fila, a l'esquerra del cap. */
   .fila-dalt { display: flex; align-items: stretch; }
-  .fila-dalt .fila-cap { flex: 1; min-width: 0; padding-left: 6px; }
+  .fila-dalt .fila-cap { flex: 1; min-width: 0; }
+  /* El marge s'escurça NOMÉS quan hi ha nansa al davant (Per encaixar).
+     Abans s'escurçava a tota fila amb embolcall, i a l'itinerari les
+     activitats quedaven 10 px més a l'esquerra que les reserves (v152). */
+  .fila-dalt .fila-nansa + .fila-cap { padding-left: 6px; }
   /* Alineada amb la primera línia (a l'alçada de la icona), no centrada:
      amb la fila de dues línies quedava flotant al mig. I estreta, que al
      mòbil aquesta fila ja va justa d'amplada. */
@@ -1057,6 +1118,12 @@
   }
   .icona-requadre { background: var(--accent-fons); }
   .icona-tipus svg { width: 18px; height: 18px; }
+  /* Amb foto de record (v151), la foto tapa la icona quan arriba la seva
+     adreça (la <img> neix sense src i fins llavors no es veu). La icona es
+     queda a sota: si la xarxa no respon, es veu el de sempre. */
+  .icona-tipus.amb-foto { overflow: hidden; }
+  .icona-tipus.amb-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .icona-tipus.amb-foto img:not([src]) { display: none; }
   .icona-tipus.revisar { color: var(--accent); }
   .icona-tipus.revisar::after {
     content: '';
@@ -1090,7 +1157,9 @@
 
   /* Reserves ja passades: es despinten mentre la fila és tancada. En obrir-la
      recuperen els colors normals, que és just quan les vols llegir de debò.
-     Val també dins del detall d'un viatge, perquè la fila és la mateixa. */
+     Val també dins del detall d'un viatge, perquè la fila és la mateixa, i
+     des de la v149 també per a les visites amb dia (visitaPassada): la
+     regla «.fila.passada» va DESPRÉS de «.fila.visita» i li guanya la vora. */
   .fila.passada { border-left-color: var(--vora-forta); background: var(--superficie-apagada); }
   .fila.passada:not(.oberta) .icona-tipus { background: var(--subtil); color: var(--tinta-tenue); }
   .fila.passada:not(.oberta) .nom { color: var(--tinta-suau); font-weight: 400; }
@@ -1130,8 +1199,10 @@
   .fila.te-pregunta .fila-cap { border-bottom-color: transparent; padding-bottom: 6px; }
   .fila-detall { padding: 16px; background: var(--superficie-clara); }
   .detall-graella { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px 24px; }
-  .detall-camp span { display: block; font-size: 12px; font-weight: 500; color: var(--tinta-tenue); }
-  .detall-camp p { margin: 2px 0 0; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  /* La mida, el pes i el color del rètol són a «.visita-camp span», que
+     els comparteix (v148). */
+  .detall-camp > span { display: block; }
+  .detall-camp p { margin: 3px 0 0; font-size: 13.5px; font-variant-numeric: tabular-nums; }
   .detall-camp p.absent { color: var(--tinta-tenue); font-style: italic; }
   .detall-camp.ample { grid-column: 1 / -1; }
   /* ── El desplegable de dins d'una reserva ──
@@ -1294,6 +1365,30 @@
     font-weight: 400; color: var(--accent); border-radius: 999px; flex: none;
   }
   .idea-lloc button:hover { background: var(--accent-fons); }
+  /* «Va quedar pendent de Lisboa (octubre 2026)» (v150): la línia d'origen
+     d'una idea pendent, a Inspiració i a la suggerència d'un viatge nou.
+     Tan discreta com la del lloc; el nom del viatge, subratllat, hi porta. */
+  .idea-origen { margin: 6px 0 0 3px; font-size: 11.5px; color: var(--tinta-tenue); }
+  .idea-origen button {
+    border: none; background: none; padding: 0; font-size: 11.5px; font-weight: 400;
+    color: var(--accent); text-decoration: underline; text-underline-offset: 2px;
+  }
+  .idea-origen button:hover { background: none; color: var(--accent-fort); }
+  /* El bloc «El que va quedar pendent» d'un viatge: files que s'obren com
+     les de l'Agenda, però sense les columnes de dates i preu, que una
+     pendent no en té. */
+  .pendent { border-bottom: 1px solid var(--vora); }
+  .pendent-cap {
+    display: flex; align-items: baseline; gap: 10px; width: 100%; text-align: left;
+    padding: 9px 4px; border: none; background: none; border-radius: 6px; font-family: inherit;
+  }
+  .pendent-cap:hover { background: var(--subtil); }
+  .pendent-cap:hover .pendent-text { color: var(--accent); }
+  .pendent-text { flex: 1; min-width: 0; font-size: 14px; color: var(--tinta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pendent-meta { font-size: 12px; color: var(--tinta-suau); white-space: nowrap; }
+  .pendent-chev { flex: none; color: var(--tinta-tenue); display: flex; align-items: center; align-self: center; }
+  .pendent.oberta .pendent-chev .chev { transform: rotate(180deg); }
+  .pendent-detall { padding: 6px 4px 16px; }
   /* La mateixa cosa dins del detall d'una reserva, on hi ha més text al
      voltant: amb un fons suau perquè es llegeixi com una nota i no com un
      camp més. Gris, no ambre: sovint el lloc entès serà correcte. */
@@ -1657,6 +1752,58 @@
   .imprimir-opcio { display: flex; align-items: center; gap: 9px; padding: 7px 2px; font-size: 14px; color: var(--tinta); }
   .imprimir-opcio input { width: 16px; height: 16px; accent-color: var(--accent); }
 
+  /* ── La memòria del viatge (v153) ──
+     Germana del dossier (blanc i negre, punts, .full-camp per a les dades),
+     però contada en ordre de temps. La portada i el dia a dia amb fotos:
+     aquest és l'únic full amb imatges, i van en gris si la impressora és
+     de tinta negra. Les taules de despeses diuen el seu ample: l'estil
+     general de l'app posa un mínim de 1.150 px a tota taula (per a la vista
+     Taula de Reserves) i aquí sortirien del full. */
+  .mem-cap { border-bottom: 1.5pt solid #000; padding-bottom: 10pt; display: flex; align-items: flex-end; justify-content: space-between; gap: 12pt; }
+  .mem-doc h1.mem-titol { font-size: 24pt; font-weight: 600; margin: 0; letter-spacing: -0.01em; color: #000; font-family: inherit; }
+  .mem-sub { font-size: 10.5pt; color: #333; margin: 4pt 0 0; }
+  .mem-etiq { font-size: 8pt; color: #6E6E6E; text-transform: uppercase; letter-spacing: 0.14em; text-align: right; flex: none; }
+  .mem-portada { width: 100%; height: 78mm; object-fit: cover; margin-top: 12pt; display: block; }
+  .mem-grup { display: flex; align-items: baseline; justify-content: space-between; gap: 12pt; margin: 22pt 0 8pt; border-bottom: 0.8pt solid #000; padding-bottom: 4pt; }
+  .mem-grup h2 { font-size: 10.5pt; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.14em; color: #000; }
+  .mem-grup-de { font-size: 8.5pt; color: #6E6E6E; text-align: right; }
+  .mem-dia { display: grid; grid-template-columns: 34mm 1fr; gap: 0 8pt; padding: 8pt 0 10pt; border-top: 0.6pt solid #C8C8C8; }
+  .mem-grup + .mem-dia { border-top: none; }
+  .mem-dia-data { font-size: 11pt; font-weight: 600; line-height: 1.2; color: #000; }
+  .mem-dia-data small { display: block; font-size: 8.5pt; font-weight: 400; color: #6E6E6E; margin-top: 2pt; }
+  .mem-buit { font-size: 9.5pt; color: #6E6E6E; font-style: italic; padding-top: 2pt; }
+  .mem-hora { display: grid; grid-template-columns: 12mm 1fr auto; gap: 0 8pt; padding: 3pt 0; align-items: start; }
+  .mem-hora + .mem-hora { border-top: 0.4pt dotted #C8C8C8; }
+  .mem-hora-h { font-size: 9.5pt; font-variant-numeric: tabular-nums; color: #333; padding-top: 1pt; }
+  .mem-hora-que { font-size: 10pt; color: #000; }
+  .mem-hora-que b { font-weight: 600; }
+  .mem-hora-que small { display: block; font-size: 8.8pt; color: #555; margin-top: 1pt; }
+  .mem-hora-que .mem-nota { display: block; font-size: 9pt; color: #222; margin-top: 3pt; line-height: 1.35; white-space: pre-line; }
+  .mem-hora-que .mem-va { display: block; font-size: 9pt; color: #333; margin-top: 3pt; font-style: italic; }
+  .mem-hora-que .mem-va::before { content: 'Com va anar · '; font-style: normal; font-size: 7.5pt; color: #6E6E6E; text-transform: uppercase; letter-spacing: 0.06em; }
+  .mem-foto { width: 50mm; height: 34mm; object-fit: cover; display: block; }
+  .mem-allot { display: grid; grid-template-columns: 1fr 1fr; gap: 2pt 16pt; padding: 8pt 0 9pt; }
+  .mem-allot + .mem-allot { border-top: 0.6pt solid #C8C8C8; }
+  .mem-allot-cap { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; gap: 10pt; }
+  .mem-allot-nom { font-size: 12pt; font-weight: 600; margin: 0; color: #000; }
+  .mem-allot-nits { font-size: 9pt; color: #6E6E6E; text-align: right; }
+  .mem-allot .full-camp dt { width: 60pt; }
+  .mem-va-bloc { grid-column: 1 / -1; margin-top: 5pt; font-size: 9.3pt; font-style: italic; color: #222; display: flex; gap: 8pt; align-items: baseline; }
+  .mem-va-bloc::before { content: 'Com va anar'; font-style: normal; font-size: 7.5pt; color: #6E6E6E; text-transform: uppercase; letter-spacing: 0.06em; flex: none; width: 60pt; }
+  .mem-nota5 { font-style: normal; font-size: 8.5pt; color: #000; border: 0.7pt solid #000; border-radius: 999pt; padding: 0 6pt; flex: none; white-space: nowrap; }
+  .mem-taula { width: 100%; min-width: 0; border-collapse: collapse; font-size: 9.6pt; table-layout: auto; }
+  .mem-taula th { text-align: left; font-size: 7.5pt; color: #6E6E6E; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; padding: 3pt 0; border-bottom: 0.6pt solid #000; background: none; white-space: normal; }
+  .mem-taula td { padding: 3pt 0; border-bottom: 0.4pt solid #DADADA; vertical-align: top; font-size: 9.6pt; color: #000; max-width: none; background: none; }
+  .mem-taula .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .mem-taula .total td { border-bottom: none; border-top: 1pt solid #000; font-weight: 600; padding-top: 5pt; }
+  .mem-taula td.tenue { color: #6E6E6E; font-size: 8.8pt; }
+  .mem-taula td.nota { border: none; padding-top: 6pt; }
+  .mem-dues { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24pt; }
+  /* El títol d'una secció amb el seu primer element: junts (v154). */
+  .mem-junt { break-inside: avoid; page-break-inside: avoid; }
+  .mem-pend { padding: 5pt 0; border-bottom: 0.4pt solid #DADADA; font-size: 10pt; color: #000; display: flex; justify-content: space-between; gap: 10pt; }
+  .mem-pend small { color: #6E6E6E; font-size: 8.8pt; white-space: nowrap; }
+
 @page { margin: 16mm; }
 @media print {
   /* Del document només s'imprimeix el full. Els «script» també hi són, però
@@ -1673,6 +1820,11 @@
      no es pot quedar tot sol al final d'un full. */
   .full-res { break-inside: avoid; page-break-inside: avoid; }
   .full-grup { break-after: avoid; page-break-after: avoid; break-inside: avoid; }
+  /* La memòria: cap línia d'un dia, cap allotjament ni cap fila de la taula
+     partits; un dia sencer es queda junt si cap. */
+  .mem-hora, .mem-allot, .mem-pend, .mem-taula tr { break-inside: avoid; page-break-inside: avoid; }
+  .mem-dia { break-inside: avoid; page-break-inside: avoid; }
+  .mem-grup { break-after: avoid; page-break-after: avoid; break-inside: avoid; }
 }
 </style>
 </head>
@@ -1693,6 +1845,10 @@
         <button class="menu-compte-opcio surt" id="opc-surt" role="menuitem">Surt</button>
       </div>
       <input type="file" id="fitxer-importa" accept=".json">
+      <!-- La foto de record d'una activitat o reserva (v151): un selector de
+           fitxers amagat que obren els botons «Afegeix una foto». Amb
+           «accept» d'imatge, el mòbil ofereix la galeria i la càmera. -->
+      <input type="file" id="fitxer-foto" accept="image/*">
       <!-- Els noms coneguts viuen aquí, en un lloc fix: els fan servir tant
            les reserves com les despeses soltes, que són pantalles diferents. -->
       <datalist id="noms-pagadors"></datalist>
@@ -3283,6 +3439,218 @@ function parseReserva(textOriginal) {
       treu un full en blanc. S'arreglaria amb l'esdeveniment «beforeprint»,
       omplint el full segons la pantalla on ets. LA CLARA HO VA DESCARTAR
       (25/08/2026): no li calia.
+   FET · La memòria, dos retocs del primer PDF de debò (v154). Els va
+      veure la Clara (15/09/2026).
+      · Cap títol de secció penjat al peu d'un full. «break-after: avoid»
+        al títol no n'hi havia prou (no tots els navegadors el respecten,
+        i menys davant d'una graella): ara cada títol va dins d'un
+        embolcall .mem-junt amb el primer element de la seva secció, i
+        l'embolcall és el que no es parteix. Si el títol no hi cap amb la
+        primera cosa, passen tots dos al full següent.
+      · Fora el detall línia a línia de «Què vam gastar». Amb les dues
+        taules (per categoria i qui va pagar què) i la frase del previst
+        n'hi ha prou per a una memòria; el detall queda per a un informe
+        pressupostari, si un dia es fa. memoriaDespesesHTML() torna ara la
+        seva peça sense títol, com les altres seccions, perquè el títol el
+        posa seccio() lligat a la peça.
+   FET · La memòria del viatge, «com va anar» i la foto de portada (v153).
+      Ho va demanar la Clara (15/09/2026) i ho va decidir pas a pas amb la
+      mostra a mida A4.
+      · LA MEMÒRIA. Un document per GUARDAR després del viatge, a diferència
+        del dossier de reserves (v137), que és per portar a sobre durant.
+        Botó «Fes la memòria del viatge» al peu de l'Agenda, només quan
+        l'últim dia ha passat (viatgePassat). Mateix camí que el dossier:
+        #full-imprimir i el diàleg d'imprimir («Desa com a PDF»). L'ordre:
+        portada (nom, dates, dies, qui, la foto de portada), dia a dia (el
+        mateix que «Activitats del dia», amb la foto i el «com va anar» de
+        cada cosa; el dia sense res també hi és, fa de calendari), on vam
+        dormir (adreça, plataforma, telèfon, preu i preu per nit, hostes,
+        qui ho va pagar), com hi vam anar (vols, cotxe, altres), què vam
+        gastar (per categoria, qui va pagar què, la frase del previst amb
+        el per persona i per dia, i el detall línia a línia) i el que va
+        quedar pendent (v150). SENSE «qui deu a qui» (en tornar ja s'ha
+        resolt) i SENSE la franja de diners a la portada: totes dues coses
+        les va treure ella mirant la mostra.
+        Les fotos es carreguen ABANS d'obrir el diàleg (esperaFotos, límit
+        de 8 s): el diàleg congela la pàgina i una foto que arribés després
+        no hi sortiria. Les taules diuen el seu ample (min-width: 0): l'estil
+        general posa 1.150 px a tota taula i a la mostra sortien 11 cm fora
+        del full, que va ser ella qui ho va veure.
+        El càlcul de «què passa un dia» s'ha tret d'agendaDiaHTML() a una
+        funció pròpia (activitatsDelDia) que fan servir les dues.
+      · COM VA ANAR. Una frase i una nota de l'1 al 5 (opcional) a cada
+        reserva i a cada activitat, per recordar si valia la pena. El camp
+        surt dins de l'element obert NOMÉS quan el seu dia ha passat
+        (reservaPassada / visitaPassada): al segon allotjament ja pots dir
+        com va anar el primer, no cal esperar que s'acabi el viatge. Es desa
+        sol en deixar el camp, com «Qui ho paga»: és una frase d'una
+        vegada, no un formulari. Tocar la nota que ja hi és la treu. A la
+        memòria, la frase va al costat de la cosa que comenta (dia a dia,
+        allotjaments, transports): no hi ha cap apartat de frases soltes.
+      · LA FOTO DE PORTADA. Una foto pròpia del viatge (v.foto), triada de
+        la galeria: no cal que sigui cap de les de dins, «és més ric que
+        pugui no ser-ho» (ella). A la capçalera del viatge, a l'esquerra del
+        nom (56 px; sense, el botó quadrat «Portada» amb la càmera; amb,
+        «Canvia la portada» i «Treu-la» sota les dates), a la llista de
+        viatges (44 px) i a la memòria. Sense portada, la memòria surt només
+        amb el títol: no s'agafa cap foto de dins per omplir. Va per Fotos
+        amb la mena 'viatge' (magatzemDe / elementDe la coneixen).
+   FET · A l'itinerari, les activitats anaven 10 px més a l'esquerra que les
+      reserves (v152). Ho va veure la Clara en una captura (15/09/2026).
+      La fila d'una activitat porta l'embolcall .fila-dalt per poder-hi
+      posar la nansa d'arrossegar, i la regla que escurça el marge del cap
+      per fer-li lloc s'aplicava a tot embolcall, amb nansa o sense. Ara
+      només quan la nansa hi és de debò (.fila-nansa + .fila-cap).
+   FET · Una foto de record per a cada activitat i cada reserva (v151). Ho
+      va demanar la Clara (15/09/2026), primer per a les activitats i
+      després també per a les reserves; al mapa, NO (de moment).
+      · ON VAN. Les fotos són l'única cosa que no cap on ho desem tot (el
+        calaix del navegador té uns 5 MB; una foto de mòbil en fa 4). Van a
+        l'armari de fitxers de Supabase (Storage, bucket «fotos», PRIVAT),
+        i a l'element només s'hi desa el camí (foto: 'usuari/id-hora.jpg'),
+        que viatja amb la sincronització com qualsevol altre camp. Cada
+        usuari té la seva carpeta i les regles del bucket només el deixen
+        entrar-hi a ell. Tot el mecanisme és l'objecte Fotos (encongir,
+        pujar, esborrar, adreces signades) i les quatre funcions de sota.
+      · ABANS DE PUJAR-LA s'encongeix a 1.600 px i JPEG al 82 %: uns
+        200–300 KB. Amb 1 GB gratuït, unes 4.000 fotos. L'orientació EXIF
+        de les fotos verticals del mòbil es respecta (createImageBitmap
+        amb «from-image»).
+      · ON ES VEUEN. A la fila plegada, la foto fa de rodona en comptes de
+        la icona (iconaAmbFotoHTML): la fila no creix. A l'activitat
+        oberta, sota el text; a la reserva oberta, després de les dades i
+        abans dels botons (fotoRecordHTML); també a «Activitats del dia» i
+        a la llista de Reserves, que és la mateixa fila. Sense foto, el
+        botó «Afegeix una foto», que al mòbil obre la galeria o la càmera
+        (#fitxer-foto, accept="image/*"). Amb foto, «Canvia la foto» i
+        «Treu-la». La foto va amb la idea: si l'activitat es deixa pendent
+        o torna a Inspiració, la segueix.
+      · SENSE REPINTAR. El bucket és privat i per veure una foto cal una
+        adreça signada, que dura una hora: les <img data-foto> neixen sense
+        src, l'adreça es demana sota demanda i es recorda en memòria, i
+        quan arriba s'omplen totes les que l'esperaven (posaAdrecesFoto).
+        Una fila no espera la xarxa per pintar-se, i si la xarxa no respon
+        es veu la icona de sempre.
+      · CANVIAR puja un fitxer NOU (el camí porta l'hora) i esborra l'antic:
+        reaprofitant el camí, el navegador podia ensenyar la vella. Esborrar
+        l'element esborra la foto (esborraFotoDe), a la millor de les
+        intencions. Cal sessió i connexió per pujar-ne i per veure-les: si
+        no n'hi ha, l'app ho diu (avis-peu) i no fa veure que ha anat bé.
+      · La còpia de seguretat (JSON) porta els camins però no les fotos.
+      · DE PASSADA: filesObertes és compartit amb les visites i les
+        pendents, i pintaLlista() en treia tot el que no fos reserva. Des
+        de la v148, en desar una activitat la fila es tancava sola (abans
+        no es notava: el cursor era al camp i el detall no es repintava).
+        Ara només es treuen les claus que no siguin de res.
+      · EL PAS QUE HA DE FER LA CLARA UN COP, al panell de Supabase
+        (SQL Editor → New query → enganxar-ho i Run). Crea l'armari (privat,
+        només JPEG, 2 MB per fitxer com a xarxa de seguretat) i les tres
+        regles: cadascú només la seva carpeta.
+
+          insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+          values ('fotos', 'fotos', false, 2097152, array['image/jpeg']);
+
+          create policy "fotos: llegir la carpeta pròpia"
+          on storage.objects for select to authenticated
+          using (bucket_id = 'fotos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+          create policy "fotos: pujar a la carpeta pròpia"
+          on storage.objects for insert to authenticated
+          with check (bucket_id = 'fotos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+          create policy "fotos: esborrar de la carpeta pròpia"
+          on storage.objects for delete to authenticated
+          using (bucket_id = 'fotos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+        Fins que no es faci, «Afegeix una foto» diu que falta l'armari
+        (Fotos.explica tradueix l'error de Supabase).
+   FET · El que va quedar pendent d'un viatge (v150). Ho va demanar la
+      Clara (15/09/2026): els llocs on no vas arribar, per si mai hi tornes.
+      · CAP PANTALLA NOVA. Una pendent és una idea normal d'Inspiració (amb
+        zona, i per tant suggerida al pròxim viatge a la mateixa zona) amb
+        dues marques: l'etiqueta «pendent», que és una etiqueta com les
+        altres (es filtra i es treu com les altres), i l'origen (pendentDe:
+        id, nom i mes del viatge). MANA L'ETIQUETA (esPendent): si la treus
+        a mà deixa de ser pendent, i l'origen desat no fa res.
+      · D'ON SURTEN. A l'Agenda, cada activitat té «Ho deixo pendent» al
+        costat de «Torna a Inspiració»: fa el mateix (fora del viatge, sense
+        dia) més les dues marques (canvisPendent). I una idea nova apuntada
+        des de la subpestanya Idees d'un viatge que JA HA PASSAT
+        (viatgePassat) neix pendent d'aquell viatge: és una cosa que hi vas
+        descobrir i no vas fer.
+      · ON ES VEUEN. (1) A Inspiració, la targeta porta la línia «Va quedar
+        pendent de Lisboa i el Douro (octubre 2026)» (origenPendentHTML); el
+        nom hi porta (vesAlViatge). (2) Dins del viatge, subpestanya Idees,
+        el bloc «El que va quedar pendent» (pendentsViatgeHTML): files que
+        s'obren com les de l'Agenda, amb la mateixa lectura, «Edita» (el
+        formulari de la v148 sense Dia ni Hora: formVisitaHTML(i, true), i
+        desaVisita només toca el dia si el camp hi és) i «Ja no és pendent».
+        (3) En un viatge nou a la zona, la suggerència de sempre amb la
+        línia d'origen. Les pendents d'un viatge NO se suggereixen en aquell
+        mateix viatge: ja tenen el seu bloc.
+      · QUAN PER FI LA FAS. En convertir-la en visita d'un viatge
+        («Afegeix al viatge»), l'etiqueta i l'origen salten sols
+        (canvisJaNoPendent): torna a ser una idea normal.
+      · L'Excel de les idees hi guanya la columna «Pendent de». La
+        sincronització no cal tocar-la: desa la idea sencera.
+   FET · Les activitats fetes a mà també s'apaguen quan el dia ha passat
+      (v149). A l'itinerari, una reserva amb el dia passat es veu
+      dissimulada (.fila.passada) i una visita amb dia no, tot i ser la
+      mateixa llista. Ho va demanar la Clara (15/09/2026). Mateixa regla
+      que reservaPassada(): passada a partir de l'endemà del seu dia; sense
+      dia («Per encaixar») no ho és mai. Mateix estil, que la fila és la
+      mateixa: cap regla nova, només la classe (visitaPassada). Quan s'obre
+      recupera els colors, com les reserves.
+   FET · Les activitats de l'Agenda s'editen com la resta: amb «Edita»,
+      «Desa» i «Cancel·la» (v148).
+      · QUÈ PASSAVA. En obrir una visita, tots els camps eren ja caixes
+        d'escriptura i cada un es desava sol en deixar-lo, com una nota. No
+        hi havia cap moment de «guardar» ni manera de fer-se enrere, i no
+        anava com les reserves ni com les despeses. Ho va demanar la Clara
+        (15/09/2026).
+      · ARA. La visita oberta es LLEGEIX: el text sencer amb els seus
+        paràgrafs (i els enllaços de dins clicables, com les notes d'una
+        reserva), i a sota la graella de dades, només les plenes. A baix,
+        «Edita», «Torna a Inspiració» i «Elimina». Prement «Edita» surten
+        els mateixos camps de sempre i els botons passen a ser «Desa» i
+        «Cancel·la». Desa escriu tots els camps de cop (desaVisita);
+        Cancel·la repinta i prou. Esc també cancel·la, i Intro en un camp
+        d'una línia desa. Una sola visita en edició alhora
+        (visitaEnEdicio), com les despeses.
+      · A «Activitats del dia» també hi ha l'«Edita»: fins ara aquella
+        vista era només de lectura i, si hi veies una hora malament, havies
+        de canviar a l'itinerari complet per tocar-la. Les dues vistes
+        comparteixen detallVisitaHTML().
+      · Els camps del formulari porten data-edita-camp i no data-visita-camp:
+        aquell atribut és el del desat automàtic, que es queda només per als
+        tres campets de les idees suggerides (Idees del viatge), que són una
+        altra cosa i no s'han tocat.
+      · Els RÈTOLS dels camps (Dia, Hora, Zona…) en majúscules petites, a
+        11 px i en el marró del text secundari. A la mida i el color del
+        text es confonien amb la dada. Va igual a la lectura i a l'edició
+        d'una visita i al detall de les reserves, que és la mateixa graella
+        (.detall-camp > span i .visita-camp span). L'enllaç clicable que va
+        al costat del rètol «Enllaç» es queda en minúscules: és un nom de
+        web.
+      · Amb teclat: en entrar a l'edició el cursor va al text; en sortir-ne
+        (Desa, Cancel·la o Esc) torna a l'«Edita» de la mateixa visita
+        (tornaElCursorAEdita). Si no, els botons que tenies sota el dit
+        desapareixen amb el repintat i el cursor es perd.
+   FET · Còpia congelada app-viatges-16.html i documentació nova
+      com-funciona-l-app-16.md, totes dues completes fins aquí (v147).
+      Toquen cada deu versions, en arribar a una acabada en 6. Aquesta ha
+      caigut a la v147 i no a la v146 perquè el número acabat en 6 se'l va
+      endur el canvi del full imprès el mateix dia. La pròxima segueix sent
+      la que toqui acabada en 6 (v156): és la cadència el que compta.
+      La 15 arribava fins a la v136, o sigui que la 16 recull DEU versions
+      de cop: l'imprimir (v137), les visites amb adreça (v138), els lectors
+      d'activitats (v139–v140), la nota del mapa (v141) i les cinc del
+      02/09/2026 (v142–v146).
+      La documentació 16 hi guanya un apartat: el dossier de paper, que a la
+      15 no hi era perquè encara no existia. Va DINS de la §5 (l'agenda del
+      viatge), que és on viu el botó, i no com a apartat nou: obrir-ne un al
+      mig hauria renumerat del 9 al 17 i trencat totes les referències
+      internes, que es diuen pel número.
    FET · El full imprès: fora «qui ho paga», i la cancel·lació només mentre
       serveixi (v146).
       · QUI PAGA QUÈ ÉS COSA DE CASA, i el full s'ha de poder ensenyar a algú
@@ -4298,6 +4666,7 @@ function parseReserva(textOriginal) {
       NO S'HA PERDUT RES: les entrades velles viuen a les còpies congelades,
       que fan d'arxiu. Si busques per què es va fer una cosa i aquí no hi és,
       mira-les de la més nova a la més vella:
+        app-viatges-16.html → fins a la v147 (56 entrades, ja podat)
         app-viatges-15.html → fins a la v136 (45 entrades, ja podat)
         app-viatges-14.html → fins a la v127 (36 entrades, ja podat)
         app-viatges-13.html → fins a la v116 (95 entrades)
@@ -4439,6 +4808,8 @@ const ICONES = {
   monedes: '<path d="M12.25 7.44A5.6 5.6 0 1 1 12.25 16.56" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="9" cy="12" r="5.6" fill="none" stroke="currentColor" stroke-width="1.7"/>',
   targeta: '<rect x="2.5" y="5.5" width="19" height="13" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M2.5 10h19" stroke="currentColor" stroke-width="1.7"/>',
   nansa: '<path d="M6 9h12M6 12h12M6 15h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  // La càmera del botó «Afegeix una foto» (v151).
+  camera: '<path d="M4 8h3l2-2.5h6L17 8h3v11H4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/>',
   persona: '<circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M5 19.5a7 7 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>'
 };
 
@@ -5015,6 +5386,619 @@ $('btn-manual').addEventListener('click', () => {
 });
 
 /* Rellegeix les dades i repinta les dues vistes. */
+
+/* ═══════════════ FOTOS DE RECORD (v151) ═══════════════
+   Una foto per activitat o reserva, com a record. Les fotos són l'única
+   cosa de l'app que NO cap on ho desem tot: el calaix del navegador té
+   uns 5 MB en total i les files de Supabase són per a quatre línies de
+   text, no per a 4 MB de píxels. Així que van a l'armari de fitxers de
+   Supabase (Storage, bucket «fotos», privat) i a l'element només s'hi
+   desa el camí (foto: 'usuari/id-hora.jpg'), que viatja amb la
+   sincronització com qualsevol altre camp.
+
+   · Cada usuari té la seva carpeta (la primera part del camí és el seu
+     id) i les regles del bucket només el deixen entrar-hi a ell: mateixa
+     idea que la seguretat per files de les taules. Les regles les posa la
+     Clara al panell de Supabase (veure el registre de la v151).
+   · Abans de pujar-la, la foto s'encongeix a 1.600 px i JPEG al 82 %:
+     200–300 KB en comptes de 4 MB. Per a un record en pantalla no es
+     nota, i 1 GB gratuït són unes 4.000 fotos.
+   · Cal connexió i sessió per pujar-ne i per veure-les: no se'n guarda
+     còpia al calaix. Sense, l'app ho diu i no fa veure que ha anat bé.
+   · Per veure'n una cal una adreça signada (el bucket és privat), que
+     dura una hora. Es demanen sota demanda i es recorden en memòria: la
+     fila es pinta amb la icona de sempre i la foto hi apareix quan
+     l'adreça arriba, sense repintar res (posaAdrecesFoto).
+   · Canviar la foto puja un fitxer NOU (el camí porta l'hora) i esborra
+     l'antic: si es reaprofités el camí, el navegador podria ensenyar la
+     vella des de la seva memòria. Esborrar l'element esborra la foto
+     (esborraFotoDe), a la millor de les intencions: si falla, queda un
+     fitxer orfe a l'armari i prou.
+   · La còpia de seguretat (JSON) porta els camins però no les fotos. */
+const Fotos = {
+  BUCKET: 'fotos',
+  MIDA_MAX: 1600,
+  QUALITAT: 0.82,
+  adreces: new Map(),   // camí → { url, expira }
+  demanant: new Set(),  // camins amb una petició en curs
+
+  /* L'armari, o null si no hi ha ni biblioteca ni sessió. */
+  armari() {
+    if (!Nuvol.client || !Nuvol.usuari) return null;
+    return Nuvol.client.storage.from(this.BUCKET);
+  },
+
+  /* Encongeix la imatge: el costat llarg a MIDA_MAX com a molt, JPEG.
+     createImageBitmap amb «from-image» respecta l'orientació EXIF (les
+     fotos de mòbil en vertical venen girades i amb una etiqueta que ho
+     diu); si el navegador no ho sap fer, es passa per un <img>, que els
+     navegadors d'ara també giren sols. */
+  async encongeix(fitxer) {
+    let img;
+    try { img = await createImageBitmap(fitxer, { imageOrientation: 'from-image' }); }
+    catch (e) {
+      img = await new Promise((ok, mal) => {
+        const el = new Image();
+        el.onload = () => ok(el);
+        el.onerror = () => mal(new Error('No s’ha pogut llegir la imatge.'));
+        el.src = URL.createObjectURL(fitxer);
+      });
+    }
+    const ample = img.width, alt = img.height;
+    const escala = Math.min(1, this.MIDA_MAX / Math.max(ample, alt));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(ample * escala);
+    canvas.height = Math.round(alt * escala);
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    if (img.close) img.close();
+    const blob = await new Promise(ok => canvas.toBlob(ok, 'image/jpeg', this.QUALITAT));
+    if (!blob) throw new Error('No s’ha pogut preparar la imatge.');
+    return blob;
+  },
+
+  /* Puja la foto d'un element i torna el camí desat. */
+  async puja(idElement, fitxer) {
+    const armari = this.armari();
+    if (!armari) throw new Error('Per pujar una foto cal tenir sessió iniciada i connexió.');
+    if (!/^image\//.test(fitxer.type)) throw new Error('Això no és una imatge.');
+    const blob = await this.encongeix(fitxer);
+    const cami = `${Nuvol.usuari.id}/${idElement}-${Date.now()}.jpg`;
+    const { error } = await armari.upload(cami, blob, { contentType: 'image/jpeg', upsert: false });
+    if (error) throw new Error(this.explica(error));
+    return cami;
+  },
+
+  async esborra(cami) {
+    const armari = this.armari();
+    if (!armari || !cami) return;
+    await armari.remove([cami]);
+    this.adreces.delete(cami);
+  },
+
+  /* L'adreça d'una foto si ja es té; si no, la demana i, quan arriba,
+     la posa a totes les <img data-foto> que l'esperin. */
+  adreca(cami) {
+    const v = this.adreces.get(cami);
+    if (v && v.expira > Date.now()) return v.url;
+    if (!this.demanant.has(cami)) this.demana(cami);
+    return '';
+  },
+
+  async demana(cami) {
+    const armari = this.armari();
+    if (!armari) return '';
+    this.demanant.add(cami);
+    try {
+      const { data, error } = await armari.createSignedUrl(cami, 3600);
+      if (error || !data || !data.signedUrl) return '';
+      // Un marge de cinc minuts: que no caduqui just mentre es carrega.
+      this.adreces.set(cami, { url: data.signedUrl, expira: Date.now() + 55 * 60 * 1000 });
+      posaAdrecesFoto();
+      return data.signedUrl;
+    } finally {
+      this.demanant.delete(cami);
+    }
+  },
+
+  /* La mateixa adreça, però esperant-la: per a la memòria del viatge, que
+     necessita les fotos ABANS d'obrir el diàleg d'imprimir (v153). */
+  async adrecaSegura(cami) {
+    const v = this.adreces.get(cami);
+    if (v && v.expira > Date.now()) return v.url;
+    try { return await this.demana(cami); } catch (e) { return ''; }
+  },
+
+  /* Els errors de Supabase parlen en anglès i de coses seves; aquí es
+     tradueixen els que una persona pot arreglar. */
+  explica(error) {
+    const m = (error && error.message) || String(error);
+    if (/bucket not found/i.test(m)) return 'A Supabase encara no hi ha l’armari «fotos». Cal crear-lo (veure la documentació).';
+    if (/row-level security|not authorized|permission|policy/i.test(m)) return 'Supabase no deixa desar la foto: falten les regles de permisos de l’armari «fotos».';
+    if (/payload too large|exceeded|size/i.test(m)) return 'La foto és massa gran per a l’armari.';
+    if (/failed to fetch|network/i.test(m)) return 'No hi ha connexió. Prova-ho quan en tinguis.';
+    return 'No s’ha pogut pujar la foto: ' + m;
+  }
+};
+
+/* Posa l'adreça a totes les imatges que la tinguin a punt. Es crida quan
+   arriba una adreça nova i després de cada pintat: les <img data-foto>
+   neixen sense src i s'omplen aquí, o sigui que una fila no espera la
+   xarxa per pintar-se. */
+function posaAdrecesFoto() {
+  for (const img of document.querySelectorAll('img[data-foto]')) {
+    if (img.getAttribute('src')) continue;
+    const url = Fotos.adreca(img.dataset.foto);
+    if (url) img.src = url;
+  }
+}
+
+/* La foto dins del detall obert: la imatge amb «Canvia» i «Treu-la», o el
+   botó d'afegir-ne una. «mena» és 'idea' o 'reserva': diu a quin magatzem
+   va el camí. */
+function fotoRecordHTML(mena, item) {
+  const clau = `${mena}:${esc(item.id)}`;
+  if (item.foto) {
+    return `<div class="foto-record">
+      <img class="foto-img" data-foto="${esc(item.foto)}" alt="Foto de record">
+      <div class="foto-accions">
+        <button class="subtil mini" data-foto-afegeix="${clau}">Canvia la foto</button>
+        <button class="subtil mini" data-foto-treu="${clau}">Treu-la</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="foto-record">
+      <button class="foto-afegeix" data-foto-afegeix="${clau}">${iconaSVG('camera')}Afegeix una foto</button>
+    </div>`;
+}
+
+/* La icona d'una fila plegada: si l'element té foto, la foto hi va a
+   sobre quan l'adreça arriba; mentrestant, i si no n'hi ha, la icona. */
+function iconaAmbFotoHTML(item, classes, icona, aria) {
+  const amb = item.foto ? ' amb-foto' : '';
+  const img = item.foto ? `<img data-foto="${esc(item.foto)}" alt="">` : '';
+  return `<span class="icona-tipus ${classes}${amb}" role="img" aria-label="${aria}">${iconaSVG(icona)}${img}</span>`;
+}
+
+/* El magatzem i la llista d'un element segons la mena: 'reserva', 'idea'
+   (idees i visites) o 'viatge' (la foto de portada, v153). */
+function magatzemDe(mena) {
+  return mena === 'reserva' ? Magatzem : mena === 'viatge' ? MagatzemViatges : MagatzemIdees;
+}
+function elementDe(mena, id) {
+  if (mena === 'reserva') return reserves.find(r => r.id === id);
+  if (mena === 'viatge') return viatges.find(v => v.id === id);
+  return [...idees, ...visites].find(i => i.id === id);
+}
+
+let fotoPendent = null;   // { mena, id } de l'element que espera el fitxer triat
+
+/* «Afegeix una foto» / «Canvia la foto»: s'obre el selector de fitxers
+   (al mòbil, la galeria o la càmera). El fitxer arriba a canviFitxerFoto. */
+function demanaFoto(mena, id) {
+  if (!Fotos.armari()) {
+    avisa($('avis-peu'), 'Per pujar una foto cal tenir sessió iniciada i connexió.', 'mal');
+    return;
+  }
+  fotoPendent = { mena, id };
+  const input = $('fitxer-foto');
+  input.value = '';
+  input.click();
+}
+
+async function canviFitxerFoto() {
+  const input = $('fitxer-foto');
+  const fitxer = input.files && input.files[0];
+  const qui = fotoPendent;
+  fotoPendent = null;
+  if (!fitxer || !qui) return;
+  const item = elementDe(qui.mena, qui.id);
+  if (!item) return;
+  const boto = document.querySelector(`[data-foto-afegeix="${qui.mena}:${CSS.escape(qui.id)}"]`);
+  const textBoto = boto ? boto.textContent : '';
+  if (boto) { boto.disabled = true; boto.textContent = 'Pujant la foto…'; }
+  try {
+    const cami = await Fotos.puja(qui.id, fitxer);
+    const antiga = item.foto;
+    await magatzemDe(qui.mena).actualitza(qui.id, { foto: cami });
+    if (antiga) Fotos.esborra(antiga).catch(() => {});
+    await refresca();
+  } catch (e) {
+    if (boto) { boto.disabled = false; boto.textContent = textBoto; }
+    avisa($('avis-peu'), e.message || 'No s’ha pogut pujar la foto.', 'mal');
+  }
+}
+
+async function treuFoto(mena, id) {
+  const item = elementDe(mena, id);
+  if (!item || !item.foto) return;
+  if (!confirm('Vols treure la foto? S’esborrarà de l’armari i no es pot recuperar.')) return;
+  const cami = item.foto;
+  await magatzemDe(mena).actualitza(id, { foto: '' });
+  Fotos.esborra(cami).catch(() => {});
+  await refresca();
+}
+
+/* En esborrar un element que té foto, la foto se'n va amb ell. */
+function esborraFotoDe(item) {
+  if (item && item.foto) Fotos.esborra(item.foto).catch(() => {});
+}
+
+/* Els botons de foto són a la llista de Reserves i dins del detall d'un
+   viatge: un sol gestor per a tots dos llocs. */
+document.addEventListener('click', e => {
+  const afegeix = e.target.closest('[data-foto-afegeix]');
+  if (afegeix) { const [mena, id] = afegeix.dataset.fotoAfegeix.split(':'); demanaFoto(mena, id); return; }
+  const treu = e.target.closest('[data-foto-treu]');
+  if (treu) { const [mena, id] = treu.dataset.fotoTreu.split(':'); treuFoto(mena, id); }
+});
+$('fitxer-foto').addEventListener('change', canviFitxerFoto);
+
+
+/* ═══════════════ COM VA ANAR (v153) ═══════════════
+   Una frase i, si es vol, una nota de l'1 al 5 a cada reserva i a cada
+   activitat, per recordar si valia la pena. El camp surt DINS de l'element
+   obert, però només quan el seu dia ha passat (reservaPassada /
+   visitaPassada): no cal esperar que s'acabi el viatge per dir com va anar
+   el primer allotjament. Es desa sol en deixar el camp, com «Qui ho paga»:
+   és una frase d'una vegada, no un formulari. La nota es toca i prou, i
+   tocar la que ja hi és la treu. Tot va a la memòria del viatge. */
+function haPassat(mena, item) {
+  return mena === 'reserva' ? reservaPassada(item) : visitaPassada(item);
+}
+
+function comVaAnarHTML(mena, item) {
+  if (!haPassat(mena, item)) return '';
+  const clau = `${mena}:${esc(item.id)}`;
+  const nota = Number(item.nota) || 0;
+  return `<div class="va-anar">
+    <span class="va-anar-cap">Com va anar</span>
+    <textarea class="va-anar-text" data-va-anar="${clau}" rows="1"
+      placeholder="Una frase per recordar-ho: hi tornaríeu? valia la pena?">${esc(item.comVaAnar || '')}</textarea>
+    <div class="va-anar-nota" role="group" aria-label="Nota de l’1 al 5">
+      ${[1, 2, 3, 4, 5].map(n => `<button class="va-anar-punt${n <= nota ? ' ple' : ''}" data-nota="${clau}:${n}"
+        aria-pressed="${n === nota ? 'true' : 'false'}" aria-label="${n} de 5" title="${n} de 5">${n}</button>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* La frase es desa en deixar el camp; els punts, en tocar-los. Els camps
+   són a la llista de Reserves i dins del detall d'un viatge: un sol gestor. */
+document.addEventListener('change', async e => {
+  const camp = e.target.closest('[data-va-anar]');
+  if (!camp) return;
+  const [mena, id] = camp.dataset.vaAnar.split(':');
+  await magatzemDe(mena).actualitza(id, { comVaAnar: camp.value.trim() });
+  await refresca();
+});
+document.addEventListener('click', async e => {
+  const punt = e.target.closest('[data-nota]');
+  if (!punt) return;
+  const [mena, id, n] = punt.dataset.nota.split(':');
+  const item = elementDe(mena, id);
+  if (!item) return;
+  const nova = Number(item.nota) === Number(n) ? 0 : Number(n);
+  await magatzemDe(mena).actualitza(id, { nota: nova });
+  await refresca();
+});
+document.addEventListener('input', e => {
+  if (e.target.classList && e.target.classList.contains('va-anar-text')) fesGran(e.target);
+});
+
+/* ═══════════════ LA FOTO DE PORTADA D'UN VIATGE (v153) ═══════════════
+   Una foto pròpia del viatge, triada de la galeria: no cal que sigui cap
+   de les de dins. Es desa al viatge (v.foto) com les altres, i és la que
+   va a la portada de la memòria. Sense, la memòria surt només amb el
+   títol: no s'agafa cap foto de dins «per omplir». */
+function portadaViatgeHTML(v) {
+  const clau = `viatge:${esc(v.id)}`;
+  if (v.foto) {
+    return `<span class="portada-mini"><img data-foto="${esc(v.foto)}" alt="Foto de portada"></span>`;
+  }
+  return `<button class="foto-afegeix portada-buida" data-foto-afegeix="${clau}"
+      aria-label="Posa una foto de portada al viatge" title="Foto de portada">${iconaSVG('camera')}<span>Portada</span></button>`;
+}
+function accionsPortadaHTML(v) {
+  if (!v.foto) return '';
+  const clau = `viatge:${esc(v.id)}`;
+  return `<p class="portada-accions">
+      <button class="subtil mini" data-foto-afegeix="${clau}">Canvia la portada</button>
+      <button class="subtil mini" data-foto-treu="${clau}">Treu-la</button>
+    </p>`;
+}
+
+/* ═══════════════ LA MEMÒRIA DEL VIATGE (v153) ═══════════════
+   Un document per GUARDAR després del viatge, a diferència del dossier de
+   reserves, que és per portar a sobre durant. Es fa quan l'últim dia ha
+   passat: portada (nom, dates, qui, la foto de portada), el dia a dia
+   (el mateix que «Activitats del dia», amb la foto i el «com va anar» de
+   cada cosa), on vam dormir, com hi vam anar, què vam gastar (per
+   categoria, qui va pagar què, i el detall línia a línia; sense «qui deu
+   a qui», que en tornar ja s'ha resolt) i el que va quedar pendent.
+   Mateix camí que el dossier: es munta a #full-imprimir i s'obre el diàleg
+   d'imprimir, que a tot arreu ofereix «Desa com a PDF». Les fotos es
+   carreguen ABANS d'obrir-lo (esperaFotos): el diàleg congela la pàgina
+   tal com és, i una foto que arribés després no hi sortiria. */
+
+/* «d’octubre» / «de maig». */
+function deMes(d) {
+  const mes = MESOS_LLARG[d.getMonth()];
+  return (/^[aeiou]/i.test(mes) ? 'd’' : 'de ') + mes;
+}
+function nomDia(iso) {
+  const d = aData(iso);
+  if (!d) return iso || '';
+  const nom = DIES_CURT[d.getDay()];
+  return nom.charAt(0).toUpperCase() + nom.slice(1) + ' ' + d.getDate();
+}
+function nitsDe(r) {
+  const a = aData(r.checkinISO), b = aData(r.checkoutISO);
+  if (!a || !b) return 0;
+  return Math.max(0, Math.round((b - a) / 86400000));
+}
+function diesDe(r) { return nitsDe(r) + 1; }
+function plural(n, un, molts) { return n === 1 ? `1 ${un}` : `${n} ${molts}`; }
+
+/* Els dies que abasta el viatge: de les seves dates o, si no en té, de
+   les seves reserves i visites. */
+function diesDeLaMemoria(v, seves, sevesVisites) {
+  const dates = [v.dataInici, v.dataFi];
+  for (const r of seves) dates.push(r.checkinISO, r.checkoutISO);
+  for (const vi of sevesVisites) dates.push(vi.dataVisita);
+  const isos = dates.filter(Boolean).sort();
+  return isos.length ? diesEntre(isos[0], isos[isos.length - 1]) : [];
+}
+
+/* La categoria d'una reserva per al resum de despeses: els vols, el cotxe i
+   «altres» són transport; les entrades s'ajunten amb les activitats de
+   les despeses soltes. */
+function categoriaReserva(r) {
+  const t = tipusDe(r);
+  if (t === 'allotjament') return 'Allotjament';
+  if (t === 'entrada') return 'Entrades i activitats';
+  return 'Transport';
+}
+function categoriaDespesa(d) {
+  const c = d.categoria || '';
+  if (c === 'transport') return 'Transport';
+  if (c === 'activitats') return 'Entrades i activitats';
+  return nomCategoria(c) || 'Altres';
+}
+
+function memoriaComVaAnarHTML(item, ambRetol) {
+  const frase = (item.comVaAnar || '').trim();
+  const nota = Number(item.nota) || 0;
+  if (!frase && !nota) return '';
+  if (ambRetol) {
+    return `<div class="mem-va-bloc"><span>${esc(frase)}</span>${nota ? `<span class="mem-nota5">${nota} de 5</span>` : ''}</div>`;
+  }
+  return `<span class="mem-va">${esc(frase)}${nota ? ` <span class="mem-nota5">${nota} de 5</span>` : ''}</span>`;
+}
+
+function memoriaFotoHTML(item) {
+  return item.foto ? `<img class="mem-foto" data-foto="${esc(item.foto)}" alt="">` : '<span></span>';
+}
+
+/* Una línia del dia a dia. */
+function memoriaHoraHTML(a) {
+  const r = a.obj, t = a.mena === 'reserva' ? tipusDe(r) : 'visita';
+  let nom = a.nom, sub = a.sub, nota = '', vaAnar = '', foto = '<span></span>';
+  if (t === 'vol') {
+    nom = 'Vol ' + nomReserva(r);
+    sub = [[r.companyia, r.numVol].filter(Boolean).join(' '), r.checkoutHora ? 'arriba a les ' + r.checkoutHora : '', r.seient ? 'seient ' + r.seient : ''].filter(Boolean).join(' · ');
+  } else if (t === 'visita') {
+    const linies = (r.text || '').split('\n');
+    nom = linies[0] || 'Visita';
+    sub = r.zona || '';
+    nota = linies.slice(1).join('\n').trim();
+    vaAnar = memoriaComVaAnarHTML(r);
+    foto = memoriaFotoHTML(r);
+  } else if (t === 'entrada' || t === 'altres') {
+    vaAnar = memoriaComVaAnarHTML(r);
+    foto = memoriaFotoHTML(r);
+  }
+  return `<div class="mem-hora">
+      <span class="mem-hora-h">${esc(a.hora || '')}</span>
+      <span class="mem-hora-que"><b>${esc(nom)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}${nota ? `<span class="mem-nota">${esc(nota)}</span>` : ''}${vaAnar}</span>
+      ${foto}
+    </div>`;
+}
+
+function memoriaCampHTML(etiqueta, valor) {
+  return valor ? `<div class="full-camp"><dt>${esc(etiqueta)}</dt><dd>${esc(valor)}</dd></div>` : '';
+}
+
+function memoriaAllotjamentHTML(r) {
+  const nits = nitsDe(r);
+  const preu = importNum(r.preu);
+  const preuTxt = preu != null ? formataImport(preu) + (nits ? ' · ' + formataImport(preu / nits) + '/nit' : '') : '';
+  const quan = r.checkinISO ? `${dataBonica(r.checkinISO)} → ${dataBonica(r.checkoutISO || r.checkinISO)}${nits ? ' · ' + plural(nits, 'nit', 'nits') : ''}` : '';
+  return `<div class="mem-allot">
+      <div class="mem-allot-cap"><h3 class="mem-allot-nom">${esc(nomReserva(r))}</h3><span class="mem-allot-nits">${esc(quan)}</span></div>
+      <dl class="full-res-col">
+        ${memoriaCampHTML('Adreça', r.adreca)}
+        ${memoriaCampHTML('Plataforma', r.plataforma)}
+        ${memoriaCampHTML('Telèfon', r.telefon)}
+      </dl>
+      <dl class="full-res-col">
+        ${memoriaCampHTML('Preu', preuTxt)}
+        ${memoriaCampHTML('Hostes', r.hostes)}
+        ${memoriaCampHTML('Ho va pagar', r.quiPaga)}
+      </dl>
+      ${memoriaComVaAnarHTML(r, true)}
+    </div>`;
+}
+
+function memoriaTransportHTML(r) {
+  const t = tipusDe(r);
+  const preu = importNum(r.preu);
+  let nom, quan, esq, dre;
+  if (t === 'vol') {
+    nom = 'Vol ' + nomReserva(r);
+    quan = [dataBonica(r.checkinISO), [r.checkinHora, r.checkoutHora].filter(Boolean).join(' → ')].filter(Boolean).join(' · ');
+    esq = memoriaCampHTML('Companyia', [r.companyia, r.numVol].filter(Boolean).join(' · ')) + memoriaCampHTML('Seient', r.seient);
+  } else if (t === 'cotxe') {
+    nom = 'Cotxe de lloguer';
+    const dies = diesDe(r);
+    quan = r.checkinISO ? `${dataBonica(r.checkinISO)} → ${dataBonica(r.checkoutISO || r.checkinISO)} · ${plural(dies, 'dia', 'dies')}` : '';
+    esq = memoriaCampHTML('Companyia', r.companyia)
+      + memoriaCampHTML('Recollida', [r.llocRecollida, r.checkinHora].filter(Boolean).join(', '))
+      + memoriaCampHTML('Devolució', [r.llocDevolucio, r.checkoutHora].filter(Boolean).join(', '));
+  } else {
+    nom = nomReserva(r);
+    quan = [dataBonica(r.checkinISO), r.checkinHora].filter(Boolean).join(' · ');
+    esq = memoriaCampHTML('On', subtitolReserva(r)) + memoriaCampHTML('Plataforma', r.plataforma);
+  }
+  dre = memoriaCampHTML('Preu', preu != null ? formataImport(preu) : '') + memoriaCampHTML('Ho va pagar', r.quiPaga);
+  return `<div class="mem-allot">
+      <div class="mem-allot-cap"><h3 class="mem-allot-nom">${esc(nom)}</h3><span class="mem-allot-nits">${esc(quan)}</span></div>
+      <dl class="full-res-col">${esq}</dl>
+      <dl class="full-res-col">${dre}</dl>
+      ${memoriaComVaAnarHTML(r, true)}
+    </div>`;
+}
+
+/* El resum de diners: total, per categoria, qui va pagar què, i el detall. */
+function memoriaDespesesHTML(v, seves) {
+  const linies = [];
+  for (const r of seves) {
+    const n = importNum(r.preu);
+    if (n == null) continue;
+    let que = nomReserva(r);
+    const t = tipusDe(r);
+    if (t === 'vol') que = 'Vol ' + que + (r.companyia ? ' · ' + r.companyia : '');
+    else if (t === 'cotxe') que = 'Cotxe de lloguer' + (r.companyia ? ' · ' + r.companyia : '');
+    else if (t === 'allotjament' && nitsDe(r)) que += ' · ' + plural(nitsDe(r), 'nit', 'nits');
+    linies.push({ dia: r.checkinISO || '', que, cat: categoriaReserva(r), qui: r.quiPaga || '', n });
+  }
+  for (const d of (v.despeses || [])) {
+    const n = importNum(d.import);
+    if (n == null) continue;
+    linies.push({ dia: '', que: d.concepte || categoriaDespesa(d), cat: categoriaDespesa(d), qui: d.quiPaga || '', n });
+  }
+  if (!linies.length) return [];
+  linies.sort((a, b) => (a.dia || '9999') < (b.dia || '9999') ? -1 : (a.dia || '9999') > (b.dia || '9999') ? 1 : 0);
+
+  const total = linies.reduce((s, l) => s + l.n, 0);
+  const suma = (clau) => {
+    const m = new Map();
+    for (const l of linies) m.set(l[clau] || '', (m.get(l[clau] || '') || 0) + l.n);
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  };
+  const files = (parells, senseNom) => parells.map(([k, n]) =>
+    `<tr><td>${esc(k || senseNom)}</td><td class="num">${esc(formataImport(n))}</td></tr>`).join('');
+
+  const previst = importNum(v.pressupost);
+  const persones = (v.participants || []).length || new Set(linies.map(l => l.qui).filter(Boolean)).size || 1;
+  const dies = diesDeLaMemoria(v, seves, visites.filter(x => x.viatgeId === v.id)).length || 1;
+  let frase = '';
+  if (previst != null) {
+    const dif = total - previst;
+    const pct = previst ? Math.round(Math.abs(dif) / previst * 100) : 0;
+    frase = dif > 0
+      ? `Previst: ${formataImport(previst)}. Ha sortit ${formataImport(dif)} més car, un ${pct} %.`
+      : dif < 0
+        ? `Previst: ${formataImport(previst)}. Ha sortit ${formataImport(-dif)} més barat, un ${pct} %.`
+        : `Previst: ${formataImport(previst)}, clavat.`;
+  }
+  frase += ` Són ${formataImport(total / persones)} per persona i ${formataImport(total / dies)} per dia.`;
+
+  return [`
+    <div class="mem-dues">
+      <table class="mem-taula">
+        <tr><th>Per categoria</th><th class="num"></th></tr>
+        ${files(suma('cat'), 'Altres')}
+        <tr class="total"><td>Total</td><td class="num">${esc(formataImport(total))}</td></tr>
+      </table>
+      <table class="mem-taula">
+        <tr><th>Qui va pagar què</th><th class="num"></th></tr>
+        ${files(suma('qui'), 'Sense assignar')}
+        <tr class="total"><td>Total</td><td class="num">${esc(formataImport(total))}</td></tr>
+        <tr><td class="tenue nota" colspan="2">${esc(frase.trim())}</td></tr>
+      </table>
+    </div>`];
+}
+
+function memoriaViatgeHTML(v, seves, sevesVisites) {
+  const nom = v.nom || 'Viatge sense nom';
+  const anys = fullAnys(v);
+  const dies = diesDeLaMemoria(v, seves, sevesVisites);
+  const qui = (v.participants || []).filter(Boolean);
+  const quiTxt = qui.length > 1 ? qui.slice(0, -1).join(', ') + ' i ' + qui[qui.length - 1] : (qui[0] || '');
+  const sub = [rangViatge(v) + (anys ? ' de ' + anys : ''), dies.length ? plural(dies.length, 'dia', 'dies') : '', quiTxt].filter(Boolean).join(' · ');
+
+  const diaADia = dies.map(dia => {
+    const acts = activitatsDelDia(dia, seves, sevesVisites);
+    const d = aData(dia);
+    return `<div class="mem-dia">
+        <div class="mem-dia-data">${esc(nomDia(dia))}<small>${esc(d ? deMes(d) : '')}</small></div>
+        ${acts.length ? `<div>${acts.map(memoriaHoraHTML).join('')}</div>` : `<div class="mem-buit">Sense res apuntat.</div>`}
+      </div>`;
+  });
+
+  const allotjaments = seves.filter(r => tipusDe(r) === 'allotjament').sort(comparaCronologic);
+  const transports = seves.filter(r => ['vol', 'cotxe', 'altres'].includes(tipusDe(r))).sort(comparaCronologic);
+  const pendents = pendentsDelViatge(v);
+  // El títol d'una secció va LLIGAT al seu primer element (.mem-junt, que
+  // no es parteix): «break-after: avoid» tot sol no és de fiar a tots els
+  // navegadors, i un títol penjat al peu d'un full és el que la Clara va
+  // veure al primer PDF (v154).
+  const grup = (titol, de) => `<div class="mem-grup"><h2>${titol}</h2><span class="mem-grup-de">${esc(de || nom)}</span></div>`;
+  const seccio = (titol, de, peces) => peces.length
+    ? `<div class="mem-junt">${grup(titol, de)}${peces[0]}</div>` + peces.slice(1).join('')
+    : '';
+
+  return `<div class="full-doc mem-doc">
+    <div class="mem-cap">
+      <div>
+        <h1 class="mem-titol">${esc(nom)}</h1>
+        <p class="mem-sub">${esc(sub)}</p>
+      </div>
+      <div class="mem-etiq">Memòria del viatge</div>
+    </div>
+    ${v.foto ? `<img class="mem-portada" data-foto="${esc(v.foto)}" alt="">` : ''}
+    ${seccio('Dia a dia', '', diaADia)}
+    ${seccio('On vam dormir', '', allotjaments.map(memoriaAllotjamentHTML))}
+    ${seccio('Com hi vam anar', '', transports.map(memoriaTransportHTML))}
+    ${seccio('Què vam gastar', '', memoriaDespesesHTML(v, seves))}
+    ${seccio('El que va quedar pendent', 'per si hi tornem', pendents.map(i =>
+      `<div class="mem-pend"><span>${esc((i.text || '').split('\n')[0])}</span><small>${esc([i.zona, (i.etiquetes || []).filter(e => e !== ETIQ_PENDENT).join(', ')].filter(Boolean).join(' · '))}</small></div>`))}
+    <div class="full-doc-peu">
+      <span>Memòria feta amb Els meus viatges</span>
+      <span>${esc(dataBonica(isoDe(new Date())))}</span>
+    </div>
+  </div>`;
+}
+
+/* Espera que totes les fotos del full tinguin adreça i estiguin carregades,
+   amb un límit de temps: una foto que no arriba no ha de bloquejar el
+   document, surt sense ella i prou. */
+async function esperaFotos(arrel, limitMs) {
+  const imgs = [...arrel.querySelectorAll('img[data-foto]')];
+  if (!imgs.length) return;
+  const limit = new Promise(ok => setTimeout(ok, limitMs || 8000));
+  const totes = Promise.all(imgs.map(async img => {
+    const url = await Fotos.adrecaSegura(img.dataset.foto);
+    if (!url) { img.remove(); return; }
+    await new Promise(ok => { img.onload = ok; img.onerror = () => { img.remove(); ok(); }; img.src = url; });
+  }));
+  await Promise.race([totes, limit]);
+}
+
+async function imprimeixMemoria() {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const seves = reserves.filter(r => r.viatgeId === v.id).sort(comparaCronologic);
+  const sevesVisites = visites.filter(x => x.viatgeId === v.id);
+  const full = $('full-imprimir');
+  full.innerHTML = memoriaViatgeHTML(v, seves, sevesVisites);
+  const boto = document.querySelector('[data-fes-memoria]');
+  const text = boto ? boto.textContent : '';
+  if (boto) { boto.disabled = true; boto.textContent = 'Preparant la memòria…'; }
+  try { await esperaFotos(full); }
+  finally { if (boto) { boto.disabled = false; boto.textContent = text; } }
+  window.print();
+}
+
 async function refresca() {
   reserves = await Magatzem.llista();
   reserves.sort(comparaCronologic);
@@ -5459,6 +6443,12 @@ function reservaPassada(r) {
   return !!fi && fi < isoDe(new Date());
 }
 
+/* El mateix per a una visita de l'itinerari (v149): passada a partir de
+   l'endemà del seu dia. Sense dia («Per encaixar») no és passada mai. */
+function visitaPassada(vi) {
+  return !!vi.dataVisita && vi.dataVisita < isoDe(new Date());
+}
+
 /* La capçalera d'un grup de mes: el títol i quantes reserves hi ha. */
 function grupHTML(clau, grup) {
   return `<div class="grup"><span>${esc(titolGrup(clau))}</span>`
@@ -5870,8 +6860,7 @@ function filaReservaHTML(r) {
   return `<div class="fila${pregunta ? ' te-pregunta' : ''}${obert ? ' oberta' : ''}${reservaPassada(r) ? ' passada' : ''}" data-id="${esc(r.id)}">
         <button class="fila-cap graella-fila" aria-expanded="${obert ? 'true' : 'false'}" aria-controls="${idDetall}">
           <span class="cel-punt">
-            <span class="icona-tipus${revisar ? ' revisar' : ''}"
-              role="img" aria-label="${esc(TIPUS[tipusDe(r)].nom)}${revisar ? ', cal revisar' : ''}">${iconaSVG(icona)}</span>
+            ${iconaAmbFotoHTML(r, revisar ? 'revisar' : '', icona, esc(TIPUS[tipusDe(r)].nom) + (revisar ? ', cal revisar' : ''))}
           </span>
           <span class="cel-nom">
             <span class="nom">${esc(nom)}</span>
@@ -5907,6 +6896,8 @@ function filaReservaHTML(r) {
             ${blocRecomanacions(r)}
           </div>
           ${llocReservaHTML(r)}
+          ${fotoRecordHTML('reserva', r)}
+          ${comVaAnarHTML('reserva', r)}
           ${viatgeDeReserva(r) ? `<div class="detall-viatge">
             Dins del viatge <strong>${esc(viatgeDeReserva(r).nom || 'sense nom')}</strong>
           </div>` : ''}
@@ -5971,8 +6962,16 @@ function pintaLlista() {
   }
 
   cos.innerHTML = html;
-  // Una fila esborrada o sincronitzada des d'un altre lloc ja no existeix
-  for (const id of [...filesObertes]) if (!reserves.some(r => r.id === id)) filesObertes.delete(id);
+  // Una fila esborrada o sincronitzada des d'un altre lloc ja no existeix.
+  // filesObertes és compartit amb les visites i les pendents d'un viatge:
+  // només es treuen les claus que no siguin de res (v151). Fins ara es
+  // treia tot el que no fos reserva, i des de la v148, en desar una
+  // activitat, la fila es tancava sola: abans no es notava perquè el
+  // cursor era al camp i el detall no es repintava.
+  const existeix = id => reserves.some(r => r.id === id) || visites.some(i => i.id === id) || idees.some(i => i.id === id);
+  for (const id of [...filesObertes]) if (!existeix(id)) filesObertes.delete(id);
+  cos.querySelectorAll('.va-anar-text').forEach(fesGran);
+  posaAdrecesFoto();
 }
 
 /* Desplegar i plegar una fila */
@@ -5991,7 +6990,7 @@ function gestionaToggleFila(e) {
   // camp de text al costat es fa al DOM). O sigui que la nota d'una visita
   // arriba aquí sense haver passat mai per fesGran, perquè mentre era
   // plegada no tenia alçada. S'hi passa ara, que ja es veu.
-  if (obert) detall.querySelectorAll('.visita-nota').forEach(fesGran);
+  if (obert) detall.querySelectorAll('.visita-nota, .va-anar-text').forEach(fesGran);
 }
 $('detall-viatge-vista').addEventListener('input', e => {
   if (e.target.classList.contains('visita-nota')) fesGran(e.target);
@@ -6125,6 +7124,7 @@ async function gestionaAccions(e) {
   if (btn.dataset.esborra) {
     const r = reserves.find(x => x.id === btn.dataset.esborra);
     if (r && confirm(`Segur que vols esborrar la reserva de «${nomReserva(r)}»?`)) {
+      esborraFotoDe(r);   // la foto se'n va amb ella (v151)
       await Magatzem.esborra(btn.dataset.esborra);
       await refresca();
     }
@@ -6199,7 +7199,8 @@ const COLUMNES_IDEES = [
   ['Enlla\u00e7', i => i.enllac],
   ['Viatge', i => i.viatgeId ? ((viatges.find(v => v.id === i.viatgeId) || {}).nom || '(viatge esborrat)') : ''],
   ['Dia visita', i => i.dataVisita ? dataBonica(i.dataVisita) : ''],
-  ['Hora visita', i => i.horaVisita]
+  ['Hora visita', i => i.horaVisita],
+  ['Pendent de', i => esPendent(i) ? i.pendentDe.nom : '']
 ];
 const COLUMNES_VIATGES = [
   ['Nom', v => v.nom],
@@ -7146,6 +8147,7 @@ function pintaIdees() {
         <button class="idea-fora" data-fora="${esc(i.id)}" aria-label="Esborra la idea">Esborra</button>
       </div>
       ${llocIdeaHTML(i)}
+      ${origenPendentHTML(i)}
     </div>`).join('')
     + `<datalist id="zones-conegudes">${opcions(zonesConegudes())}</datalist>`
     + `<datalist id="etiquetes-conegudes">${opcions(etiquetesConegudes())}</datalist>`;
@@ -7246,11 +8248,15 @@ $('llista-idees').addEventListener('focusout', async e => {
 });
 
 $('llista-idees').addEventListener('click', async e => {
+  // «Va quedar pendent de Lisboa»: el nom hi porta (v150).
+  const obreV = e.target.closest('[data-obre-viatge]');
+  if (obreV) { vesAlViatge(obreV.dataset.obreViatge); return; }
   const btn = e.target.closest('[data-fora]');
   if (!btn) return;
   const idea = idees.find(x => x.id === btn.dataset.fora);
   const resum = (idea && idea.text ? idea.text.slice(0, 40) : '');
   if (!confirm('Vols esborrar aquesta idea?' + (resum ? '\n\n«' + resum + '…»' : ''))) return;
+  esborraFotoDe(idea);   // la foto se'n va amb ella (v151)
   await MagatzemIdees.esborra(btn.dataset.fora);
   await refrescaIdees();
 });
@@ -7944,12 +8950,16 @@ function pintaViatges() {
   cont.innerHTML = viatges.map(v => {
     return `
     <div class="viatge" data-viatge="${esc(v.id)}">
-      <button class="viatge-cap" data-obre="${esc(v.id)}">
-        <span class="viatge-nom">${esc(v.nom || 'Viatge sense nom')}</span>
-        <span class="viatge-dates">${esc(rangViatge(v))}</span>
+      <button class="viatge-cap${v.foto ? ' amb-portada' : ''}" data-obre="${esc(v.id)}">
+        ${v.foto ? `<span class="portada-mini"><img data-foto="${esc(v.foto)}" alt=""></span>` : ''}
+        <span class="viatge-cap-text">
+          <span class="viatge-nom">${esc(v.nom || 'Viatge sense nom')}</span>
+          <span class="viatge-dates">${esc(rangViatge(v))}</span>
+        </span>
       </button>
     </div>`;
   }).join('');
+  posaAdrecesFoto();
 }
 
 /* ── Formulari de crear / editar viatge ── */
@@ -8105,6 +9115,7 @@ function obreDetallViatge(id) {
   viatgeObert = id;
   subvistaViatge = 'agenda';
   filtreMapa = null;   // cada viatge comença ensenyant-ho tot al mapa
+  visitaEnEdicio = null; // cap edició a mitges arrossegada d'un altre viatge
   ultimMaleta = '';    // els companys suggerits són del que acabes d'afegir
   $('llista-viatges').classList.add('ocult');
   $('viatges-buida').classList.add('ocult');
@@ -8113,6 +9124,18 @@ function obreDetallViatge(id) {
   $('detall-viatge-vista').classList.remove('ocult');
   pintaDetallViatge();
   apuntaEnrere('viatge', () => tancaDetallViatge());
+}
+
+/* Des de fora del viatge (la línia «va quedar pendent de…» a Inspiració o
+   a la suggerència d'un altre viatge) cap al seu detall, a la subpestanya
+   Idees, que és on hi ha el bloc dels pendents (v150). */
+function vesAlViatge(id) {
+  if (!viatges.some(v => v.id === id)) return;
+  vesASeccio('viatges');
+  obreDetallViatge(id);
+  subvistaViatge = 'idees';
+  pintaDetallViatge();
+  window.scrollTo({ top: 0 });
 }
 
 function tancaDetallViatge() {
@@ -8127,6 +9150,7 @@ let subvistaViatge = 'agenda';   // 'agenda' o 'pressupost'
 let agendaMode = 'complet';      // 'complet' o 'dia' (activitats del dia)
 let diaAgenda = null;            // ISO del dia seleccionat a «activitats del dia»
 let activitatsObertes = new Set(); // claus de les activitats desplegades a la vista del dia
+let visitaEnEdicio = null;       // id de la visita que s'està editant (itinerari o dia), o null
 
 function pintaDetallViatge() {
   const v = viatges.find(x => x.id === viatgeObert);
@@ -8158,9 +9182,13 @@ function pintaDetallViatge() {
   cont.innerHTML = `
     <button class="tornar" id="btn-tornar-viatges">← Tots els viatges</button>
     <div class="detall-cap">
-      <div>
-        <h3 class="detall-nom">${esc(v.nom || 'Viatge sense nom')}</h3>
-        <p class="detall-rang">${esc(rangViatge(v))}</p>
+      <div class="detall-cap-esq">
+        ${portadaViatgeHTML(v)}
+        <div>
+          <h3 class="detall-nom">${esc(v.nom || 'Viatge sense nom')}</h3>
+          <p class="detall-rang">${esc(rangViatge(v))}</p>
+          ${accionsPortadaHTML(v)}
+        </div>
       </div>
       <button class="subtil mini" id="btn-edita-viatge-detall">Edita</button>
     </div>
@@ -8177,7 +9205,8 @@ function pintaDetallViatge() {
 
   // Les notes d'una visita oberta arrenquen a sis línies i creixen si el que
   // hi ha escrit no hi cap: obrir una fila no ha de deixar text amagat.
-  cont.querySelectorAll('.visita-nota').forEach(fesGran);
+  cont.querySelectorAll('.visita-nota, .va-anar-text').forEach(fesGran);
+  posaAdrecesFoto();
   if (subvistaViatge === 'mapa') mostraMapaViatge(v, seves);
 }
 
@@ -8192,9 +9221,13 @@ function ideesViatgeHTML(v, seves) {
       <button class="primari mini" data-afegeix-idea-viatge>Afegeix</button>
     </div>
     <div class="avis" id="avis-idea-viatge"></div>`;
+  // Amb pendents (v150) i cap suggerida, la nota de «no hi ha idees»
+  // mentiria: es calla, que el bloc dels pendents ja parla.
+  const pendents = v ? pendentsDelViatge(v) : [];
   const cos = suggerides.length
     ? `<p class="agenda-nota">Idees de la teva llista que encaixen amb la zona del viatge. Converteix-les en visites.</p>`
       + suggerides.map(ideaSuggeridaHTML).join('')
+    : pendents.length ? ''
     : `<p class="agenda-nota">Encara no hi ha idees per a aquest viatge. Apunta la primera aquí dalt: neix marcada amb la zona del viatge i la trobaràs també a la Inspiració.</p>`;
   // Les descartades no desapareixen en silenci: si no, d'aquí a mesos et
   // preguntaries per què una idea no surt mai en aquest viatge.
@@ -8203,7 +9236,7 @@ function ideesViatgeHTML(v, seves) {
     ? `<p class="descartades-peu">${fora.length === 1 ? '1 idea descartada' : fora.length + ' idees descartades'}`
       + ` · <button class="subtil mini" data-recupera-descartades>torna-les a mostrar</button></p>`
     : '';
-  return `<div class="idees-viatge">${form}<div class="agenda-bloc">${cos}</div>${peu}</div>`;
+  return `<div class="idees-viatge">${form}<div class="agenda-bloc">${cos}</div>${peu}${v ? pendentsViatgeHTML(v) : ''}</div>`;
 }
 
 /* Crea una idea de la wishlist des de dins del viatge, marcada amb la zona
@@ -8248,7 +9281,10 @@ async function afegeixIdeaViatge() {
     $('nova-idea-viatge').focus();
     return;
   }
-  await MagatzemIdees.afegeix({ text, zona: v.nom || '', etiquetes: [], enllac: '' });
+  // Una idea apuntada des d'un viatge que JA HA PASSAT és una cosa que hi
+  // vas descobrir i no vas fer: neix pendent d'aquell viatge (v150).
+  const nova = { text, zona: v.nom || '', etiquetes: [], enllac: '' };
+  await MagatzemIdees.afegeix(viatgePassat(v) ? { ...nova, ...canvisPendent(nova, v) } : nova);
   treuElCursorDelDetall();
   await refresca();
   const camp = $('nova-idea-viatge');
@@ -8277,6 +9313,7 @@ function ideaSuggeridaHTML(i) {
         <input class="fitxa-camp" data-visita-camp="enllac" data-vid="${id}"
           value="${esc(i.enllac || '')}" placeholder="enllaç" size="8" autocomplete="off" inputmode="url">
       </div>
+      ${origenPendentHTML(i)}
     </div>
     <div class="suggerida-accions">
       <button class="primari mini" data-converteix="${id}">Afegeix al viatge</button>
@@ -8285,10 +9322,12 @@ function ideaSuggeridaHTML(i) {
     </div>
   </div>`;
 }
-
 /* Una visita (idea marcada com a visita d'un viatge), com a fila
-   desplegable coherent amb les reserves. En obrir-la: text, zona,
-   etiquetes, enllaç, data i hora editables, i treure del viatge. */
+   desplegable coherent amb les reserves. En obrir-la es LLEGEIX, i només
+   prement «Edita» els camps es tornen editables (v148): abans tots els
+   camps eren caixes d'escriptura que es desaven soles en deixar-les, com
+   una nota, i no com la resta de l'app. El detall (lectura o edició) el
+   fa detallVisitaHTML(), que comparteix amb «Activitats del dia». */
 /* «ambNansa» només a «Per encaixar», que és l'única llista que es reordena.
    La nansa va DINS de la fila, a l'esquerra del cap: posar-la fora deixava
    una icona solta al marge i quedava lleig. La fila d'una visita té la seva
@@ -8297,17 +9336,16 @@ function ideaSuggeridaHTML(i) {
 function filaVisitaHTML(vi, ambNansa) {
   const obert = filesObertes.has(vi.id);
   const primeraLinia = (vi.text || 'Visita').split('\n')[0];
-  const etiq = (vi.etiquetes || []).join(', ');
   const nansa = ambNansa
     ? `<span class="fila-nansa" data-nansa role="button" aria-label="Mou de lloc"
         title="Arrossega per moure-la">${iconaSVG('nansa')}</span>`
     : '';
 
-  return `<div class="fila visita${obert ? ' oberta' : ''}${ambNansa ? ' reordenable' : ''}" data-id="${esc(vi.id)}">
+  return `<div class="fila visita${obert ? ' oberta' : ''}${ambNansa ? ' reordenable' : ''}${visitaPassada(vi) ? ' passada' : ''}" data-id="${esc(vi.id)}">
     <div class="fila-dalt">${nansa}
     <button class="fila-cap graella-fila" aria-expanded="${obert ? 'true' : 'false'}" aria-controls="visita-${esc(vi.id)}">
       <span class="cel-punt">
-        <span class="icona-tipus visita-icona" role="img" aria-label="Visita">${iconaSVG('estrella')}</span>
+        ${iconaAmbFotoHTML(vi, 'visita-icona', 'estrella', 'Visita')}
       </span>
       <span class="cel-nom">
         <span class="nom">${esc(primeraLinia)}</span>
@@ -8319,31 +9357,84 @@ function filaVisitaHTML(vi, ambNansa) {
       <span class="cel-chev">${CHEVRON}</span>
     </button></div>
     <div class="fila-detall${obert ? '' : ' ocult'}" id="visita-${esc(vi.id)}">
-      <div class="visita-edita">
+      ${detallVisitaHTML(vi)}
+    </div>
+  </div>`;
+}
+
+/* El detall d'una visita oberta, a l'itinerari i a «Activitats del dia»:
+   en edició si és la que s'està editant, i si no, en lectura amb els seus
+   botons. Una sola visita en edició alhora (visitaEnEdicio), com les
+   despeses. */
+function detallVisitaHTML(vi) {
+  if (visitaEnEdicio === vi.id) return formVisitaHTML(vi);
+  return detallVisitaLecturaHTML(vi) + `
+      <div class="detall-accions">
+        <button class="primari" data-edita-visita="${esc(vi.id)}">Edita</button>
+        <button class="subtil" data-deixa-pendent="${esc(vi.id)}" title="No hi has anat: que et quedi apuntat per a una altra vegada">Ho deixo pendent</button>
+        <button class="subtil" data-treu-visita="${esc(vi.id)}">Torna a Inspiració</button>
+        <button class="subtil perill" data-esborra-visita="${esc(vi.id)}">Elimina</button>
+      </div>`;
+}
+
+/* La lectura: el text sencer, amb els seus paràgrafs i els enllaços que
+   porti a dins clicables, i a sota només les dades que hi hagi, a la
+   mateixa graella que el detall d'una reserva. */
+function detallVisitaLecturaHTML(vi) {
+  const etiq = (vi.etiquetes || []).join(', ');
+  return `<div class="visita-lectura">
+      <p class="visita-text">${textAmbEnllacos(vi.text || '')}</p>
+      ${fotoRecordHTML('idea', vi)}
+      <div class="detall-graella">
+        ${vi.dataVisita ? campDetall('Dia', dataBonica(vi.dataVisita)) : ''}
+        ${vi.horaVisita ? campDetall('Hora', vi.horaVisita) : ''}
+        ${vi.zona ? campDetall('Zona', vi.zona) : ''}
+        ${etiq ? campDetall('Etiquetes', etiq) : ''}
+        ${vi.adreca ? campDetall('Adreça exacta', vi.adreca, true) : ''}
+        ${vi.enllac ? `<div class="detall-camp ample"><span>Enllaç</span><p><a class="idea-enllac" href="${esc(vi.enllac)}" target="_blank" rel="noopener noreferrer">${esc(nomEnllac(vi.enllac))}</a></p></div>` : ''}
+      </div>
+      ${llocIdeaHTML(vi)}
+      ${comVaAnarHTML('idea', vi)}
+    </div>`;
+}
+
+/* L'edició: els mateixos camps, i «Desa» o «Cancel·la». Els camps porten
+   data-edita-camp i NO data-visita-camp a posta: aquell és el que fa que un
+   camp es desi sol en canviar (les idees suggerides encara van així), i
+   aquí no s'ha de desar res fins que no es prem «Desa».
+   «senseDia» és per a una idea pendent (v150), que no és de cap agenda:
+   sense Dia ni Hora, que no li farien res. */
+function formVisitaHTML(vi, senseDia) {
+  const id = esc(vi.id);
+  const etiq = (vi.etiquetes || []).join(', ');
+  return `<div class="visita-edita" data-visita-form="${id}">
         <!-- Sense etiqueta. Deia «Nota» i no ho és: això és el TEXT sencer
              de la idea, i la seva primera línia fa de títol a la fila
              plegada. Ho diu el text de fons, que es veu justament quan cal:
              quan és buida i encara no has escrit res. Sis línies, i creix
              sola si n'escrius més (fesGran). -->
         <label class="visita-camp ample">
-          <textarea class="visita-nota" data-visita-camp="text" data-vid="${esc(vi.id)}" rows="6"
+          <textarea class="visita-nota" data-edita-camp="text" rows="6"
             placeholder="Què és, i el que en vulguis recordar. La primera línia fa de títol.">${esc(vi.text || '')}</textarea>
         </label>
         <div class="visita-graella">
-          <label class="visita-camp"><span>Dia</span>
-            <input data-visita-camp="dataVisita" data-vid="${esc(vi.id)}" value="${esc(vi.dataVisita || '')}" placeholder="13/5/2026"></label>
+          <!-- El dia s'ensenya com es llegeix (16/05/2026) i no com es desa
+               (2026-05-16): en lectura ja surt així, i interpretaData()
+               entén totes dues formes en desar. -->
+          ${senseDia ? '' : `<label class="visita-camp"><span>Dia</span>
+            <input data-edita-camp="dataVisita" value="${esc(vi.dataVisita ? dataBonica(vi.dataVisita) : '')}" placeholder="13/5/2026"></label>
           <label class="visita-camp"><span>Hora</span>
-            <input data-visita-camp="horaVisita" data-vid="${esc(vi.id)}" value="${esc(vi.horaVisita || '')}" placeholder="10:00"></label>
+            <input data-edita-camp="horaVisita" value="${esc(vi.horaVisita || '')}" placeholder="10:00"></label>`}
           <label class="visita-camp"><span>Zona</span>
-            <input data-visita-camp="zona" data-vid="${esc(vi.id)}" value="${esc(vi.zona || '')}" placeholder="el poble o la comarca"></label>
+            <input data-edita-camp="zona" value="${esc(vi.zona || '')}" placeholder="el poble o la comarca"></label>
           <label class="visita-camp"><span>Etiquetes</span>
-            <input data-visita-camp="etiquetes" data-vid="${esc(vi.id)}" value="${esc(etiq)}"></label>
+            <input data-edita-camp="etiquetes" value="${esc(etiq)}"></label>
         </div>
         <!-- L'adreça NO substitueix la zona: la zona és la que creua idees
              amb viatges (i va a escala de poble o comarca), i l'adreça és la
              que posa el pin al seu lloc. Va ampla perquè hi cap un carrer. -->
         <label class="visita-camp ample"><span>Adreça exacta</span>
-          <input data-visita-camp="adreca" data-vid="${esc(vi.id)}" value="${esc(vi.adreca || '')}"
+          <input data-edita-camp="adreca" value="${esc(vi.adreca || '')}"
             placeholder="carrer i número, o el nom del lloc"></label>
         <!-- L'enllaç clicable va a la MATEIXA línia que l'etiqueta i no a
              sota del camp: a sota, l'adreça quedava escrita dues vegades
@@ -8352,16 +9443,61 @@ function filaVisitaHTML(vi, ambNansa) {
           <span class="visita-camp-cap">Enllaç${vi.enllac
             ? ` <a class="idea-enllac" href="${esc(vi.enllac)}" target="_blank" rel="noopener noreferrer">${esc(nomEnllac(vi.enllac))}</a>`
             : ''}</span>
-          <input data-visita-camp="enllac" data-vid="${esc(vi.id)}" value="${esc(vi.enllac || '')}"
+          <input data-edita-camp="enllac" value="${esc(vi.enllac || '')}"
             inputmode="url" autocomplete="off" placeholder="https://…"></label>
-        ${llocIdeaHTML(vi)}
       </div>
       <div class="detall-accions">
-        <button class="subtil" data-treu-visita="${esc(vi.id)}">Torna a Inspiració</button>
-        <button class="subtil perill" data-esborra-visita="${esc(vi.id)}">Elimina</button>
-      </div>
-    </div>
-  </div>`;
+        <button class="primari" data-desa-visita="${id}">Desa</button>
+        <button class="subtil" data-cancela-visita="${id}">Cancel·la</button>
+      </div>`;
+}
+
+/* Desa de cop tots els camps de la visita que s'està editant. Les mateixes
+   cures que tenia el desat camp a camp: la data s'interpreta tal com
+   l'escrius, l'enllaç sense protocol es completa (v124/v138) i les
+   etiquetes van separades per comes. */
+async function desaVisita(id) {
+  const form = document.querySelector(`[data-visita-form="${CSS.escape(id)}"]`);
+  if (!form) return;
+  const llegeix = quin => { const c = form.querySelector(`[data-edita-camp="${quin}"]`); return c ? c.value.trim() : ''; };
+  const canvis = {
+    text: llegeix('text'),
+    zona: llegeix('zona'),
+    etiquetes: llegeix('etiquetes').split(',').map(s => s.trim()).filter(Boolean),
+    adreca: llegeix('adreca'),
+    enllac: enllacNet(llegeix('enllac'))
+  };
+  // El formulari d'una idea pendent no porta Dia ni Hora (v150): només es
+  // toquen si hi són, que si no s'esborrarien en silenci.
+  if (form.querySelector('[data-edita-camp="dataVisita"]')) {
+    canvis.dataVisita = interpretaData(llegeix('dataVisita'));
+    canvis.horaVisita = llegeix('horaVisita');
+  }
+  visitaEnEdicio = null;
+  await MagatzemIdees.actualitza(id, canvis);
+  treuElCursorDelDetall();
+  await refresca();
+  tornaElCursorAEdita(id);
+}
+
+/* Cancel·la l'edició: no s'ha desat res, així que n'hi ha prou amb
+   repintar. El cursor fora primer, que pintaDetallViatge() no repinta
+   mentre hi és (per protegir el que s'escriu d'una sincronització). */
+function cancelaEdicioVisita() {
+  const id = visitaEnEdicio;
+  visitaEnEdicio = null;
+  treuElCursorDelDetall();
+  pintaDetallViatge();
+  tornaElCursorAEdita(id);
+}
+
+/* En sortir de l'edició, el botó que tenies sota el dit (Desa o Cancel·la)
+   ja no existeix: el cursor va a l'«Edita» de la mateixa visita, que és on
+   eres abans d'entrar-hi. Amb ratolí no es nota; amb teclat, sense això,
+   tornaries a començar des de dalt de la pàgina. */
+function tornaElCursorAEdita(id) {
+  const boto = id && document.querySelector(`[data-edita-visita="${CSS.escape(id)}"]`);
+  if (boto) boto.focus();
 }
 
 /* Les zones d'un viatge, per creuar amb les idees: les poblacions de les
@@ -8392,12 +9528,115 @@ function descartadaDelViatge(i, viatgeId) {
 /* Les que es mostren. Passar el filtre per aquí fa que una idea descartada
    desaparegui també del mapa (com a idea candidata) i del comptador d'avisos,
    que és el que s'espera d'haver dit «aquí no». */
+/* Les pendents d'AQUEST viatge no se suggereixen: tenen el seu bloc a sota
+   («El que va quedar pendent»), i sortir dos cops confon (v150). */
 function ideesSuggerides(v, seves) {
-  return ideesQueEncaixen(v, seves).filter(i => !descartadaDelViatge(i, v.id));
+  return ideesQueEncaixen(v, seves).filter(i => !descartadaDelViatge(i, v.id) && !esPendentDe(i, v.id));
 }
 
 function ideesDescartades(v, seves) {
   return ideesQueEncaixen(v, seves).filter(i => descartadaDelViatge(i, v.id));
+}
+
+/* ═══════════════ EL QUE VA QUEDAR PENDENT (v150) ═══════════════
+   Una cosa que no vas arribar a fer en un viatge és una idea normal
+   d'Inspiració (amb la seva zona, i per tant suggerida al pròxim viatge a
+   la mateixa zona) amb DUES marques: l'etiqueta «pendent», que és una
+   etiqueta com les altres —es filtra amb les altres i es treu com les
+   altres—, i l'origen (pendentDe: id, nom i mes del viatge), que és el que
+   permet dir «va quedar pendent de Lisboa» i llistar-les dins del viatge.
+   Mana l'etiqueta: si la treus a mà, deixa de ser pendent encara que
+   l'origen quedi desat; així no cal cap regla amagada. */
+const ETIQ_PENDENT = 'pendent';
+
+function esPendent(i) {
+  return !!(i.pendentDe && (i.etiquetes || []).includes(ETIQ_PENDENT));
+}
+function esPendentDe(i, viatgeId) {
+  return esPendent(i) && i.pendentDe.id === viatgeId;
+}
+function pendentsDelViatge(v) {
+  return idees.filter(i => esPendentDe(i, v.id));
+}
+
+/* Els canvis que fan pendent una idea (o visita) d'un viatge: fora del
+   viatge i sense dia, l'etiqueta i l'origen. El «quan» és el final del
+   viatge, que és el mes que recordes. */
+function canvisPendent(i, v) {
+  const etiq = (i.etiquetes || []).filter(e => e !== ETIQ_PENDENT).concat(ETIQ_PENDENT);
+  return {
+    viatgeId: '', dataVisita: '', horaVisita: '',
+    etiquetes: etiq,
+    pendentDe: { id: v.id, nom: v.nom || 'Viatge sense nom', quan: v.dataFi || v.dataInici || '' }
+  };
+}
+
+/* Els canvis que la tornen una idea normal: en fer-la per fi (convertir-la
+   en visita d'un viatge nou) o en dir «Ja no és pendent». */
+function canvisJaNoPendent(i) {
+  return { etiquetes: (i.etiquetes || []).filter(e => e !== ETIQ_PENDENT), pendentDe: null };
+}
+
+/* Un viatge ja ha passat quan el seu últim dia és abans d'avui. Sense
+   dates no ha passat mai. */
+function viatgePassat(v) {
+  const fi = v.dataFi || v.dataInici;
+  return !!fi && fi < isoDe(new Date());
+}
+
+function mesAnyDe(iso) {
+  const d = aData(iso);
+  return d ? MESOS_LLARG[d.getMonth()] + ' ' + d.getFullYear() : '';
+}
+
+/* La línia d'origen, a Inspiració i a la suggerència d'un viatge nou. El
+   nom del viatge és un botó que hi porta; si el viatge ja no existeix, és
+   només text. */
+function origenPendentHTML(i) {
+  if (!esPendent(i)) return '';
+  const p = i.pendentDe;
+  const existeix = viatges.some(v => v.id === p.id);
+  const nom = existeix
+    ? `<button data-obre-viatge="${esc(p.id)}">${esc(p.nom)}</button>`
+    : esc(p.nom);
+  const quan = p.quan ? ` (${esc(mesAnyDe(p.quan))})` : '';
+  return `<div class="idea-origen">Va quedar pendent de ${nom}${quan}</div>`;
+}
+
+/* El bloc «El que va quedar pendent» de la subpestanya Idees d'un viatge.
+   Cada línia s'obre com una fila de l'Agenda: la mateixa lectura, el mateix
+   formulari d'edició (sense Dia ni Hora, que una pendent no en té) i, en
+   comptes de «Torna a Inspiració», «Ja no és pendent». */
+function pendentsViatgeHTML(v) {
+  const llista = pendentsDelViatge(v);
+  if (!llista.length) return '';
+  return `<div class="agenda-bloc">
+    <h4 class="agenda-titol">El que va quedar pendent</h4>
+    <p class="agenda-nota">Coses d'aquest viatge que no vas arribar a fer. Són a Inspiració amb l'etiqueta «pendent», i et sortiran soles al pròxim viatge a la mateixa zona.</p>
+    ${llista.map(filaPendentHTML).join('')}
+  </div>`;
+}
+
+function filaPendentHTML(i) {
+  const obert = filesObertes.has(i.id);
+  const id = esc(i.id);
+  const meta = [i.zona, (i.etiquetes || []).filter(e => e !== ETIQ_PENDENT).join(', ')].filter(Boolean).join(' · ');
+  return `<div class="pendent${obert ? ' oberta' : ''}" data-id="${id}">
+    <button class="pendent-cap" data-obre-pendent="${id}" aria-expanded="${obert ? 'true' : 'false'}" aria-controls="pendent-${id}">
+      <span class="pendent-text">${esc((i.text || 'Idea sense text').split('\n')[0])}</span>
+      <span class="pendent-meta">${esc(meta)}</span>
+      <span class="pendent-chev">${CHEVRON}</span>
+    </button>
+    <div class="pendent-detall${obert ? '' : ' ocult'}" id="pendent-${id}">
+      ${visitaEnEdicio === i.id
+        ? formVisitaHTML(i, true)
+        : detallVisitaLecturaHTML(i) + `
+      <div class="detall-accions">
+        <button class="primari" data-edita-visita="${id}">Edita</button>
+        <button class="subtil" data-treu-pendent="${id}">Ja no és pendent</button>
+      </div>`}
+    </div>
+  </div>`;
 }
 
 /* ── Vista «activitats del dia» de l'agenda ──
@@ -8454,26 +9693,16 @@ function detallReservaLecturaHTML(r) {
     ${r.numReserva ? campDetall('Núm. de reserva', r.numReserva) : ''}
     ${r.notes ? campDetall('Notes', r.notes, true) : ''}
     ${blocRecomanacions(r)}
-  </div>`;
-}
-
-/* El detall (només lectura) d'una visita a la vista del dia. */
-function detallVisitaLecturaHTML(vi) {
-  const dia = [dataBonica(vi.dataVisita), vi.horaVisita].filter(Boolean).join(' · ');
-  return `<div class="detall-graella">
-    ${campDetall('Nota', vi.text, true)}
-    ${vi.zona ? campDetall('Zona', vi.zona) : ''}
-    ${(vi.etiquetes && vi.etiquetes.length) ? campDetall('Etiquetes', vi.etiquetes.join(', ')) : ''}
-    ${dia ? campDetall('Dia', dia) : ''}
-    ${vi.enllac ? `<div class="detall-camp ample"><span>Enllaç</span><p><a class="idea-enllac" href="${esc(vi.enllac)}" target="_blank" rel="noopener noreferrer">${esc(nomEnllac(vi.enllac))}</a></p></div>` : ''}
-  </div>`;
+  </div>${fotoRecordHTML('reserva', r)}${comVaAnarHTML('reserva', r)}`;
 }
 
 /* Una fila d'activitat: capçalera compacta (icona, nom, subtítol, hora) que
-   es desplega amb el detall complet de només lectura. */
+   es desplega amb el detall complet. Una reserva, només de lectura (s'edita
+   des de Reserves); una visita, la mateixa lectura que a l'itinerari, amb
+   l'«Edita» i tot (v148): si hi veus una hora malament, la canvies allà. */
 function filaActivitatHTML(a) {
   const obert = activitatsObertes.has(a.id);
-  const detall = a.mena === 'visita' ? detallVisitaLecturaHTML(a.obj) : detallReservaLecturaHTML(a.obj);
+  const detall = a.mena === 'visita' ? detallVisitaHTML(a.obj) : detallReservaLecturaHTML(a.obj);
   return `<div class="activitat-item${obert ? ' oberta' : ''}">
     <button class="activitat" data-activitat="${esc(a.id)}" aria-expanded="${obert ? 'true' : 'false'}">
       <span class="activitat-icona">${iconaSVG(a.icona)}</span>
@@ -8486,6 +9715,36 @@ function filaActivitatHTML(a) {
     </button>
     <div class="activitat-detall${obert ? '' : ' ocult'}">${detall}</div>
   </div>`;
+}
+
+/* El que passa un dia, ordenat per hora. El cotxe només el dia de recollida
+   i de devolució; l'allotjament, el dia de check-in i de check-out. Sense
+   hora: el check-out va a l'inici del dia (sol ser al matí) i tota la resta
+   al final. Ho fan servir «Activitats del dia» i la memòria del viatge
+   (v153), que és el mateix dia contat dues vegades. */
+function activitatsDelDia(dia, seves, sevesVisites) {
+  const activitats = [];
+  const ordreDe = (hora, aInici) => { const m = minutsDia(hora); return (m === 99999 && aInici) ? -1 : m; };
+  for (const r of seves) {
+    const t = tipusDe(r);
+    if (t === 'allotjament') {
+      const lloc = poblacio(r.adreca);
+      if (r.checkinISO === dia) activitats.push({ id: r.id + ':checkin', mena: 'reserva', obj: r, icona: 'llit', nom: 'Check-in a ' + nomReserva(r), sub: lloc, hora: r.checkinHora || '', ordre: ordreDe(r.checkinHora) });
+      if (r.checkoutISO === dia) activitats.push({ id: r.id + ':checkout', mena: 'reserva', obj: r, icona: 'llit', nom: 'Check-out de ' + nomReserva(r), sub: lloc, hora: r.checkoutHora || '', ordre: ordreDe(r.checkoutHora, true) });
+      continue;
+    }
+    if (t === 'cotxe') {
+      if (r.checkinISO === dia) activitats.push({ id: r.id + ':recollida', mena: 'reserva', obj: r, icona: 'cotxe', nom: 'Recollida del cotxe', sub: [r.companyia, r.llocRecollida].filter(Boolean).join(' · '), hora: r.checkinHora || '', ordre: ordreDe(r.checkinHora) });
+      if (r.checkoutISO === dia) activitats.push({ id: r.id + ':devolucio', mena: 'reserva', obj: r, icona: 'cotxe', nom: 'Devolució del cotxe', sub: [r.companyia, r.llocDevolucio].filter(Boolean).join(' · '), hora: r.checkoutHora || '', ordre: ordreDe(r.checkoutHora) });
+      continue;
+    }
+    if (r.checkinISO === dia) activitats.push({ id: r.id, mena: 'reserva', obj: r, icona: TIPUS[t].icona, nom: nomReserva(r), sub: subtitolReserva(r), hora: r.checkinHora || '', ordre: ordreDe(r.checkinHora) });
+  }
+  for (const vi of sevesVisites) {
+    if (vi.dataVisita === dia) activitats.push({ id: vi.id, mena: 'visita', obj: vi, icona: 'estrella', nom: (vi.text || 'Visita').split('\n')[0], sub: vi.zona || '', hora: vi.horaVisita || '', ordre: ordreDe(vi.horaVisita) });
+  }
+  activitats.sort((a, b) => a.ordre - b.ordre);
+  return activitats;
 }
 
 function agendaDiaHTML(v, seves, sevesVisites) {
@@ -8502,31 +9761,7 @@ function agendaDiaHTML(v, seves, sevesVisites) {
   }
   const idx = dies.indexOf(diaAgenda);
 
-  // Activitats del dia, ordenades per hora. El cotxe només el dia de
-  // recollida i de devolució; l'allotjament, el dia de check-in i de
-  // check-out. Sense hora: el check-out va a l'inici del dia (sol ser al
-  // matí) i tota la resta al final.
-  const activitats = [];
-  const ordreDe = (hora, aInici) => { const m = minutsDia(hora); return (m === 99999 && aInici) ? -1 : m; };
-  for (const r of seves) {
-    const t = tipusDe(r);
-    if (t === 'allotjament') {
-      const lloc = poblacio(r.adreca);
-      if (r.checkinISO === diaAgenda) activitats.push({ id: r.id + ':checkin', mena: 'reserva', obj: r, icona: 'llit', nom: 'Check-in a ' + nomReserva(r), sub: lloc, hora: r.checkinHora || '', ordre: ordreDe(r.checkinHora) });
-      if (r.checkoutISO === diaAgenda) activitats.push({ id: r.id + ':checkout', mena: 'reserva', obj: r, icona: 'llit', nom: 'Check-out de ' + nomReserva(r), sub: lloc, hora: r.checkoutHora || '', ordre: ordreDe(r.checkoutHora, true) });
-      continue;
-    }
-    if (t === 'cotxe') {
-      if (r.checkinISO === diaAgenda) activitats.push({ id: r.id + ':recollida', mena: 'reserva', obj: r, icona: 'cotxe', nom: 'Recollida del cotxe', sub: [r.companyia, r.llocRecollida].filter(Boolean).join(' · '), hora: r.checkinHora || '', ordre: ordreDe(r.checkinHora) });
-      if (r.checkoutISO === diaAgenda) activitats.push({ id: r.id + ':devolucio', mena: 'reserva', obj: r, icona: 'cotxe', nom: 'Devolució del cotxe', sub: [r.companyia, r.llocDevolucio].filter(Boolean).join(' · '), hora: r.checkoutHora || '', ordre: ordreDe(r.checkoutHora) });
-      continue;
-    }
-    if (r.checkinISO === diaAgenda) activitats.push({ id: r.id, mena: 'reserva', obj: r, icona: TIPUS[t].icona, nom: nomReserva(r), sub: subtitolReserva(r), hora: r.checkinHora || '', ordre: ordreDe(r.checkinHora) });
-  }
-  for (const vi of sevesVisites) {
-    if (vi.dataVisita === diaAgenda) activitats.push({ id: vi.id, mena: 'visita', obj: vi, icona: 'estrella', nom: (vi.text || 'Visita').split('\n')[0], sub: vi.zona || '', hora: vi.horaVisita || '', ordre: ordreDe(vi.horaVisita) });
-  }
-  activitats.sort((a, b) => a.ordre - b.ordre);
+  const activitats = activitatsDelDia(diaAgenda, seves, sevesVisites);
 
   // On es dorm aquesta nit: l'allotjament que cobreix la nit d'aquest dia.
   // El dia del check-in no es repeteix a sota (la fila de check-in ja ho diu).
@@ -8624,9 +9859,13 @@ function agendaCompletHTML(v, seves, sevesVisites) {
   // imprimiria un full buit val més que no hi sigui.
   // Botó normal, amb vora: un .subtil tot sol enmig d'una pantalla es
   // llegeix com a text i ningú no el clica (ja va passar a la v120).
-  if (seves.length) {
+  // I la memòria del viatge (v153), només quan l'últim dia ha passat: és
+  // un document per guardar després, no per portar a sobre durant.
+  const passat = viatgePassat(v);
+  if (seves.length || passat) {
     html += `<div class="agenda-peu">
-      <button class="mini" data-imprimeix-reserves>Imprimeix les reserves</button>
+      ${passat ? `<button class="mini" data-fes-memoria>Fes la memòria del viatge</button>` : ''}
+      ${seves.length ? `<button class="mini" data-imprimeix-reserves>Imprimeix les reserves</button>` : ''}
     </div>`;
   }
 
@@ -10146,10 +11385,45 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   // Convertir una idea de la zona en visita del viatge (va a "per encaixar")
   const conv = e.target.closest('[data-converteix]');
   if (conv) {
-    await MagatzemIdees.actualitza(conv.dataset.converteix, { viatgeId: viatgeObert });
+    // Una pendent que per fi fas deixa de ser-ho: fora l'etiqueta i l'origen (v150).
+    const idea = idees.find(x => x.id === conv.dataset.converteix);
+    const canvis = { viatgeId: viatgeObert, ...(idea && esPendent(idea) ? canvisJaNoPendent(idea) : {}) };
+    await MagatzemIdees.actualitza(conv.dataset.converteix, canvis);
     await refresca();
     return;
   }
+  // ── El que va quedar pendent (v150) ──
+  // Des de l'Agenda: «Ho deixo pendent». Torna a Inspiració amb l'etiqueta
+  // i l'origen, i cau al bloc de pendents de la subpestanya Idees.
+  const deixa = e.target.closest('[data-deixa-pendent]');
+  if (deixa) {
+    const v = viatges.find(x => x.id === viatgeObert);
+    const vi = visites.find(x => x.id === deixa.dataset.deixaPendent);
+    if (!v || !vi) return;
+    visitaEnEdicio = null;
+    await MagatzemIdees.actualitza(vi.id, canvisPendent(vi, v));
+    await refresca();
+    return;
+  }
+  const obrePend = e.target.closest('[data-obre-pendent]');
+  if (obrePend) {
+    const k = obrePend.dataset.obrePendent;
+    if (filesObertes.has(k)) filesObertes.delete(k); else filesObertes.add(k);
+    pintaDetallViatge();
+    return;
+  }
+  const jaNo = e.target.closest('[data-treu-pendent]');
+  if (jaNo) {
+    const idea = idees.find(x => x.id === jaNo.dataset.treuPendent);
+    if (!idea) return;
+    visitaEnEdicio = null;
+    await MagatzemIdees.actualitza(idea.id, canvisJaNoPendent(idea));
+    await refresca();
+    return;
+  }
+  // La línia d'origen d'una idea suggerida: cap a l'altre viatge.
+  const obreV = e.target.closest('[data-obre-viatge]');
+  if (obreV) { vesAlViatge(obreV.dataset.obreViatge); return; }
   // Descartar un suggeriment: la idea es queda a la Inspiració tal com està,
   // però deixa de sortir en AQUEST viatge. Els altres no s'hi veuen afectats.
   const noSug = e.target.closest('[data-no-suggerir]');
@@ -10173,9 +11447,26 @@ $('detall-viatge-vista').addEventListener('click', async e => {
     await refresca();
     return;
   }
+  // Editar una visita: els camps es tornen editables fins a «Desa» o
+  // «Cancel·la» (v148). Una de sola alhora: obrir-ne una altra tanca la
+  // primera sense desar-la, igual que les despeses.
+  const ediVis = e.target.closest('[data-edita-visita]');
+  if (ediVis) {
+    visitaEnEdicio = ediVis.dataset.editaVisita;
+    pintaDetallViatge();
+    // El botó que has premut ja no hi és: el cursor va al text, que és el
+    // primer camp. Amb teclat, si no, es quedaria enlloc.
+    const text = document.querySelector('[data-visita-form] [data-edita-camp="text"]');
+    if (text) text.focus();
+    return;
+  }
+  const desaVis = e.target.closest('[data-desa-visita]');
+  if (desaVis) { await desaVisita(desaVis.dataset.desaVisita); return; }
+  if (e.target.closest('[data-cancela-visita]')) { cancelaEdicioVisita(); return; }
   // Treure una visita del viatge: torna a ser idea lliure de la wishlist
   const treu = e.target.closest('[data-treu-visita]');
   if (treu) {
+    visitaEnEdicio = null;
     await MagatzemIdees.actualitza(treu.dataset.treuVisita, { viatgeId: '', dataVisita: '', horaVisita: '' });
     await refresca();
     return;
@@ -10184,6 +11475,8 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   const esbVis = e.target.closest('[data-esborra-visita]');
   if (esbVis) {
     if (!confirm('Vols eliminar aquesta idea? Desapareixerà del viatge i de la Inspiració.')) return;
+    visitaEnEdicio = null;
+    esborraFotoDe(visites.find(x => x.id === esbVis.dataset.esborraVisita));   // la foto se'n va amb ella (v151)
     await MagatzemIdees.esborra(esbVis.dataset.esborraVisita);
     await refresca();
     return;
@@ -10193,6 +11486,7 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   if (e.target.closest('[data-afegeix-activitat]')) { await afegeixActivitat(); return; }
   // Imprimir: les dues finestres comparteixen diàleg (veure modeImprimir).
   if (e.target.closest('[data-imprimeix-reserves]')) { obreTriaImprimirReserves(); return; }
+  if (e.target.closest('[data-fes-memoria]')) { imprimeixMemoria(); return; }
   if (e.target.closest('[data-imprimeix-maleta]')) { obreTriaImprimir(); return; }
   // Maleta
   const qui = e.target.closest('[data-maleta-persona]');
@@ -10245,14 +11539,18 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   if (trd) { await treuDespesa(trd.dataset.treuDespesa); return; }
 });
 
-// Enter en un camp del formulari: afegeix (formulari nou) o desa (edició)
+// Enter en un camp del formulari: afegeix (formulari nou) o desa (edició).
+// Esc dins de l'edició d'una visita la cancel·la (v148); només allà, que és
+// l'única edició del detall amb un text llarg on val la pena poder fugir.
 $('detall-viatge-vista').addEventListener('keydown', e => {
+  if (e.key === 'Escape' && visitaEnEdicio && e.target.closest('[data-visita-form]')) { e.preventDefault(); cancelaEdicioVisita(); return; }
   if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
   if (e.target.id === 'nova-idea-viatge') { e.preventDefault(); afegeixIdeaViatge(); }
   else if (e.target.id === 'nova-activitat') { e.preventDefault(); afegeixActivitat(); }
   else if (e.target.id === 'nou-item-maleta') { e.preventDefault(); afegeixItemMaleta(e.target.value, true); }
   else if (e.target.closest('.despesa-nova')) { e.preventDefault(); afegeixDespesa(); }
   else if (e.target.closest('.despesa-edicio') && despesaEnEdicio) { e.preventDefault(); desaDespesa(despesaEnEdicio); }
+  else if (e.target.closest('[data-visita-form]') && visitaEnEdicio) { e.preventDefault(); desaVisita(visitaEnEdicio); }
 });
 
 $('detall-viatge-vista').addEventListener('pointerdown', iniciaArrossegar);
@@ -10260,9 +11558,11 @@ document.addEventListener('pointermove', mouArrossegant);
 document.addEventListener('pointerup', acabaArrossegar);
 document.addEventListener('pointercancel', acabaArrossegar);
 
-/* Editar en línia els camps d'una idea o visita des de dins d'un viatge: el
-   text, el dia, l'hora, la zona, les etiquetes, l'adreça exacta i l'enllaç.
-   Ho fan servir la fila d'una visita i la fila d'una idea suggerida. */
+/* Editar en línia un camp d'una idea des de dins d'un viatge: es desa sol
+   en canviar-lo. Des de la v148 només ho fan servir les idees suggerides
+   (zona, etiquetes i enllaç): la fila d'una visita ja no s'edita així, sinó
+   amb «Edita» i «Desa» (desaVisita). Es deixa preparat per a tots els
+   camps, que és el que hi havia. */
 $('detall-viatge-vista').addEventListener('change', async e => {
   const camp = e.target.closest('[data-visita-camp]');
   if (!camp) return;
