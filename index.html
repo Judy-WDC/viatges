@@ -797,7 +797,11 @@
      galeria: 460 px d'ample com a molt, tot l'ample al mòbil. */
   .foto-record { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
   .fila-detall > .foto-record, .activitat-detall > .foto-record { margin-top: 16px; }
-  .foto-img { max-width: 100%; width: 460px; max-height: 340px; object-fit: cover; border-radius: 10px; display: block; box-shadow: 0 2px 10px rgba(51, 39, 46, 0.12); }
+  /* La foto s'ensenya SENCERA, sigui apaïsada o vertical (v155): mides
+     màximes i prou, sense retallar. Una apaïsada omple els 460 px d'ample;
+     una vertical, els 340 d'alt. Només les rodones de les files i la
+     portada petita es retallen, que són quadrades a posta. */
+  .foto-img { max-width: min(100%, 460px); max-height: 340px; width: auto; height: auto; border-radius: 10px; display: block; box-shadow: 0 2px 10px rgba(51, 39, 46, 0.12); }
   .foto-img:not([src]) { display: none; }
   .foto-accions { display: flex; gap: 2px; }
   .foto-afegeix {
@@ -1593,8 +1597,12 @@
     header, main, footer { padding-left: 18px; padding-right: 18px; }
     .llista { padding: 0 14px 10px; }
     .llista-capcalera { display: none; }
+    /* La columna de la icona feia 12 px: la icona quedava una barreta amb
+       el dibuix sobreeixint, i des que hi ha fotos de record (v151) la foto
+       s'hi veia com un fil. Ara fa 32 px, com a l'ordinador: la foto es
+       veu sencera i la icona també (v156). El nom perd 20 px. */
     .graella-fila {
-      grid-template-columns: 12px minmax(0, 1fr) auto 16px;
+      grid-template-columns: 32px minmax(0, 1fr) auto 16px;
       grid-template-areas:
         "punt nom preu chev"
         ".    dates dates ."
@@ -1602,6 +1610,7 @@
       row-gap: 3px;
       gap: 10px;
     }
+    .icona-tipus { flex: none; }
     .cel-dates .xifra, .cel-dates .menuda { display: inline; }
     /* El separador va amb el que separa: si el segon tros és buit —una
        reserva d'un sol dia, que no té nits— quedava un punt penjant
@@ -1763,7 +1772,10 @@
   .mem-doc h1.mem-titol { font-size: 24pt; font-weight: 600; margin: 0; letter-spacing: -0.01em; color: #000; font-family: inherit; }
   .mem-sub { font-size: 10.5pt; color: #333; margin: 4pt 0 0; }
   .mem-etiq { font-size: 8pt; color: #6E6E6E; text-transform: uppercase; letter-spacing: 0.14em; text-align: right; flex: none; }
-  .mem-portada { width: 100%; height: 78mm; object-fit: cover; margin-top: 12pt; display: block; }
+  /* Senceres també al paper (v155): la portada, a tota l'amplada si és
+     apaïsada i centrada si és vertical (com a molt 110 mm d'alt); la foto
+     d'un dia, dins d'un quadrat de 50 mm. */
+  .mem-portada { max-width: 100%; max-height: 110mm; width: auto; height: auto; margin: 12pt auto 0; display: block; }
   .mem-grup { display: flex; align-items: baseline; justify-content: space-between; gap: 12pt; margin: 22pt 0 8pt; border-bottom: 0.8pt solid #000; padding-bottom: 4pt; }
   .mem-grup h2 { font-size: 10.5pt; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.14em; color: #000; }
   .mem-grup-de { font-size: 8.5pt; color: #6E6E6E; text-align: right; }
@@ -1781,7 +1793,7 @@
   .mem-hora-que .mem-nota { display: block; font-size: 9pt; color: #222; margin-top: 3pt; line-height: 1.35; white-space: pre-line; }
   .mem-hora-que .mem-va { display: block; font-size: 9pt; color: #333; margin-top: 3pt; font-style: italic; }
   .mem-hora-que .mem-va::before { content: 'Com va anar · '; font-style: normal; font-size: 7.5pt; color: #6E6E6E; text-transform: uppercase; letter-spacing: 0.06em; }
-  .mem-foto { width: 50mm; height: 34mm; object-fit: cover; display: block; }
+  .mem-foto { max-width: 50mm; max-height: 50mm; width: auto; height: auto; display: block; }
   .mem-allot { display: grid; grid-template-columns: 1fr 1fr; gap: 2pt 16pt; padding: 8pt 0 9pt; }
   .mem-allot + .mem-allot { border-top: 0.6pt solid #C8C8C8; }
   .mem-allot-cap { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; gap: 10pt; }
@@ -3439,6 +3451,42 @@ function parseReserva(textOriginal) {
       treu un full en blanc. S'arreglaria amb l'esdeveniment «beforeprint»,
       omplint el full segons la pantalla on ets. LA CLARA HO VA DESCARTAR
       (25/08/2026): no li calia.
+   FET · Dues coses de les fotos que va veure la Clara al mòbil i al PDF
+      (v156), i la còpia congelada 17 amb la documentació 17.
+      · HISTÒRIA. El 15/09 va demanar de MIRAR-LES i es van arreglar sense
+        permís (v156, còpia 17 i tot); el 16/09 va fer tornar l'app a la
+        v155, i després va autoritzar les dues reparacions, la segona
+        d'una altra manera. Des de llavors hi ha el CLAUDE.md a la carpeta:
+        mirar no és arreglar.
+      · AL MÒBIL, la foto de la fila era un fil. La columna de la icona
+        feia 12 px (era una barreta de color amb el dibuix sobreeixint per
+        sobre), i la foto de record, retallada a 12 px, no es veia. Ara la
+        columna fa 32 px com a l'ordinador: la foto es veu sencera i la
+        icona també. El nom de la fila perd 20 px.
+      · A LA MEMÒRIA faltava la foto del cotxe. Al dia a dia només hi
+        posava la foto de les activitats i de les entrades; el cotxe, els
+        allotjaments i els vols hi surten com a «Recollida», «Check-in»…, i
+        la foto no hi anava enlloc. Ella va decidir que vagi AL DIA A DIA i
+        no a la targeta: a la línia on la reserva apareix (recollida,
+        check-in, el dia del vol) i no a la de tornar-lo o marxar, que la
+        foto sortiria dos cops.
+      · Còpia congelada app-viatges-17.html i documentació nova
+        com-funciona-l-app-17.md, completes fins aquí. La 16 arribava a la
+        v147; la 17 recull de la v148 a la v156. La pròxima toca a la v166.
+   FET · Les fotos verticals es veuen senceres (v155). La Clara en va posar
+      una en vertical i l'app la retallava a 460×340 (15/09/2026).
+      · La foto del detall (.foto-img) tenia amplada fixa i «object-fit:
+        cover», que és retallar. Ara només té mides màximes (460 d'ample,
+        340 d'alt) i es queda amb la seva proporció: una apaïsada omple
+        l'ample, una vertical l'alt. Al paper igual: la portada, a tota
+        l'amplada si és apaïsada i centrada si és vertical (110 mm d'alt
+        com a molt); la foto d'un dia, dins d'un quadrat de 50 mm. Només
+        es retallen les rodones de les files i la portada petita de la
+        capçalera, que són quadrades a posta.
+      · De passada: el «N dies» de la memòria sumava les dates de les
+        reserves a les del viatge, i un cotxe tornat fora del viatge el
+        feia dir «371 dies». Amb les dates del viatge posades, manen
+        elles (diesDeLaMemoria).
    FET · La memòria, dos retocs del primer PDF de debò (v154). Els va
       veure la Clara (15/09/2026).
       · Cap títol de secció penjat al peu d'un full. «break-after: avoid»
@@ -5741,6 +5789,10 @@ function plural(n, un, molts) { return n === 1 ? `1 ${un}` : `${n} ${molts}`; }
 /* Els dies que abasta el viatge: de les seves dates o, si no en té, de
    les seves reserves i visites. */
 function diesDeLaMemoria(v, seves, sevesVisites) {
+  // Amb les dates del viatge posades, manen elles: una reserva fora del
+  // viatge (un cotxe tornat més tard, una entrada d'un altre cap de
+  // setmana) no ha d'allargar la memòria a «371 dies» (v155).
+  if (v.dataInici && v.dataFi) return diesEntre(v.dataInici, v.dataFi);
   const dates = [v.dataInici, v.dataFi];
   for (const r of seves) dates.push(r.checkinISO, r.checkoutISO);
   for (const vi of sevesVisites) dates.push(vi.dataVisita);
@@ -5796,6 +5848,11 @@ function memoriaHoraHTML(a) {
     vaAnar = memoriaComVaAnarHTML(r);
     foto = memoriaFotoHTML(r);
   }
+  // La foto del cotxe, de l'allotjament i del vol va al dia a dia, no a la
+  // seva targeta (v156, decidit per la Clara): a la línia on la reserva
+  // APAREIX (recollida, check-in, el dia del vol), i no a la de tornar-lo o
+  // marxar, que la foto sortiria dos cops.
+  if (a.mena === 'reserva' && !/:(checkout|devolucio)$/.test(a.id)) foto = memoriaFotoHTML(r);
   return `<div class="mem-hora">
       <span class="mem-hora-h">${esc(a.hora || '')}</span>
       <span class="mem-hora-que"><b>${esc(nom)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}${nota ? `<span class="mem-nota">${esc(nota)}</span>` : ''}${vaAnar}</span>
