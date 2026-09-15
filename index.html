@@ -836,8 +836,12 @@
   .portada-mini { width: 56px; height: 56px; border-radius: 10px; overflow: hidden; flex: none; background: var(--accent-fons); display: block; }
   .portada-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .portada-mini img:not([src]) { display: none; }
-  .foto-afegeix.portada-buida { flex-direction: column; gap: 2px; width: 56px; height: 56px; padding: 0; font-size: 10px; border-radius: 10px; }
-  .portada-accions { margin: 2px 0 0 -10px; display: flex; gap: 0; }
+  /* El camp de la portada a la fitxa d'edició (v157): la foto en petit i
+     els dos botons al costat, o el botó d'afegir-ne. */
+  #camp-viatge-portada { margin-top: 14px; }
+  .portada-fitxa { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .portada-mini.gran { width: 72px; height: 72px; }
+  .portada-fitxa-accions { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
   .viatge-cap.amb-portada { flex-direction: row; align-items: center; gap: 12px; }
   .viatge-cap.amb-portada .portada-mini { width: 44px; height: 44px; border-radius: 8px; }
   .viatge-cap-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
@@ -2166,6 +2170,15 @@
         <datalist id="persones-conegudes"></datalist>
         <p class="camp-ajuda">Serveix per repartir les despeses i per tenir una maleta per a cadascú. Si ho deixes buit, les despeses es reparteixen entre qui hagi pagat alguna cosa.</p>
       </div>
+      <!-- La foto de portada s'administra des d'aquí i no des de la
+           capçalera del viatge (v157): allà només es veu. Només en editar
+           (un viatge nou encara no té on penjar-la). El que s'hi fa és al
+           moment, com les fotos de record: no espera «Desa». -->
+      <div class="camp ample ocult" id="camp-viatge-portada">
+        <label>Foto de portada (opcional)</label>
+        <div class="portada-fitxa" id="viatge-portada"></div>
+        <p class="camp-ajuda">És la que va a la portada de la memòria del viatge i al costat del nom. Es canvia al moment, sense esperar «Desa».</p>
+      </div>
       <div class="fitxa-peu">
         <button class="primari" id="btn-desa-viatge">Crea el viatge</button>
         <button class="subtil" id="btn-cancela-viatge">Cancel·la</button>
@@ -3451,6 +3464,17 @@ function parseReserva(textOriginal) {
       treu un full en blanc. S'arreglaria amb l'esdeveniment «beforeprint»,
       omplint el full segons la pantalla on ets. LA CLARA HO VA DESCARTAR
       (25/08/2026): no li calia.
+   FET · La foto de portada es canvia i es treu des de la fitxa d'edició del
+      viatge, no des de la capçalera (v157). Ho va demanar la Clara
+      (16/09/2026): a la capçalera es veia sempre el botó «Portada» o els
+      dos de «Canvia» i «Treu-la», i no calia. Ara la capçalera NOMÉS
+      ensenya la foto en petit si n'hi ha (i res si no n'hi ha), i el camp
+      «Foto de portada» és a la fitxa d'«Edita», amb la resta de dades del
+      viatge (#camp-viatge-portada, pintaPortadaFitxa). Només en editar: un
+      viatge nou encara no té on penjar-la. El que s'hi fa és AL MOMENT, com
+      les fotos de record, i no espera «Desa» ni es desfà amb «Cancel·la»:
+      el text d'ajuda del camp ho diu. La fitxa és HTML fix, o sigui que el
+      camp es repinta després de cada refresc mentre la fitxa és oberta.
    FET · Dues coses de les fotos que va veure la Clara al mòbil i al PDF
       (v156), i la còpia congelada 17 amb la documentació 17.
       · HISTÒRIA. El 15/09 va demanar de MIRAR-LES i es van arreglar sense
@@ -5737,21 +5761,30 @@ document.addEventListener('input', e => {
    de les de dins. Es desa al viatge (v.foto) com les altres, i és la que
    va a la portada de la memòria. Sense, la memòria surt només amb el
    títol: no s'agafa cap foto de dins «per omplir». */
+/* A la capçalera del viatge NOMÉS es veu (v157): si hi ha portada, la foto
+   en petit; si no, res. Canviar-la o treure-la és a la fitxa d'edició del
+   viatge («Edita»), amb la resta de dades del viatge. */
 function portadaViatgeHTML(v) {
-  const clau = `viatge:${esc(v.id)}`;
-  if (v.foto) {
-    return `<span class="portada-mini"><img data-foto="${esc(v.foto)}" alt="Foto de portada"></span>`;
-  }
-  return `<button class="foto-afegeix portada-buida" data-foto-afegeix="${clau}"
-      aria-label="Posa una foto de portada al viatge" title="Foto de portada">${iconaSVG('camera')}<span>Portada</span></button>`;
-}
-function accionsPortadaHTML(v) {
   if (!v.foto) return '';
+  return `<span class="portada-mini"><img data-foto="${esc(v.foto)}" alt="Foto de portada"></span>`;
+}
+
+/* El camp «Foto de portada» de la fitxa d'edició. Es repinta després de cada
+   refresc perquè la fitxa és HTML fix i la foto canvia al moment. */
+function pintaPortadaFitxa() {
+  const camp = $('camp-viatge-portada');
+  const v = editantViatge ? viatges.find(x => x.id === editantViatge) : null;
+  camp.classList.toggle('ocult', !v);
+  if (!v) return;
   const clau = `viatge:${esc(v.id)}`;
-  return `<p class="portada-accions">
-      <button class="subtil mini" data-foto-afegeix="${clau}">Canvia la portada</button>
-      <button class="subtil mini" data-foto-treu="${clau}">Treu-la</button>
-    </p>`;
+  $('viatge-portada').innerHTML = v.foto
+    ? `<span class="portada-mini gran"><img data-foto="${esc(v.foto)}" alt="Foto de portada"></span>
+       <span class="portada-fitxa-accions">
+         <button class="subtil mini" data-foto-afegeix="${clau}">Canvia la portada</button>
+         <button class="subtil mini" data-foto-treu="${clau}">Treu-la</button>
+       </span>`
+    : `<button class="foto-afegeix" data-foto-afegeix="${clau}">${iconaSVG('camera')}Afegeix una foto de portada</button>`;
+  posaAdrecesFoto();
 }
 
 /* ═══════════════ LA MEMÒRIA DEL VIATGE (v153) ═══════════════
@@ -8984,6 +9017,9 @@ async function refrescaViatges() {
     if (viatgeObert) viatgeObert = null;
     pintaViatges();
   }
+  // La fitxa d'edició és HTML fix: si és oberta, el camp de la portada s'ha
+  // de tornar a pintar amb la foto que acaba de canviar (v157).
+  if (editantViatge) pintaPortadaFitxa();
 }
 
 /* El rang de dates d'un viatge, escrit de manera natural:
@@ -9154,6 +9190,7 @@ function obreFitxaViatge(v) {
   $('camp-viatge-persones-input').value = '';
   $('persones-conegudes').innerHTML = nomsConeguts().map(n => `<option value="${esc(n)}"></option>`).join('');
   $('btn-desa-viatge').textContent = v ? 'Desa els canvis' : 'Crea el viatge';
+  pintaPortadaFitxa();
   $('fitxa-viatge').classList.add('visible');
   $('camp-viatge-nom').focus();
   apuntaEnrere('fitxa-viatge', () => tancaFitxaViatge());
@@ -9244,7 +9281,6 @@ function pintaDetallViatge() {
         <div>
           <h3 class="detall-nom">${esc(v.nom || 'Viatge sense nom')}</h3>
           <p class="detall-rang">${esc(rangViatge(v))}</p>
-          ${accionsPortadaHTML(v)}
         </div>
       </div>
       <button class="subtil mini" id="btn-edita-viatge-detall">Edita</button>
