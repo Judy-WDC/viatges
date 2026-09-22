@@ -1794,19 +1794,25 @@
   .mem-hora-que { font-size: 10pt; color: #000; }
   .mem-hora-que b { font-weight: 600; }
   .mem-hora-que small { display: block; font-size: 8.8pt; color: #555; margin-top: 1pt; }
-  .mem-hora-que .mem-nota { display: block; font-size: 9pt; color: #222; margin-top: 3pt; line-height: 1.35; white-space: pre-line; }
+  .mem-hora-que .mem-nota, .mem-pend .mem-nota { display: block; font-size: 9pt; color: #222; margin-top: 3pt; line-height: 1.35; white-space: pre-line; }
   .mem-hora-que .mem-va { display: block; font-size: 9pt; color: #333; margin-top: 3pt; font-style: italic; }
   .mem-hora-que .mem-va::before { content: 'Com va anar · '; font-style: normal; font-size: 7.5pt; color: #6E6E6E; text-transform: uppercase; letter-spacing: 0.06em; }
   .mem-foto { max-width: 50mm; max-height: 50mm; width: auto; height: auto; display: block; }
   .mem-allot { display: grid; grid-template-columns: 1fr 1fr; gap: 2pt 16pt; padding: 8pt 0 9pt; }
-  .mem-allot + .mem-allot { border-top: 0.6pt solid #C8C8C8; }
   .mem-allot-cap { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; gap: 10pt; }
   .mem-allot-nom { font-size: 12pt; font-weight: 600; margin: 0; color: #000; }
   .mem-allot-nits { font-size: 9pt; color: #6E6E6E; text-align: right; }
   .mem-allot .full-camp dt { width: 60pt; }
+  /* Els detalls entren 8 mm cap endins (v162): així el nom de l'allotjament
+     fa de títol i tot el que en penja es veu que en depèn. El títol de la
+     secció i el nom es queden al marge, que és el que fa que es noti.
+     Val també per als transports, que fan servir la mateixa classe. */
+  .mem-allot .full-camp, .mem-allot .mem-va-bloc { padding-left: 8mm; }
   .mem-va-bloc { grid-column: 1 / -1; margin-top: 5pt; font-size: 9.3pt; font-style: italic; color: #222; display: flex; gap: 8pt; align-items: baseline; }
   .mem-va-bloc::before { content: 'Com va anar'; font-style: normal; font-size: 7.5pt; color: #6E6E6E; text-transform: uppercase; letter-spacing: 0.06em; flex: none; width: 60pt; }
-  .mem-nota5 { font-style: normal; font-size: 8.5pt; color: #000; border: 0.7pt solid #000; border-radius: 999pt; padding: 0 6pt; flex: none; white-space: nowrap; }
+  /* La nota en estrelles i sense requadre (v162): la píndola de vora negra
+     pesava més que el text del costat i cridava l'atenció. */
+  .mem-nota5 { font-style: normal; font-size: 9.5pt; color: #000; letter-spacing: 0.08em; flex: none; white-space: nowrap; }
   .mem-taula { width: 100%; min-width: 0; border-collapse: collapse; font-size: 9.6pt; table-layout: auto; }
   .mem-taula th { text-align: left; font-size: 7.5pt; color: #6E6E6E; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; padding: 3pt 0; border-bottom: 0.6pt solid #000; background: none; white-space: normal; }
   .mem-taula td { padding: 3pt 0; border-bottom: 0.4pt solid #DADADA; vertical-align: top; font-size: 9.6pt; color: #000; max-width: none; background: none; }
@@ -1817,8 +1823,14 @@
   .mem-dues { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24pt; }
   /* El títol d'una secció amb el seu primer element: junts (v154). */
   .mem-junt { break-inside: avoid; page-break-inside: avoid; }
-  .mem-pend { padding: 5pt 0; border-bottom: 0.4pt solid #DADADA; font-size: 10pt; color: #000; display: flex; justify-content: space-between; gap: 10pt; }
+  .mem-pend { padding: 5pt 0; font-size: 10pt; color: #000; display: flex; justify-content: space-between; gap: 10pt; }
   .mem-pend small { color: #6E6E6E; font-size: 8.8pt; white-space: nowrap; }
+  /* El títol d'un pendent en negreta, com el nom d'una visita al dia a dia,
+     i el text interior amb aire per sota, perquè el pendent següent no li
+     quedi enganxat (v159). Sense ratlla entre pendents des de la v160:
+     separen la negreta i l'aire. */
+  .mem-pend b { font-weight: 600; }
+  .mem-pend .mem-nota { margin-bottom: 4pt; }
 
 @page { margin: 16mm; }
 @media print {
@@ -3464,6 +3476,51 @@ function parseReserva(textOriginal) {
       treu un full en blanc. S'arreglaria amb l'esdeveniment «beforeprint»,
       omplint el full segons la pantalla on ets. LA CLARA HO VA DESCARTAR
       (25/08/2026): no li calia.
+   FET · La memòria, sagnat dels detalls i la nota en estrelles (v162). Els
+      va triar la Clara sobre una mostra a mida real (22/09/2026), amb tres
+      maneres de dir la nota i dues mides de sagnat.
+      · Els detalls de cada allotjament entren 8 mm cap endins: les dues
+        columnes de dades i la línia de «Com va anar». El nom es queda al
+        marge i fa de títol. Val també per als transports, que comparteixen
+        la classe .mem-allot. A 12 mm es partien massa línies; a 8 només
+        alguna adreça llarga.
+      · La nota va en estrelles (★★★★☆) i sense requadre. La píndola de
+        vora negra «4 de 5» pesava més que el text del costat. Les
+        estrelles es comparen d'un cop d'ull entre allotjaments. El títol
+        de l'element segueix dient «4 de 5» amb paraules, per als lectors
+        de pantalla. Afecta també les notes del dia a dia, que fan servir
+        la mateixa classe.
+   FET · Fora les ratlles entre allotjaments i entre transports (v161). La
+      Clara va veure que a «On vam dormir» la ratlla hi era a vegades sí i a
+      vegades no (22/09/2026), i va demanar treure-la del tot, com als
+      pendents.
+      · No era aleatori: la posava «.mem-allot + .mem-allot», i des de la
+        v154 el primer element de cada secció va dins del .mem-junt amb el
+        seu títol. El segon element ja no venia JUST després d'un
+        .mem-allot, sinó després del .mem-junt, i es quedava sense ratlla;
+        del tercer endavant sí que n'hi havia. Passava igual a «Com hi vam
+        anar», que fa servir la mateixa classe. Ara no n'hi ha cap enlloc:
+        separen el nom en gros i l'aire entre blocs.
+   FET · Fora les ratlles entre pendents de la memòria (v160). Ho va demanar
+      la Clara (22/09/2026). La ratlla fina que hi havia sota cada pendent
+      ja no cal: amb el títol en negreta i l'aire de la v159, se separen
+      sols. L'aire entre pendents (5 pt a dalt i a baix) es queda igual.
+   FET · Els pendents de la memòria, títol en negreta i aire a sota (v159).
+      Ho va demanar la Clara en veure la v158 (22/09/2026): el títol d'un
+      pendent i el text de dins es veien massa iguals, i la llista d'un
+      pendent quedava enganxada al títol del següent.
+      · El títol va en negreta (600, com el nom d'una visita al dia a dia)
+        i el text interior té 4 pt d'aire per sota abans de la ratlla. Un
+        pendent d'una sola línia només guanya la negreta.
+   FET · La memòria imprimeix el text sencer de cada pendent (v158). La
+      Clara va acabar un viatge i va apuntar en UNA idea pendent, «pendents»,
+      la llista de tot el que va quedar per a la propera vegada; la memòria
+      en treia només el títol (22/09/2026).
+      · A «El que va quedar pendent», la primera línia del text segueix
+        sent el títol i la resta surt a sota, en 9 pt i respectant els
+        salts de línia, amb la mateixa classe .mem-nota que ja fan servir
+        les visites del dia a dia. Un pendent d'una sola línia s'imprimeix
+        exactament igual que abans.
    FET · La foto de portada es canvia i es treu des de la fitxa d'edició del
       viatge, no des de la capçalera (v157). Ho va demanar la Clara
       (16/09/2026): a la capçalera es veia sempre el botó «Portada» o els
@@ -5849,14 +5906,22 @@ function categoriaDespesa(d) {
   return nomCategoria(c) || 'Altres';
 }
 
+/* La nota, en estrelles (v162): cinc símbols, plenes les que valen. Es
+   llegeix d'un cop d'ull i es pot comparar entre allotjaments sense llegir,
+   que és el que la píndola «4 de 5» no donava. El títol el diu amb paraules,
+   per a qui llegeixi el document amb un lector de pantalla. */
+function memoriaEstrellesHTML(nota) {
+  return `<span class="mem-nota5" title="${nota} de 5">${'★'.repeat(nota)}${'☆'.repeat(5 - nota)}</span>`;
+}
+
 function memoriaComVaAnarHTML(item, ambRetol) {
   const frase = (item.comVaAnar || '').trim();
   const nota = Number(item.nota) || 0;
   if (!frase && !nota) return '';
   if (ambRetol) {
-    return `<div class="mem-va-bloc"><span>${esc(frase)}</span>${nota ? `<span class="mem-nota5">${nota} de 5</span>` : ''}</div>`;
+    return `<div class="mem-va-bloc"><span>${esc(frase)}</span>${nota ? memoriaEstrellesHTML(nota) : ''}</div>`;
   }
-  return `<span class="mem-va">${esc(frase)}${nota ? ` <span class="mem-nota5">${nota} de 5</span>` : ''}</span>`;
+  return `<span class="mem-va">${esc(frase)}${nota ? ' ' + memoriaEstrellesHTML(nota) : ''}</span>`;
 }
 
 function memoriaFotoHTML(item) {
@@ -6050,8 +6115,14 @@ function memoriaViatgeHTML(v, seves, sevesVisites) {
     ${seccio('On vam dormir', '', allotjaments.map(memoriaAllotjamentHTML))}
     ${seccio('Com hi vam anar', '', transports.map(memoriaTransportHTML))}
     ${seccio('Què vam gastar', '', memoriaDespesesHTML(v, seves))}
-    ${seccio('El que va quedar pendent', 'per si hi tornem', pendents.map(i =>
-      `<div class="mem-pend"><span>${esc((i.text || '').split('\n')[0])}</span><small>${esc([i.zona, (i.etiquetes || []).filter(e => e !== ETIQ_PENDENT).join(', ')].filter(Boolean).join(' · '))}</small></div>`))}
+    ${seccio('El que va quedar pendent', 'per si hi tornem', pendents.map(i => {
+      // La primera línia és el títol; la resta del text surt a sota, com
+      // les visites del dia a dia (v158): un pendent que és una llista
+      // sencera («pendents» amb deu coses a dins) s'imprimia només el títol.
+      const linies = (i.text || '').split('\n');
+      const resta = linies.slice(1).join('\n').trim();
+      return `<div class="mem-pend"><span><b>${esc(linies[0])}</b>${resta ? `<span class="mem-nota">${esc(resta)}</span>` : ''}</span><small>${esc([i.zona, (i.etiquetes || []).filter(e => e !== ETIQ_PENDENT).join(', ')].filter(Boolean).join(' · '))}</small></div>`;
+    }))}
     <div class="full-doc-peu">
       <span>Memòria feta amb Els meus viatges</span>
       <span>${esc(dataBonica(isoDe(new Date())))}</span>
