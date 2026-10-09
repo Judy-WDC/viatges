@@ -563,7 +563,11 @@
     padding: 11px 2px; border-bottom: 1px solid var(--vora);
   }
   .pressupost-tipus { font-size: 14px; color: var(--tinta); }
-  .pressupost-import { font-size: 14px; color: var(--tinta); font-variant-numeric: tabular-nums; }
+  /* L'import no es parteix mai (v164): amb el sagnat de 34 px, un nom llarg
+     («Barcelona (BCN) → Lisboa») estrenyia la columna de la dreta i el
+     «96,00 €» queia en dues línies, amb l'euro tot sol a sota. El nom sí que
+     pot fer dues línies; el número, no. */
+  .pressupost-import { font-size: 14px; color: var(--tinta); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .pressupost-total {
     display: flex; justify-content: space-between; align-items: baseline;
     padding: 14px 2px 2px; margin-top: 4px;
@@ -652,7 +656,13 @@
     padding: 7px 0; border-bottom: 1px solid var(--vora); font-size: 13px;
   }
   .sense-forma-fila:last-child { border-bottom: none; }
-  .pressupost-linia.menuda-forma .pressupost-tipus { padding-left: 14px; font-size: 12.5px; color: var(--tinta-tenue); }
+  /* 34 px i no 14 (v164): des que les cinc línies del resum porten fletxa, el
+     text del títol arrenca a 20 px. A 14 el contingut quedava 6 px a
+     l'ESQUERRA del seu propi títol i es llegia com un error d'alineació. Amb
+     34 hi fa un escaló de 14 px cap endins i la pertinença es veu sense cap
+     ratlla ni cap requadre. Ho va triar ella sobre una mostra amb tres
+     sagnats. Val també per a les categories de «Despeses soltes». */
+  .pressupost-linia.menuda-forma .pressupost-tipus { padding-left: 34px; font-size: 12.5px; color: var(--tinta-tenue); }
   .pressupost-linia.menuda-forma .pressupost-import { font-size: 12.5px; color: var(--tinta-tenue); }
 
   .despesa-nova { display: flex; flex-direction: column; gap: 8px; }
@@ -712,6 +722,45 @@
   .repart-fletxa { color: var(--accent-clar); }
   .repart-import { margin-left: auto; font-weight: 600; color: var(--accent-fort); font-variant-numeric: tabular-nums; }
 
+  /* Obrir un nom per veure QUÈ ha pagat (v163). La fila de «Qui deu a qui»
+     es torna un botó amb la fletxa de sempre; no hi ha cap bloc nou perquè
+     la fila ja diu «ha pagat 959,70 €» i obrir-la és d'on surt el número. */
+  .repart-persona.desplega {
+    width: 100%; border-left: none; border-right: none; border-top: none;
+    background: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
+  }
+  .repart-persona.desplega:hover { background: var(--subtil); }
+  /* Qui no ha pagat res no s'obre: no té res a ensenyar i un desplegable
+     buit enganya. L'espai de la fletxa es guarda igualment, que si no els
+     noms ballarien entre les files que s'obren i les que no. */
+  .chev-buit { display: inline-block; width: 14px; flex: none; }
+  /* El detall entra cap endins i va menut: es llegeix com a dependent del
+     nom, igual que el desglòs per categoria del resum del cost. */
+  .pagat-detall { display: flex; flex-direction: column; padding: 2px 0 10px 16px; }
+  .pagat-fila {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 7px 2px; border-bottom: 1px solid var(--vora);
+  }
+  .pagat-fila:last-child { border-bottom: none; }
+  .pagat-info { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+  .pagat-que { font-size: 13.5px; color: var(--tinta); }
+  .pagat-mena { font-size: 12px; color: var(--tinta-tenue); }
+  .pagat-cost { font-size: 13.5px; color: var(--tinta); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .repart-persona.desplega[aria-expanded="true"] .chev-desp,
+  .orfes-cap[aria-expanded="true"] .chev-desp { transform: rotate(0deg); }
+
+  /* La nota de les coses sense pagador, ara desplegable (v163): abans deia
+     QUANTS diners eren i prou. Es queda en to de nota —menuda i suau—
+     perquè no cridi més que els saldos. */
+  .orfes { margin-top: 14px; }
+  .orfes-cap {
+    width: 100%; display: flex; align-items: baseline; gap: 6px;
+    border: none; background: none; padding: 2px; text-align: left; cursor: pointer;
+    font-family: inherit; font-size: 12.5px; color: var(--tinta-suau);
+  }
+  .orfes-cap:hover { color: var(--tinta); }
+  .orfes .pagat-detall { padding-left: 20px; }
+
   /* Ajustos de mòbil del pressupost. Va aquí, DESPRÉS de les regles que
      sobreescriu (import, despesa-camp, repart-*), perquè guanyi per ordre. */
   @media (max-width: 500px) {
@@ -721,6 +770,11 @@
     .despesa-fila { flex-direction: column; }
     .despesa-fila .despesa-camp { flex: 0 0 auto; width: 100%; height: auto; }
     /* Repartiment: nom i saldo a dalt, i el detall (pagat/li'n toquen) a sota */
+    /* La fletxa i el punt es queden al davant del nom (v163): sense dir-ho,
+       l'«order» de sota els enviaria al final de la fila. */
+    .repart-persona .chev-desp,
+    .repart-persona .chev-buit,
+    .repart-persona .repart-punt { order: 0; }
     .repart-nom { order: 1; }
     .repart-saldo { order: 2; }
     .repart-detall { order: 3; flex-basis: 100%; margin-top: 2px; }
@@ -3476,6 +3530,67 @@ function parseReserva(textOriginal) {
       treu un full en blanc. S'arreglaria amb l'esdeveniment «beforeprint»,
       omplint el full segons la pantalla on ets. LA CLARA HO VA DESCARTAR
       (25/08/2026): no li calia.
+   FET · Totes les menes del «Cost del viatge» es despleguen (v164). Ho va
+      demanar ella (9/10/2026): que «Allotjaments», «Vols», «Cotxes» i
+      «Entrades» s'obrin igual que ja ho feia «Despeses soltes». A dins, les
+      reserves d'aquella mena pel nom i l'import.
+      · ORDRE DE DINS: el d'entrada, de la més vella a la més nova (`creatA`
+        ascendent). Ho va triar ella, i NO és per import com a la resta del
+        pressupost: és l'ordre en què recordes haver-les anat posant.
+      · Una mena amb una sola reserva s'obre igualment (decidit per ella): el
+        que hi guanyes és el nom, que la línia de dalt no et diu, encara que
+        l'import es repeteixi.
+      · Estat a `menesObertes` (Set), buidat a obreDetallViatge(). Obrir no
+        repinta, com data-plega-despeses i com els noms de la v163.
+      · EL SAGNAT PASSA DE 14 A 34 px, i això és la part que no es veia
+        venir. Fins ara les línies de dins anaven a 14 px i n'hi havia prou
+        perquè el seu títol —«Despeses soltes»— era l'ÚNIC amb fletxa. Amb
+        cinc títols amb fletxa, el text del títol arrenca a 20 px: mesurat a
+        la mostra, el contingut quedava a 157 i el seu títol a 163, o sigui
+        6 px a l'esquerra del títol, que es llegeix com un error
+        d'alineació. Es van ensenyar tres sagnats (14, 20 i 34) i va triar
+        l'escaló de 34, pel mateix criteri que el sagnat del full imprès: la
+        pertinença es veu per l'aire, sense ratlles ni requadres. Afecta
+        també les categories de «Despeses soltes», que comparteixen classe.
+      · QUEDA DESIGUAL A POSTA: les quatre menes s'obren a coses (amb nom) i
+        «Despeses soltes» s'obre a categories (un agrupament). Se li va dir
+        abans de fer-ho; el detall de les despeses ja el té sencer a la
+        columna de la dreta.
+   FET · Obrir un nom de «Qui deu a qui» i veure QUÈ ha pagat (v163). Ho va
+      demanar Judy (8/10/2026): «un llistat de què ha pagat cadascú, ordenat
+      per persones». Triat sobre una mostra a mida real, i amb una esmena
+      seva pel camí que va canviar el plantejament.
+      · Primer es va proposar un bloc a part, «Què ha pagat cadascú», perquè
+        «Qui deu a qui» no pinta files quan l'app només coneix UN nom (viatge
+        sol, o sense participants declarats i tots els «qui ho paga» iguals),
+        i allà el llistat no sortiria mai. Ella va fer notar que en aquell
+        cas el llistat tampoc no serveix: les despeses soltes ja es veuen
+        senceres a la columna del costat i les reserves, a l'Agenda. O sigui
+        que el forat es tanca sol, i un bloc a part repetiria els mateixos
+        noms dues vegades seguides a la columna esquerra. Es va fer així.
+      · La fila es torna un botó amb la fletxa de sempre. El detall va
+        sagnat 16 px i menut, com el desglòs per categoria del resum: de la
+        cosa més cara a la més barata, reserves i despeses soltes
+        barrejades, cada línia amb la categoria en gris a sota (i la forma de
+        pagament, si n'hi ha). Obrir-lo NO repinta —es toca el DOM i prou—,
+        que si no s'esborraria el que s'estigui escrivint al formulari del
+        costat; és el mateix criteri que data-plega-despeses.
+      · Qui no ha pagat res no s'obre: sense fletxa, sense resposta al
+        ratolí, i l'espai de la fletxa guardat (.chev-buit) perquè els noms
+        no ballin. La fila li diu «no ha pagat res», no «ha pagat 0,00 €».
+      · PERQUÈ CALIA TOCAR pressupostHTML(): les despeses soltes hi arribaven
+        aixafades a {preu, quiPaga} i el concepte es perdia pel camí. Ara
+        cada element passa amb etiqueta i mena. Si algun dia es crida
+        repartimentHTML() des d'un altre lloc, ha de passar-los igual.
+      · La nota de les coses sense pagador també s'obre i diu QUINES són
+        (abans només quants diners eren). Plegada d'entrada: és una nota, no
+        una feina que t'hagi de cridar. I diu «coses», no «reserves», que hi
+        compten també les despeses soltes.
+      · Redactat: «la seva part són 651,30 €» en lloc de «li'n toquen». Ho va
+        triar ella d'entre dues propostes, després que es veiés que a la
+        mateixa fila hi ha el saldo —el que ha de pagar ARA— i que dir
+        «li toca pagar» als dos números feia llegir que hagués de treure els
+        dos. Els noms de les persones a les mostres són inventats.
    FET · La memòria, sagnat dels detalls i la nota en estrelles (v162). Els
       va triar la Clara sobre una mostra a mida real (22/09/2026), amb tres
       maneres de dir la nota i dues mides de sagnat.
@@ -9282,6 +9397,9 @@ function obreDetallViatge(id) {
   filtreMapa = null;   // cada viatge comença ensenyant-ho tot al mapa
   visitaEnEdicio = null; // cap edició a mitges arrossegada d'un altre viatge
   ultimMaleta = '';    // els companys suggerits són del que acabes d'afegir
+  pagatOberts.clear(); // els noms oberts al pressupost són d'aquell viatge
+  orfesOberts = false;
+  menesObertes.clear();
   $('llista-viatges').classList.add('ocult');
   $('viatges-buida').classList.add('ocult');
   $('fitxa-viatge').classList.remove('visible');
@@ -10051,9 +10169,17 @@ function pressupostHTML(v, seves) {
 
   // Desglossament del resum: subtotals per tipus de reserva i UNA línia
   // agregada per a les despeses soltes (el detall va a la secció de sota).
+  // Des de la v164 cada mena també s'obre i ensenya les SEVES reserves, com
+  // ja feia «Despeses soltes»: cal guardar-se-les, no només la suma.
   const perTipus = {};
-  for (const r of ambPreu) { const t = tipusDe(r); perTipus[t] = (perTipus[t] || 0) + importNum(r.preu); }
-  let files = ORDRE_TIPUS.filter(t => perTipus[t]).map(t => liniaPressupost(TIPUS[t].plural || TIPUS[t].nom, perTipus[t])).join('');
+  for (const r of ambPreu) {
+    const t = tipusDe(r);
+    const ent = perTipus[t] || (perTipus[t] = { suma: 0, items: [] });
+    ent.suma += importNum(r.preu);
+    ent.items.push(r);
+  }
+  let files = ORDRE_TIPUS.filter(t => perTipus[t]).map(t =>
+    liniaMenaHTML(t, TIPUS[t].plural || TIPUS[t].nom, perTipus[t])).join('');
   if (totalDespeses) {
     // El detall per categoria comen\u00e7a PLEGAT: la fletxa ara vol dir \u00abaix\u00f2
     // s'obre\u00bb, que \u00e9s el que ja semblava que volia dir.
@@ -10101,8 +10227,22 @@ function pressupostHTML(v, seves) {
   // Sense cap cost encara: una sola columna (no hi ha res a resumir).
   if (!hihaCost) return resum + detall;
 
-  // El repartiment compta reserves i despeses soltes per igual (import + qui paga)
-  const itemsRepart = [...ambPreu, ...despesesAmbImport.map(d => ({ preu: d.import, quiPaga: d.quiPaga }))];
+  // El repartiment compta reserves i despeses soltes per igual (import + qui paga).
+  // Des de la v163 cada element hi arriba TAMBÉ amb com es diu i de què és:
+  // abans les despeses soltes s'aixafaven a {preu, quiPaga} i el concepte es
+  // perdia pel camí, i ara el detall de cada persona l'ha de poder escriure.
+  const itemsRepart = [
+    ...ambPreu.map(r => ({
+      preu: r.preu, quiPaga: r.quiPaga,
+      etiqueta: nomReserva(r),
+      mena: TIPUS[tipusDe(r)].plural || TIPUS[tipusDe(r)].nom
+    })),
+    ...despesesAmbImport.map(d => ({
+      preu: d.import, quiPaga: d.quiPaga,
+      etiqueta: d.concepte || nomCategoria(d.categoria),
+      mena: [nomCategoria(d.categoria), nomFormaPagament(d.forma)].filter(Boolean).join(' · ')
+    }))
+  ];
 
   // Dues columnes: a l'esquerra el que es mira (resum + qui deu a qui), a la
   // dreta el que s'edita (les despeses soltes). Al mòbil s'apilen (CSS).
@@ -10118,6 +10258,33 @@ function liniaPressupost(etiqueta, valor) {
     <span class="pressupost-tipus">${esc(etiqueta)}</span>
     <span class="pressupost-import">${esc(formataImport(valor))}</span>
   </div>`;
+}
+
+/* Quines menes tenen el detall obert (v164). Com amb la resta de desplegables
+   del pressupost, obrir-ne una no repinta: es toca el DOM i prou. */
+let menesObertes = new Set();
+
+/* Una mena del resum del cost, oberta o plegada. A dins, les seves reserves
+   pel nom i l'import, EN L'ORDRE EN QUÈ ES VAN ENTRAR (creatA, de més vella
+   a més nova): ho va triar ella, i és l'ordre en què les recordes d'haver-les
+   anat posant, no un rànquing de preus.
+   Una mena amb una sola reserva s'obre igualment: el que hi guanyes és el
+   nom, que la línia de dalt no et diu. */
+function liniaMenaHTML(clau, etiqueta, ent) {
+  const id = idUnic('mena');
+  const obert = menesObertes.has(clau);
+  const detall = [...ent.items]
+    .sort((a, b) => tempsDe(a.creatA) - tempsDe(b.creatA))
+    .map(r => `<div class="pressupost-linia menuda-forma">
+      <span class="pressupost-tipus">${esc(nomReserva(r))}</span>
+      <span class="pressupost-import">${esc(formataImport(importNum(r.preu)))}</span>
+    </div>`).join('');
+  return `<button class="pressupost-linia desplega" data-obre-mena="${esc(clau)}"
+      aria-expanded="${obert ? 'true' : 'false'}" aria-controls="${id}">
+      <span class="pressupost-tipus"><span class="chev-desp">${CHEVRON}</span>${esc(etiqueta)}</span>
+      <span class="pressupost-import">${esc(formataImport(ent.suma))}</span>
+    </button>
+    <div id="${id}"${obert ? '' : ' class="ocult"'}>${detall}</div>`;
 }
 
 /* La barra de «previst contra real», si el viatge té sostre definit. */
@@ -11399,15 +11566,51 @@ async function treuItemMaleta(id) {
    llista de participants. Aquí els noms NO es tornen pastilles: són files amb
    el saldo a la dreta, i el que ha de cridar l'atenció és qui deu diners, no
    qui és de color verd. Un punt i avall. */
+/* Quins noms tenen el detall obert, i si la nota de les coses sense pagador
+   ho està (v163). Viuen fora de la funció perquè obrir-ne un no repinta res:
+   es toca el DOM i prou, com amb el desglòs de les despeses soltes. */
+let pagatOberts = new Set();
+let orfesOberts = false;
+
+/* Una línia del detall: què és, de quina mena, i quant va costar. Les
+   reserves i les despeses soltes hi van barrejades, perquè la pregunta «què
+   ha pagat la Marta» no distingeix entre les unes i les altres. */
+function liniaPagadaHTML(it) {
+  return `<div class="pagat-fila">
+    <span class="pagat-info">
+      <span class="pagat-que">${esc(it.etiqueta || 'Sense nom')}</span>
+      ${it.mena ? `<span class="pagat-mena">${esc(it.mena)}</span>` : ''}
+    </span>
+    <span class="pagat-cost">${esc(formataImport(centsDe(it.preu) / 100))}</span>
+  </div>`;
+}
+
+/* De més car a menys: és l'ordre en què es mira una llista de despeses. */
+const perImportDesc = (a, b) => centsDe(b.preu) - centsDe(a.preu);
+
+/* La nota de les coses amb preu que no són de ningú. Fins a la v162 deia
+   només QUANTS diners eren; ara s'obre i diu QUINES són, que és el que et
+   deixa anar a posar-hi el pagador. Plegada d'entrada: és una nota, no una
+   feina pendent que t'hagi de cridar. */
+function blocOrfesHTML(items, cents) {
+  const id = idUnic('orfes');
+  return `<div class="orfes">
+    <button class="orfes-cap" data-obre-orfes
+      aria-expanded="${orfesOberts ? 'true' : 'false'}" aria-controls="${id}">
+      <span class="chev-desp">${CHEVRON}</span>
+      <span>Hi ha ${esc(formataImport(cents / 100))} en coses amb preu però sense pagador: no entren al repartiment. Assigna'ls «qui ho paga» perquè hi comptin.</span>
+    </button>
+    <div class="pagat-detall${orfesOberts ? '' : ' ocult'}" id="${id}">${[...items].sort(perImportDesc).map(liniaPagadaHTML).join('')}</div>
+  </div>`;
+}
+
 function repartimentHTML(ambPreu, participants, colors) {
   const explicits = Array.isArray(participants) ? participants : [];
   const ambPagador = ambPreu.filter(r => (r.quiPaga || '').trim());
   const senseP = ambPreu.filter(r => !(r.quiPaga || '').trim());
   const centsSenseP = senseP.reduce((s, r) => s + centsDe(r.preu), 0);
 
-  const notaSense = centsSenseP > 0
-    ? `<p class="repart-nota">Hi ha ${esc(formataImport(centsSenseP / 100))} en reserves amb preu però sense pagador: no entren al repartiment. Assigna'ls «qui ho paga» perquè hi comptin.</p>`
-    : '';
+  const notaSense = centsSenseP > 0 ? blocOrfesHTML(senseP, centsSenseP) : '';
 
   // Pagat per persona (clau en minúscules per agrupar «Pepita»/«pepita»;
   // es mostra el nom tal com es va escriure la primera vegada).
@@ -11415,8 +11618,9 @@ function repartimentHTML(ambPreu, participants, colors) {
   for (const r of ambPagador) {
     const nom = r.quiPaga.trim();
     const clau = nom.toLowerCase();
-    const ent = pagatPer.get(clau) || { nom, cents: 0 };
+    const ent = pagatPer.get(clau) || { nom, cents: 0, items: [] };
     ent.cents += centsDe(r.preu);
+    ent.items.push(r);   // v163: el detall de què ha pagat, per obrir la fila
     pagatPer.set(clau, ent);
   }
   // Sumar-hi els participants explícits del viatge que encara no hi siguin, amb 0
@@ -11424,7 +11628,7 @@ function repartimentHTML(ambPreu, participants, colors) {
     const net = (nom || '').trim();
     if (!net) continue;
     const clau = net.toLowerCase();
-    if (!pagatPer.has(clau)) pagatPer.set(clau, { nom: net, cents: 0 });
+    if (!pagatPer.has(clau)) pagatPer.set(clau, { nom: net, cents: 0, items: [] });
   }
   const persones = [...pagatPer.values()].sort((a, b) => a.nom.localeCompare(b.nom, 'ca'));
   const totalPagat = persones.reduce((s, p) => s + p.cents, 0);
@@ -11450,7 +11654,7 @@ function repartimentHTML(ambPreu, participants, colors) {
   const sobrant = total - base * N;
   const saldos = persones.map((p, i) => {
     const part = base + (i < sobrant ? 1 : 0);
-    return { nom: p.nom, pagat: p.cents, part, saldo: p.cents - part };
+    return { nom: p.nom, pagat: p.cents, part, saldo: p.cents - part, items: p.items };
   });
 
   // Liquidació: qui deu més paga a qui li'n deuen més, fins que tot quadra.
@@ -11472,12 +11676,28 @@ function repartimentHTML(ambPreu, participants, colors) {
               : s.saldo < 0 ? `deu ${formataImport(-s.saldo / 100)}`
               : 'en paus';
     const c = colorDe(colors || {}, s.nom);
-    return `<div class="repart-persona">
+    // «la seva part són X» i no «li'n toquen X» (v163): a la mateixa fila hi
+    // ha el saldo, que és el que ha de pagar ARA i és un altre número. Dir
+    // «li toca pagar» als dos feia llegir que hagués de treure els dos.
+    const cos = `
       ${c ? `<span class="repart-punt" aria-hidden="true" style="background:${c.tinta}"></span>` : ''}
       <span class="repart-nom">${esc(s.nom)}</span>
-      <span class="repart-detall">ha pagat ${esc(formataImport(s.pagat / 100))} · li'n toquen ${esc(formataImport(s.part / 100))}</span>
-      <span class="repart-saldo ${signe}">${esc(nota)}</span>
-    </div>`;
+      <span class="repart-detall">${s.pagat ? 'ha pagat ' + esc(formataImport(s.pagat / 100)) : 'no ha pagat res'} · la seva part són ${esc(formataImport(s.part / 100))}</span>
+      <span class="repart-saldo ${signe}">${esc(nota)}</span>`;
+
+    // Qui no ha pagat res no s'obre: no té res a dins i la fletxa prometria
+    // una llista que no hi és. L'espai de la fletxa es guarda igualment.
+    if (!s.items.length) {
+      return `<div class="repart-persona"><span class="chev-buit" aria-hidden="true"></span>${cos}</div>`;
+    }
+    const clau = s.nom.toLowerCase();
+    const obert = pagatOberts.has(clau);
+    const id = idUnic('pagat');
+    return `<button class="repart-persona desplega" data-obre-pagat="${esc(clau)}"
+      aria-expanded="${obert ? 'true' : 'false'}" aria-controls="${id}">
+      <span class="chev-desp">${CHEVRON}</span>${cos}
+    </button>
+    <div class="pagat-detall${obert ? '' : ' ocult'}" id="${id}">${[...s.items].sort(perImportDesc).map(liniaPagadaHTML).join('')}</div>`;
   }).join('');
 
   const filesMov = moviments.length
@@ -11489,9 +11709,12 @@ function repartimentHTML(ambPreu, participants, colors) {
       </div>`).join('')
     : `<p class="repart-nota">Ja esteu en paus: ningú deu res a ningú.</p>`;
 
-  const capText = explicits.length
+  // La invitació a obrir només si hi ha res per obrir: amb tothom a zero, la
+  // frase prometria una cosa que no es pot fer.
+  const convit = saldos.some(s => s.items.length) ? ' Obre un nom per veure què ha pagat.' : '';
+  const capText = (explicits.length
     ? `A parts iguals entre ${N} persones del viatge: ${esc(persones.map(p => p.nom).join(', '))}.`
-    : `A parts iguals entre ${N} persones (les que han pagat alguna cosa): ${esc(persones.map(p => p.nom).join(', '))}.`;
+    : `A parts iguals entre ${N} persones (les que han pagat alguna cosa): ${esc(persones.map(p => p.nom).join(', '))}.`) + convit;
   return embolcall(
     `<p class="repart-nota">${capText}</p>
      <div class="repart-saldos">${filesSaldo}</div>
@@ -11679,6 +11902,38 @@ $('detall-viatge-vista').addEventListener('click', async e => {
     const cont = $('detall-despeses');
     if (cont) cont.classList.toggle('ocult', !despesesObertes);
     plegaD.setAttribute('aria-expanded', despesesObertes ? 'true' : 'false');
+    return;
+  }
+  // Obrir una mena del resum del cost (v164). Mateix criteri: no repinta.
+  const obreMena = e.target.closest('[data-obre-mena]');
+  if (obreMena) {
+    const clau = obreMena.dataset.obreMena;
+    const obert = !menesObertes.has(clau);
+    if (obert) menesObertes.add(clau); else menesObertes.delete(clau);
+    const cont = document.getElementById(obreMena.getAttribute('aria-controls'));
+    if (cont) cont.classList.toggle('ocult', !obert);
+    obreMena.setAttribute('aria-expanded', obert ? 'true' : 'false');
+    return;
+  }
+  // Obrir el detall del que ha pagat una persona, i el de les coses sense
+  // pagador (v163). Com amb el desglòs de despeses, NO es repinta: repintar
+  // esborraria el que s'estigui escrivint al formulari del costat.
+  const obrePagat = e.target.closest('[data-obre-pagat]');
+  if (obrePagat) {
+    const clau = obrePagat.dataset.obrePagat;
+    const obert = !pagatOberts.has(clau);
+    if (obert) pagatOberts.add(clau); else pagatOberts.delete(clau);
+    const cont = document.getElementById(obrePagat.getAttribute('aria-controls'));
+    if (cont) cont.classList.toggle('ocult', !obert);
+    obrePagat.setAttribute('aria-expanded', obert ? 'true' : 'false');
+    return;
+  }
+  const obreOrfes = e.target.closest('[data-obre-orfes]');
+  if (obreOrfes) {
+    orfesOberts = !orfesOberts;
+    const cont = document.getElementById(obreOrfes.getAttribute('aria-controls'));
+    if (cont) cont.classList.toggle('ocult', !orfesOberts);
+    obreOrfes.setAttribute('aria-expanded', orfesOberts ? 'true' : 'false');
     return;
   }
   const forma = e.target.closest('[data-forma]');
