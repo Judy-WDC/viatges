@@ -574,6 +574,15 @@
     font-size: 15px; font-weight: 600; color: var(--accent);
     font-variant-numeric: tabular-nums;
   }
+  /* El cost per persona (v165), just sota del Total: el número que de debò
+     mires quan penses en els teus diners. Va en la mateixa posició que el
+     Total però més discret —ni negreta ni color d'accent— perquè el Total
+     segueixi manant i aquest es llegeixi com la seva conseqüència. */
+  .pressupost-perpersona {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 5px 2px 0; font-size: 13.5px; color: var(--tinta-suau);
+    font-variant-numeric: tabular-nums;
+  }
   .pressupost-previst { margin-top: 22px; }
   .pressupost-previst.nomes-previst { margin-top: 16px; }
   .previst-cap { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--tinta-suau); margin-bottom: 7px; font-variant-numeric: tabular-nums; }
@@ -1874,6 +1883,17 @@
   .mem-taula .total td { border-bottom: none; border-top: 1pt solid #000; font-weight: 600; padding-top: 5pt; }
   .mem-taula td.tenue { color: #6E6E6E; font-size: 8.8pt; }
   .mem-taula td.nota { border: none; padding-top: 6pt; }
+  /* El titular de «Què vam gastar» (v165): el total i el cost per persona,
+     que abans anaven al final d'una frase en gris dins d'una taula. Es
+     distingeix pel COS i per l'aire de sota, no per cap ratlla ni requadre,
+     com la resta del full. Va enganxat al títol de l'apartat (.mem-junt). */
+  /* Els dos imports en negreta i més aire a sobre i a sota (v166): el
+     titular feia de titular pel cos, però les xifres no es destriaven de les
+     paraules i la línia anava massa arrapada al títol i a les taules. La
+     negreta va NOMÉS als números; «en total» i «per persona» es queden
+     prims, que són l'etiqueta i no la dada. */
+  .mem-titular { font-size: 12.5pt; color: #000; margin: 8pt 0 17pt; }
+  .mem-titular b { font-weight: 600; }
   .mem-dues { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24pt; }
   /* El títol d'una secció amb el seu primer element: junts (v154). */
   .mem-junt { break-inside: avoid; page-break-inside: avoid; }
@@ -2304,7 +2324,7 @@
          Títol: Hola, Carles!
          · Com va el viatge? Com va amb l'aplicació?
          · Recorda que si tens qualsevol dubte, suggeriment, problema,
-           necessitat de nova funcionalitat… li ho pots dir a la Clara!
+           necessitat de nova funcionalitat… li ho pots dir a la Judy!
            Ella farà… els possibles ;)
     -->
     <h2 class="novetats-titol" id="novetats-titol">Novetats!</h2>
@@ -3530,6 +3550,60 @@ function parseReserva(textOriginal) {
       treu un full en blanc. S'arreglaria amb l'esdeveniment «beforeprint»,
       omplint el full segons la pantalla on ets. LA CLARA HO VA DESCARTAR
       (25/08/2026): no li calia.
+   FET · Còpia congelada 18, documentació 18 i el nom net (v167). Toquen
+      cada deu versions, en arribar a una acabada en 6; la v166 hi va
+      arribar i ella va dir endavant (9/10/2026).
+      · `app-viatges-18.html` i `com-funciona-l-app-18.md` recullen de la
+        v157 a la v167. La 17 arribava a la v156.
+      · EL NOM. Fins ara aquest registre i la documentació li deien «Clara»,
+        que no és el seu nom: ve del nom de la carpeta de l'ordinador i de
+        l'adreça de correu, i ningú ho havia comprovat mai. Es diu **Judy**
+        i ho va dir el 8/10/2026. S'han canviat les 24 mencions d'aquest
+        fitxer, inclosa la del text de «Novetats» que hi ha comentat, i
+        totes les de la documentació. Les persones dels exemples porten noms
+        inventats que no són el seu.
+      · On entra cada cosa a la documentació 18, sense obrir cap apartat
+        nou: el desplegable dels noms, les menes del cost i el cost per
+        persona, al §6; el titular del full de memòria i els retocs de la
+        v158–v162, al §5; la foto de portada des d'Edita, al §3. Les
+        referències internes es diuen pel número i obrir un apartat al mig
+        les trencaria totes. La llista de pendents segueix sent la §16.
+   FET · Al full imprès, els dos imports del titular en negreta i amb més
+      aire (v166). Ho va demanar ella (9/10/2026) després de llegir el full
+      de la v165.
+      · La negreta va només als NÚMEROS: «382,00 € en total · 191,00 € per
+        persona». «En total» i «per persona» es queden prims, que són
+        l'etiqueta i no la dada.
+      · Marge de 2 pt / 10 pt a 8 pt / 17 pt: la línia anava arrapada al
+        títol de l'apartat per dalt i a les taules per baix.
+   FET · El cost per persona, a la vista (v165). Ho va demanar ella
+      (9/10/2026): «que es veiés més clar quin cost té per persona; al final,
+      a les finances de cadascú, això és el que els interessa». Als dos
+      llocs: la targeta del pressupost i el full de memòria.
+      · NO calia calcular res nou: el número ja hi era als dos llocs, però
+        amagat. A la pantalla, dins de «Qui deu a qui», en gris petit enmig
+        de la fila. Al full, al final d'una frase en lletra menuda dins de la
+        segona taula. Això era la feina: treure'ls on es vegin.
+      · A la targeta, línia pròpia just sota del Total: «Per persona (3) —
+        661,88 €», més discreta que el Total perquè se'n llegeixi com una
+        conseqüència. Al full, titular de l'apartat «Què vam gastar», abans
+        de les taules: «1.985,65 € en total · 661,88 € per persona». Va de
+        peces[0] a seccio(), o sigui dins del .mem-junt: el títol i el número
+        no es poden separar en dos fulls. A la frase menuda hi queda el
+        previst i el «per dia», que són context i es llegeixen després.
+      · ATENCIÓ, SÓN DOS NÚMEROS DIFERENTS i ho va decidir ella a
+        consciència: el cost per persona divideix el TOTAL SENCER («cost
+        total dividit pel número de persones», amb el que no té pagador
+        inclòs), mentre que «la seva part» de «Qui deu a qui» només reparteix
+        el que TÉ pagador, perquè els saldos han de quadrar amb diners que
+        algú va treure de debò. Si tot té pagador, coincideixen. Se li van
+        oferir les tres sortides i va triar deixar-ho així.
+      · Quanta gent compta: els participants declarats i, si no n'hi ha cap,
+        els qui han pagat. Era la regla del full; ara personesDelCost() la fa
+        servir als dos llocs perquè no puguin divergir.
+      · Amb menys de dues persones no es diu enlloc: repetiria el total.
+        personesDelCost() pot tornar 0 (no se'n sap res) i per això qui la
+        crida ha de comprovar-ho: dividir per zero no és cap número.
    FET · Totes les menes del «Cost del viatge» es despleguen (v164). Ho va
       demanar ella (9/10/2026): que «Allotjaments», «Vols», «Cotxes» i
       «Entrades» s'obrin igual que ja ho feia «Despeses soltes». A dins, les
@@ -3592,7 +3666,7 @@ function parseReserva(textOriginal) {
         «li toca pagar» als dos números feia llegir que hagués de treure els
         dos. Els noms de les persones a les mostres són inventats.
    FET · La memòria, sagnat dels detalls i la nota en estrelles (v162). Els
-      va triar la Clara sobre una mostra a mida real (22/09/2026), amb tres
+      va triar la Judy sobre una mostra a mida real (22/09/2026), amb tres
       maneres de dir la nota i dues mides de sagnat.
       · Els detalls de cada allotjament entren 8 mm cap endins: les dues
         columnes de dades i la línia de «Com va anar». El nom es queda al
@@ -3606,7 +3680,7 @@ function parseReserva(textOriginal) {
         de pantalla. Afecta també les notes del dia a dia, que fan servir
         la mateixa classe.
    FET · Fora les ratlles entre allotjaments i entre transports (v161). La
-      Clara va veure que a «On vam dormir» la ratlla hi era a vegades sí i a
+      Judy va veure que a «On vam dormir» la ratlla hi era a vegades sí i a
       vegades no (22/09/2026), i va demanar treure-la del tot, com als
       pendents.
       · No era aleatori: la posava «.mem-allot + .mem-allot», i des de la
@@ -3617,18 +3691,18 @@ function parseReserva(textOriginal) {
         anar», que fa servir la mateixa classe. Ara no n'hi ha cap enlloc:
         separen el nom en gros i l'aire entre blocs.
    FET · Fora les ratlles entre pendents de la memòria (v160). Ho va demanar
-      la Clara (22/09/2026). La ratlla fina que hi havia sota cada pendent
+      la Judy (22/09/2026). La ratlla fina que hi havia sota cada pendent
       ja no cal: amb el títol en negreta i l'aire de la v159, se separen
       sols. L'aire entre pendents (5 pt a dalt i a baix) es queda igual.
    FET · Els pendents de la memòria, títol en negreta i aire a sota (v159).
-      Ho va demanar la Clara en veure la v158 (22/09/2026): el títol d'un
+      Ho va demanar la Judy en veure la v158 (22/09/2026): el títol d'un
       pendent i el text de dins es veien massa iguals, i la llista d'un
       pendent quedava enganxada al títol del següent.
       · El títol va en negreta (600, com el nom d'una visita al dia a dia)
         i el text interior té 4 pt d'aire per sota abans de la ratlla. Un
         pendent d'una sola línia només guanya la negreta.
    FET · La memòria imprimeix el text sencer de cada pendent (v158). La
-      Clara va acabar un viatge i va apuntar en UNA idea pendent, «pendents»,
+      Judy va acabar un viatge i va apuntar en UNA idea pendent, «pendents»,
       la llista de tot el que va quedar per a la propera vegada; la memòria
       en treia només el títol (22/09/2026).
       · A «El que va quedar pendent», la primera línia del text segueix
@@ -3637,7 +3711,7 @@ function parseReserva(textOriginal) {
         les visites del dia a dia. Un pendent d'una sola línia s'imprimeix
         exactament igual que abans.
    FET · La foto de portada es canvia i es treu des de la fitxa d'edició del
-      viatge, no des de la capçalera (v157). Ho va demanar la Clara
+      viatge, no des de la capçalera (v157). Ho va demanar la Judy
       (16/09/2026): a la capçalera es veia sempre el botó «Portada» o els
       dos de «Canvia» i «Treu-la», i no calia. Ara la capçalera NOMÉS
       ensenya la foto en petit si n'hi ha (i res si no n'hi ha), i el camp
@@ -3647,7 +3721,7 @@ function parseReserva(textOriginal) {
       les fotos de record, i no espera «Desa» ni es desfà amb «Cancel·la»:
       el text d'ajuda del camp ho diu. La fitxa és HTML fix, o sigui que el
       camp es repinta després de cada refresc mentre la fitxa és oberta.
-   FET · Dues coses de les fotos que va veure la Clara al mòbil i al PDF
+   FET · Dues coses de les fotos que va veure la Judy al mòbil i al PDF
       (v156), i la còpia congelada 17 amb la documentació 17.
       · HISTÒRIA. El 15/09 va demanar de MIRAR-LES i es van arreglar sense
         permís (v156, còpia 17 i tot); el 16/09 va fer tornar l'app a la
@@ -3669,7 +3743,7 @@ function parseReserva(textOriginal) {
       · Còpia congelada app-viatges-17.html i documentació nova
         com-funciona-l-app-17.md, completes fins aquí. La 16 arribava a la
         v147; la 17 recull de la v148 a la v156. La pròxima toca a la v166.
-   FET · Les fotos verticals es veuen senceres (v155). La Clara en va posar
+   FET · Les fotos verticals es veuen senceres (v155). La Judy en va posar
       una en vertical i l'app la retallava a 460×340 (15/09/2026).
       · La foto del detall (.foto-img) tenia amplada fixa i «object-fit:
         cover», que és retallar. Ara només té mides màximes (460 d'ample,
@@ -3684,7 +3758,7 @@ function parseReserva(textOriginal) {
         feia dir «371 dies». Amb les dates del viatge posades, manen
         elles (diesDeLaMemoria).
    FET · La memòria, dos retocs del primer PDF de debò (v154). Els va
-      veure la Clara (15/09/2026).
+      veure la Judy (15/09/2026).
       · Cap títol de secció penjat al peu d'un full. «break-after: avoid»
         al títol no n'hi havia prou (no tots els navegadors el respecten,
         i menys davant d'una graella): ara cada títol va dins d'un
@@ -3698,7 +3772,7 @@ function parseReserva(textOriginal) {
         seva peça sense títol, com les altres seccions, perquè el títol el
         posa seccio() lligat a la peça.
    FET · La memòria del viatge, «com va anar» i la foto de portada (v153).
-      Ho va demanar la Clara (15/09/2026) i ho va decidir pas a pas amb la
+      Ho va demanar la Judy (15/09/2026) i ho va decidir pas a pas amb la
       mostra a mida A4.
       · LA MEMÒRIA. Un document per GUARDAR després del viatge, a diferència
         del dossier de reserves (v137), que és per portar a sobre durant.
@@ -3740,13 +3814,13 @@ function parseReserva(textOriginal) {
         amb el títol: no s'agafa cap foto de dins per omplir. Va per Fotos
         amb la mena 'viatge' (magatzemDe / elementDe la coneixen).
    FET · A l'itinerari, les activitats anaven 10 px més a l'esquerra que les
-      reserves (v152). Ho va veure la Clara en una captura (15/09/2026).
+      reserves (v152). Ho va veure la Judy en una captura (15/09/2026).
       La fila d'una activitat porta l'embolcall .fila-dalt per poder-hi
       posar la nansa d'arrossegar, i la regla que escurça el marge del cap
       per fer-li lloc s'aplicava a tot embolcall, amb nansa o sense. Ara
       només quan la nansa hi és de debò (.fila-nansa + .fila-cap).
    FET · Una foto de record per a cada activitat i cada reserva (v151). Ho
-      va demanar la Clara (15/09/2026), primer per a les activitats i
+      va demanar la Judy (15/09/2026), primer per a les activitats i
       després també per a les reserves; al mapa, NO (de moment).
       · ON VAN. Les fotos són l'única cosa que no cap on ho desem tot (el
         calaix del navegador té uns 5 MB; una foto de mòbil en fa 4). Van a
@@ -3809,7 +3883,7 @@ function parseReserva(textOriginal) {
         Fins que no es faci, «Afegeix una foto» diu que falta l'armari
         (Fotos.explica tradueix l'error de Supabase).
    FET · El que va quedar pendent d'un viatge (v150). Ho va demanar la
-      Clara (15/09/2026): els llocs on no vas arribar, per si mai hi tornes.
+      Judy (15/09/2026): els llocs on no vas arribar, per si mai hi tornes.
       · CAP PANTALLA NOVA. Una pendent és una idea normal d'Inspiració (amb
         zona, i per tant suggerida al pròxim viatge a la mateixa zona) amb
         dues marques: l'etiqueta «pendent», que és una etiqueta com les
@@ -3840,7 +3914,7 @@ function parseReserva(textOriginal) {
    FET · Les activitats fetes a mà també s'apaguen quan el dia ha passat
       (v149). A l'itinerari, una reserva amb el dia passat es veu
       dissimulada (.fila.passada) i una visita amb dia no, tot i ser la
-      mateixa llista. Ho va demanar la Clara (15/09/2026). Mateixa regla
+      mateixa llista. Ho va demanar la Judy (15/09/2026). Mateixa regla
       que reservaPassada(): passada a partir de l'endemà del seu dia; sense
       dia («Per encaixar») no ho és mai. Mateix estil, que la fila és la
       mateixa: cap regla nova, només la classe (visitaPassada). Quan s'obre
@@ -3850,7 +3924,7 @@ function parseReserva(textOriginal) {
       · QUÈ PASSAVA. En obrir una visita, tots els camps eren ja caixes
         d'escriptura i cada un es desava sol en deixar-lo, com una nota. No
         hi havia cap moment de «guardar» ni manera de fer-se enrere, i no
-        anava com les reserves ni com les despeses. Ho va demanar la Clara
+        anava com les reserves ni com les despeses. Ho va demanar la Judy
         (15/09/2026).
       · ARA. La visita oberta es LLEGEIX: el text sencer amb els seus
         paràgrafs (i els enllaços de dins clicables, com les notes d'una
@@ -3926,7 +4000,7 @@ function parseReserva(textOriginal) {
         porta l'altre.
       · ELS CURTS (maps.app.goo.gl) NO. No porten el punt a dins i seguir-los
         des del navegador no es pot: salten a un altre domini i el navegador
-        no deixa llegir on envien. Caldria passar per Supabase i la Clara ho
+        no deixa llegir on envien. Caldria passar per Supabase i la Judy ho
         va descartar (02/09/2026). Ara, si n'enganxes un, l'app ho DIU
         (MOTIU_TEXT, «enllac-curt») en comptes de callar, i no l'envia mai a
         Maps com a paraules a buscar, que era el que feia el ridícul.
@@ -4047,7 +4121,7 @@ function parseReserva(textOriginal) {
         pintada cada cop.
    FET · La nota del mapa d'un viatge diu QUINS elements no hi surten, i t'hi
       porta (v141).
-      · EL COMPTADOR JA HI ERA. La Clara va demanar «un comptador al mapa
+      · EL COMPTADOR JA HI ERA. La Judy va demanar «un comptador al mapa
         que digui quantes reserves no hi surten» i resulta que la nota de
         sota el mapa ja deia «N elements sense ubicació al mapa» des de
         sempre. El que faltava no era comptar-los: era saber QUINS. Amb
@@ -4079,7 +4153,7 @@ function parseReserva(textOriginal) {
         títol i n'hi ha que hi posen una línia—; perdonar-ne més enganxava
         el bloc de sota quan un títol no té contingut (les «Condicions de
         compra», que són un enllaç i prou).
-      · EL DESPLEGABLE HA CANVIAT DE NOM, per encàrrec de la Clara: era
+      · EL DESPLEGABLE HA CANVIAT DE NOM, per encàrrec de la Judy: era
         «Recomanacions de l'empresa» i ara és «Recomanacions i detalls de
         l'empresa». Aquests correus no recomanen res, expliquen QUÈ INCLOU
         l'entrada, i amb el nom vell l'etiqueta mentia.
@@ -4096,7 +4170,7 @@ function parseReserva(textOriginal) {
         mateix, i la fila deia dues vegades seguides «Centre del Romànic de
         la Vall de Boí». Ara el subtítol calla el recinte si ja és el títol.
         Només calla: el camp es queda ple, que és el que situa el pin.
-      · EL QUE JA HI HAVIA I NO CALIA TOCAR: la Clara es va preocupar que el
+      · EL QUE JA HI HAVIA I NO CALIA TOCAR: la Judy es va preocupar que el
         mapa no trobés el Dalí i no avisés. Sí que avisa —avisLloc() ho fa
         des de sempre—: dins de la reserva hi surt «No s'ha pogut situar
         l'adreça. Al mapa, el pin va al poble: Figueres…» amb el botó per
@@ -5027,7 +5101,7 @@ const CAMPS_COMUNS = [
      inclou el preu. Va en un camp propi perqu\u00e8 es pugui ensenyar plegat:
      enganxat a les notes i separat amb punts, no hi havia manera de
      llegir-ho.
-     Es deia \u00abRecomanacions de l'empresa\u00bb i la Clara ho va ampliar (01/09/2026)
+     Es deia \u00abRecomanacions de l'empresa\u00bb i la Judy ho va ampliar (01/09/2026)
      en veure que els correus d'entrades no recomanen res, expliquen QU\u00c8
      INCLOU l'entrada: amb el nom vell, l'etiqueta mentia. */
   { id: 'recomanacions', nom: 'Recomanacions i detalls de l\u2019empresa', ample: true, multilinia: true },
@@ -5643,7 +5717,7 @@ $('btn-manual').addEventListener('click', () => {
    · Cada usuari té la seva carpeta (la primera part del camí és el seu
      id) i les regles del bucket només el deixen entrar-hi a ell: mateixa
      idea que la seguretat per files de les taules. Les regles les posa la
-     Clara al panell de Supabase (veure el registre de la v151).
+     Judy al panell de Supabase (veure el registre de la v151).
    · Abans de pujar-la, la foto s'encongeix a 1.600 px i JPEG al 82 %:
      200–300 KB en comptes de 4 MB. Per a un record en pantalla no es
      nota, i 1 GB gratuït són unes 4.000 fotos.
@@ -6062,7 +6136,7 @@ function memoriaHoraHTML(a) {
     foto = memoriaFotoHTML(r);
   }
   // La foto del cotxe, de l'allotjament i del vol va al dia a dia, no a la
-  // seva targeta (v156, decidit per la Clara): a la línia on la reserva
+  // seva targeta (v156, decidit per la Judy): a la línia on la reserva
   // APAREIX (recollida, check-in, el dia del vol), i no a la de tornar-lo o
   // marxar, que la foto sortiria dos cops.
   if (a.mena === 'reserva' && !/:(checkout|devolucio)$/.test(a.id)) foto = memoriaFotoHTML(r);
@@ -6158,7 +6232,7 @@ function memoriaDespesesHTML(v, seves) {
     `<tr><td>${esc(k || senseNom)}</td><td class="num">${esc(formataImport(n))}</td></tr>`).join('');
 
   const previst = importNum(v.pressupost);
-  const persones = (v.participants || []).length || new Set(linies.map(l => l.qui).filter(Boolean)).size || 1;
+  const persones = personesDelCost(v, linies.map(l => l.qui));
   const dies = diesDeLaMemoria(v, seves, visites.filter(x => x.viatgeId === v.id)).length || 1;
   let frase = '';
   if (previst != null) {
@@ -6170,9 +6244,19 @@ function memoriaDespesesHTML(v, seves) {
         ? `Previst: ${formataImport(previst)}. Ha sortit ${formataImport(-dif)} més barat, un ${pct} %.`
         : `Previst: ${formataImport(previst)}, clavat.`;
   }
-  frase += ` Són ${formataImport(total / persones)} per persona i ${formataImport(total / dies)} per dia.`;
+  // El «per persona» surt de la frase menuda i puja a titular (v165): era
+  // el número que ella busca i es perdia al final d'una línia en gris dins
+  // d'una taula. A la frase hi queda el context —el previst i el per dia—,
+  // que es llegeix DESPRÉS, no abans.
+  frase += ` Són ${formataImport(total / dies)} per dia.`;
 
-  return [`
+  const titular = `<p class="mem-titular"><b>${esc(formataImport(total))}</b> en total${
+    persones >= 2 ? ` · <b>${esc(formataImport(total / persones))}</b> per persona` : ''}</p>`;
+
+  // El titular va de PRIMER tros: seccio() lliga el títol de l'apartat amb
+  // peces[0] dins del .mem-junt, o sigui que «Què vam gastar» i el número
+  // no es poden separar en dos fulls.
+  return [titular, `
     <div class="mem-dues">
       <table class="mem-taula">
         <tr><th>Per categoria</th><th class="num"></th></tr>
@@ -6210,7 +6294,7 @@ function memoriaViatgeHTML(v, seves, sevesVisites) {
   const pendents = pendentsDelViatge(v);
   // El títol d'una secció va LLIGAT al seu primer element (.mem-junt, que
   // no es parteix): «break-after: avoid» tot sol no és de fiar a tots els
-  // navegadors, i un títol penjat al peu d'un full és el que la Clara va
+  // navegadors, i un títol penjat al peu d'un full és el que la Judy va
   // veure al primer PDF (v154).
   const grup = (titol, de) => `<div class="mem-grup"><h2>${titol}</h2><span class="mem-grup-de">${esc(de || nom)}</span></div>`;
   const seccio = (titol, de, peces) => peces.length
@@ -10154,6 +10238,33 @@ function agendaCompletHTML(v, seves, sevesVisites) {
   return html;
 }
 
+/* Quanta gent es reparteix el cost d'un viatge (v165): els participants
+   declarats i, si no n'hi ha cap, els qui han pagat alguna cosa. La regla
+   era la del full de memòria; ara la fan servir els dos llocs, perquè la
+   pantalla i el paper no diguin números diferents.
+   Torna 0 quan no se'n sap res: qui la crida ha de decidir què fa, que
+   dividir per zero no és cap número. */
+function personesDelCost(v, pagadors) {
+  const declarats = (v.participants || []).map(n => (n || '').trim()).filter(Boolean);
+  if (declarats.length) return declarats.length;
+  return new Set((pagadors || []).map(q => (q || '').trim().toLowerCase()).filter(Boolean)).size;
+}
+
+/* El cost per persona: el TOTAL sencer dividit per la gent, amb tot inclòs
+   —també el que no té pagador assignat—. Ho va decidir ella (9/10/2026):
+   «el cost per persona és cost per persona, cost total dividit pel número de
+   persones». Ull: NO és el mateix número que «la seva part» de «Qui deu a
+   qui», que només reparteix el que té pagador perquè els saldos han de
+   quadrar amb diners que algú va treure de debò. Si tot té pagador, els dos
+   coincideixen. Amb menys de dues persones no es diu: repetiria el total. */
+function perPersonaHTML(total, persones) {
+  if (persones < 2) return '';
+  return `<div class="pressupost-perpersona">
+    <span>Per persona (${persones})</span>
+    <span>${esc(formataImport(total / persones))}</span>
+  </div>`;
+}
+
 /* El pressupost: de moment, el desglossament per tipus de les reserves,
    amb el seu subtotal, i el total. Les despeses soltes i el sostre
    previst arribaran en passos següents (l'estructura ja els espera). */
@@ -10210,6 +10321,7 @@ function pressupostHTML(v, seves) {
         <div class="pressupost-resum-titol">Cost del viatge</div>
         <div class="pressupost-desglos">${files}</div>
         <div class="pressupost-total"><span>Total</span><span>${esc(formataImport(total))}</span></div>
+        ${perPersonaHTML(total, personesDelCost(v, [...ambPreu.map(r => r.quiPaga), ...despesesAmbImport.map(d => d.quiPaga)]))}
         ${barraPrevist(previst, total)}
       </div>`;
   } else {
