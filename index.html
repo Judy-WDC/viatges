@@ -686,6 +686,13 @@
   .despesa-camp.import { flex: 0 0 96px; width: 96px; font-variant-numeric: tabular-nums; }
   .despesa-camp.categoria { flex: 1 1 0; min-width: 0; }
   .despesa-camp.paga { flex: 1 1 0; min-width: 0; }
+  /* La data (v173): estreta i amb números tabulars, com l'import. Va a la
+     segona filera perquè el concepte no perdi amplada; és el camp que menys
+     tocaràs, perquè ja ve posat. */
+  .despesa-camp.data { flex: 0 0 104px; width: 104px; font-variant-numeric: tabular-nums; }
+  /* Mentre l'avís de «fora del viatge» hi és, el camp va en to d'avís. */
+  .despesa-camp.data.avisada { border-color: var(--ambre); color: var(--ambre); }
+  .despesa-meta .dia { color: var(--tinta-suau); }
 
   /* Fila de despesa clicable (s'obre per editar) i formulari d'edició */
   .despesa-obre {
@@ -778,6 +785,11 @@
        es llegeix com a alçada i la caixa surt alta). */
     .despesa-fila { flex-direction: column; }
     .despesa-fila .despesa-camp { flex: 0 0 auto; width: 100%; height: auto; }
+    /* Apilats, la data baixa a l'últim lloc (v173, demanat per ella): en
+       vertical el que ja ve posat ha d'estorbar el menys possible. */
+    .despesa-camp.categoria { order: 1; }
+    .despesa-camp.paga { order: 2; }
+    .despesa-camp.data { order: 3; }
     /* Repartiment: nom i saldo a dalt, i el detall (pagat/li'n toquen) a sota */
     /* La fletxa i el punt es queden al davant del nom (v163): sense dir-ho,
        l'«order» de sota els enviaria al final de la fila. */
@@ -1788,6 +1800,12 @@
   .full-grup-de { font-size: 8.5pt; color: #6E6E6E; text-align: right; }
   .full-res { padding: 9pt 0 10pt; }
   .full-res + .full-res { border-top: 0.6pt solid #C8C8C8; }
+  /* EL PARANY DE SEMPRE (v170): des que el títol i la primera reserva van
+     dins d'un .full-junt, la SEGONA reserva ja no ve just després d'una
+     .full-res sinó després del embolcall, i es quedava sense ratlla. És
+     exactament el que va passar amb els allotjaments de la memòria a la
+     v161. Qui toqui això, que no ho torni a oblidar. */
+  .full-junt + .full-res { border-top: 0.6pt solid #C8C8C8; }
   .full-res-cap { display: flex; align-items: baseline; justify-content: space-between; gap: 10pt; }
   .full-res-nom { font-size: 12.5pt; font-weight: 600; margin: 0; color: #000; }
   .full-res-plat { font-size: 8.5pt; color: #6E6E6E; flex: none; }
@@ -1920,9 +1938,25 @@
   .inf-nota { font-size: 8.5pt; color: #6E6E6E; margin: 6pt 0 0; }
   .inf-sagnat td:first-child { padding-left: 10pt; }
   .inf-cap-cat td { padding-top: 7pt; border-bottom: none; }
+  /* El títol del detall va dins d'un «caption» (v169): així forma part de la
+     taula i el navegador no el pot deixar sol al peu d'un full. Es pinta
+     igual que els altres títols de secció. */
+  .inf-caption { caption-side: top; text-align: left; }
+  .inf-caption .mem-grup { margin-top: 22pt; }
+  /* Més aire abans del títol, només a l'informe (v169): el full arrencava
+     enganxat al marge de dalt. */
+  .inf-cap-doc { margin-top: 20pt; }
+  /* De quina mena de document es tracta (v172). Mida de subtítol i no de
+     rètol: ha de competir amb el nom del viatge, no amagar-se'n. Les
+     majúscules espaiades el lliguen als títols de secció, que parlen igual. */
+  .inf-mena {
+    font-size: 11pt; font-weight: 600; color: #000; margin: 5pt 0 0;
+    text-transform: uppercase; letter-spacing: 0.12em;
+  }
+  .inf-cap-doc .mem-sub { margin-top: 5pt; }
   .mem-dues { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24pt; }
   /* El títol d'una secció amb el seu primer element: junts (v154). */
-  .mem-junt { break-inside: avoid; page-break-inside: avoid; }
+  .mem-junt, .full-junt { break-inside: avoid; page-break-inside: avoid; }
   .mem-pend { padding: 5pt 0; font-size: 10pt; color: #000; display: flex; justify-content: space-between; gap: 10pt; }
   .mem-pend small { color: #6E6E6E; font-size: 8.8pt; white-space: nowrap; }
   /* El títol d'un pendent en negreta, com el nom d'una visita al dia a dia,
@@ -1954,8 +1988,16 @@
   .mem-dia { break-inside: avoid; page-break-inside: avoid; }
   .mem-grup { break-after: avoid; page-break-after: avoid; break-inside: avoid; }
   /* L'informe: el nom d'una categoria del detall no es pot quedar sol al peu
-     d'un full, amb les seves despeses al full següent. */
+     d'un full, amb les seves despeses al full següent. El «break-after» hi
+     és per si de cas, però qui ho resol de debò és el .mem-junt que embolcalla
+     el nom amb la primera despesa (v169). */
   .inf-cap-cat { break-after: avoid; page-break-after: avoid; }
+  /* La capçalera de columnes del detall es repeteix a cada full: si la taula
+     salta de pàgina, el full nou no comença amb números sense nom a sobre. */
+  .mem-taula thead { display: table-header-group; }
+  .mem-taula tfoot { display: table-footer-group; }
+  /* El títol dins del «caption» no s'ha de separar de la taula. */
+  .inf-caption { break-after: avoid; page-break-after: avoid; break-inside: avoid; }
 }
 </style>
 </head>
@@ -3579,6 +3621,112 @@ function parseReserva(textOriginal) {
       treu un full en blanc. S'arreglaria amb l'esdeveniment «beforeprint»,
       omplint el full segons la pantalla on ets. LA CLARA HO VA DESCARTAR
       (25/08/2026): no li calia.
+   FET · La data a les despeses soltes (v173). Era l'última cosa que faltava
+      del bloc del pressupost i la tenia demanada d'ella des del 9/10/2026.
+      Triat sobre una mostra, en dues voltes.
+      · EL CAMP és de text, com el Dia d'una visita: s'escriu i es llegeix
+        «13/10/2026» i interpretaData() entén també «5/11» sol, que completa
+        amb l'any d'avui. Cap camp de calendari: l'app no en fa servir
+        enlloc i obrir-ne una segona manera d'escriure dates seria el primer
+        pas per tenir-ne dues. És OPCIONAL i les despeses d'abans no en
+        tenen: res a migrar.
+      · VA A LA SEGONA FILERA, perquè el concepte no perdi amplada (336 px
+        contra 224 si anava a la primera, mesurat a la mostra). Al MÒBIL
+        baixa a l'últim lloc dels camps: ho va demanar ella, i en vertical
+        el que ja ve posat ha d'estorbar el menys possible.
+      · HI SURT LA D'AVUI DE SÈRIE. Jo havia proposat deixar-la buida quan
+        avui cau fora del viatge, per no desar una suposició com si fos una
+        dada; ella va triar una sortida millor: avui sempre, i un AVÍS quan
+        la data cau fora de les dates del viatge. L'avís no impedeix res
+        —hi ha despeses que es paguen abans de sortir o en tornar—, surt en
+        deixar el camp (change, no mentre s'escriu), marca el camp en to
+        d'avís i desapareix sol quan la data torna a dins. Si el viatge no
+        té dates, no hi ha res amb què comparar i no surt mai.
+      · El text de l'avís va amb el rang ENTRE PARÈNTESIS perquè
+        rangViatge() torna formes diferents segons les dates; encaixant-lo
+        dins d'una frase sortia «que va 3 → 7 de novembre».
+      · A LA FILA, la data al davant de la línia petita i sense any
+        («5/11 · Menjar · Pepita»): totes les d'un viatge el comparteixen.
+        Les que no en tenen comencen per la categoria, sense cap guionet.
+      · A L'INFORME s'omple la columna «Quan» i, DINS DE CADA CATEGORIA, les
+        despeses van ordenades per data; les que no en tenen, al final. Ho
+        va decidir ella. Comprovat: 04/11, 05/11 i després la sense data.
+      · El que això desbloqueja i encara NO s'ha fet: «què vam gastar cada
+        dia». S'ha deixat per quan hi hagi dades de debò; amb zero despeses
+        amb data, el full sortiria buit.
+   FET · «Informe de despeses», de subtítol (v172). Ho va demanar ella:
+      a l'etiqueta petita de la dreta de la capçalera quedava amagat i el
+      full no deia de què anava fins que no te'l llegies. Ara va just sota
+      del nom del viatge i abans de les dates —quina mena de document és
+      pesa més que quan va ser—, a 11 pt i en majúscules espaiades, que és
+      com parlen els títols de secció. S'ha tret de l'etiqueta: dir-ho dues
+      vegades a la mateixa capçalera no ho fa més clar. La memòria del
+      viatge es queda com estava.
+   FET · Les tres seccions de l'informe que es van quedar sense embolcall
+      (v171). La v169 deia que cap títol de l'informe quedava penjat i NO
+      era cert: només dues de les cinc seccions estaven lligades. Ella ho va
+      trobar imprimint, amb un títol al peu d'un full.
+      · PER QUÈ VA PASSAR, que val més apuntar-ho que repetir-ho: dues
+        seccions tenen el títol i la taula escrits al mateix lloc on es
+        munta el document, i aquelles dues les vaig embolcallar. Les altres
+        tres —«Reservat abans», «Qui deu a qui» i «Altres números»— es
+        construeixen abans, en variables, i al muntatge només s'hi veu
+        `${blocAbans}`: el seu títol no era a la vista i vaig donar la feina
+        per completa.
+      · LA REPARACIÓ, a més de lligar-les: TOTS els junt() van ara al
+        muntatge del document i no allà on es construeix cada bloc. És més
+        llarg d'escriure, però les sis seccions es veuen una sota l'altra i
+        es pot comptar d'un cop d'ull que no en falta cap.
+      · LA COMPROVACIÓ QUE JA S'HAURIA D'HAVER FET A LA v169, i que ara s'ha
+        fet als tres fulls: demanar-li a l'app quants títols de secció
+        queden fora d'un embolcall. En JavaScript, sobre el document ja
+        muntat:
+          [...d.querySelectorAll('.mem-grup, .full-grup')]
+            .filter(g => !g.closest('.mem-junt, .full-junt, caption'))
+        Ha de tornar zero. Avui torna zero a l'informe (6 títols), a la
+        memòria (3) i al dossier (3). Qui toqui qualsevol d'aquests fulls,
+        que la torni a passar abans de dir que està fet.
+   FET · Al dossier de reserves, cap títol penjat al peu d'un full (v170).
+      Ella va preguntar si el salt de pàgina estava resolt al document del
+      pressupost (sí, era la v169) i, mirant-ho, va sortir que el dossier
+      —el tercer full que imprimeix l'app— era l'únic que es quedava amb la
+      regla que no és de fiar.
+      · El títol de cada categoria va ara dins d'un `.full-junt` amb la
+        PRIMERA reserva del grup. És la mateixa solució de la memòria
+        (.mem-junt) i de l'informe; la classe comparteix regla amb aquella.
+      · EL PARANY, QUE AQUEST COP ES VA VEURE VENIR: la ratlla entre
+        reserves la posava `.full-res + .full-res`, i amb la primera dins de
+        l'embolcall, la SEGONA ja no venia just després d'una `.full-res` i
+        es quedava sense ratlla. És exactament el que va passar amb els
+        allotjaments de la memòria a la v161, que es va trigar a entendre.
+        Arreglat amb `.full-junt + .full-res` i comprovat amb l'app viva: la
+        primera de cada grup sense ratlla (va darrere del títol), la segona
+        i la tercera amb ratlla.
+   FET · A l'informe, cap títol penjat al peu d'un full, i més aire abans
+      del títol del document (v169). Ho va demanar ella el 13/10/2026,
+      després de llegir el full de la v168.
+      · EL SALT DESPRÉS D'UN TÍTOL. «break-after: avoid» al títol tot sol no
+        és de fiar: ja es va aprendre fent la memòria (v154), i l'informe
+        havia nascut confiant-hi. Ara cada títol va LLIGAT al que ve a sota:
+        · Les seccions curtes («En què se'n va anar», «Qui ha pagat què»),
+          dins d'un `.mem-junt` amb la seva taula sencera.
+        · La del detall, que és la que creix, NO es pot tancar en un
+          `.mem-junt` sense forçar-la en un sol full. El títol va dins d'un
+          `<caption>`: forma part de la taula i el navegador no el pot
+          deixar sol. I cada categoria va en DOS `<tbody>`: al primer, el
+          seu nom amb la primera despesa (`.mem-junt`); al segon, la resta,
+          que sí que es pot partir.
+        · La capçalera de columnes passa a `<thead>` amb
+          `display: table-header-group`: si la taula salta de full, el full
+          nou no comença amb números sense nom a sobre.
+      · PROVAT DE PARTIR LA TAULA EN DUES i descartat: amb amplades
+        automàtiques, les columnes de la segona no coincidirien amb les de
+        la primera.
+      · Més aire abans del títol del document: `.inf-cap-doc`, 20 pt. Només
+        a l'informe; la memòria es queda com estava.
+      · NO S'HA POGUT COMPROVAR LA PAGINACIÓ de debò: això només es veu
+        imprimint o desant en PDF, i des d'aquí no s'hi arriba. L'estructura
+        sí que està comprovada amb l'app viva.
    FET · L'informe de despeses (v168). El full imprimible amb tot el detall
       econòmic. Era idea seva des de la v154 —quan va treure el detall línia
       a línia de la memòria del viatge «per a un informe pressupostari, si un
@@ -6443,6 +6591,7 @@ function elementsInforme(v, seves) {
     if (t === 'allotjament' && nitsDe(r)) que += ' · ' + plural(nitsDe(r), 'nit', 'nits');
     items.push({
       que, cat: categoriaReserva(r), qui: (r.quiPaga || '').trim(), quan,
+      iso: r.checkinISO || '',
       cents: centsDe(r.preu), reserva: true,
       // La suposició. «suposada» és el que fa que el peu pugui dir-ho.
       forma: r.forma || 'targeta', suposada: !r.forma,
@@ -6454,7 +6603,9 @@ function elementsInforme(v, seves) {
     if (n == null) continue;
     items.push({
       que: d.concepte || categoriaDespesa(d), cat: categoriaDespesa(d),
-      qui: (d.quiPaga || '').trim(), quan: '', cents: centsDe(d.import),
+      qui: (d.quiPaga || '').trim(),
+      quan: d.dia ? dataBonica(d.dia) : '', iso: d.dia || '',
+      cents: centsDe(d.import),
       reserva: false, forma: d.forma || '', suposada: false, nits: 0
     });
   }
@@ -6556,19 +6707,34 @@ function informeDespesesHTML(v, seves) {
       `<tr><td>${esc(m.de)} → ${esc(m.a)}</td><td class="num">${esc(euros(m.cents))}</td></tr>`).join(''))}` : '';
 
   // ── El detall, per categoria ──
+  // Cada categoria va en DOS «tbody» (v169): al primer, el seu nom i la
+  // primera despesa, lligats amb un .mem-junt perquè el nom no es pugui
+  // quedar sol al peu d'un full; al segon, la resta, que sí que es pot
+  // partir si la categoria és llarga. Partir la taula en dues taules no
+  // servia: amb amplades automàtiques, les columnes no coincidirien.
+  const filaDetall = i => `<tr class="inf-sagnat">
+      <td>${esc(i.que)}</td>
+      <td${i.quan ? '' : ' class="tenue"'}>${esc(i.quan || '—')}</td>
+      <td${i.qui ? '' : ' class="tenue"'}>${esc(i.qui || 'sense pagador')}</td>
+      <td class="tenue">${esc(i.forma ? nomFormaPagament(i.forma).toLowerCase() : '—')}</td>
+      <td class="num">${esc(euros(i.cents))}</td>
+    </tr>`;
   const filesDetall = cats.map(([c, suma]) => {
-    const seus = items.filter(i => i.cat === c);
+    // Dins de cada categoria, per data (v173). Les que no en tenen van al
+    // final: no s'inventa on anirien. Entre les de la mateixa data es manté
+    // l'ordre en què venien.
+    const seus = items.filter(i => i.cat === c)
+      .sort((a, b) => (a.iso ? 0 : 1) - (b.iso ? 0 : 1) || (a.iso < b.iso ? -1 : a.iso > b.iso ? 1 : 0));
     const nits = seus.reduce((s, i) => s + (i.nits || 0), 0);
     const perNit = nits ? ` · ${euros(Math.round(suma / nits))} per nit` : '';
-    return `<tr class="inf-cap-cat"><td colspan="5"><b>${esc(c)}</b></td></tr>`
-      + seus.map(i => `<tr class="inf-sagnat">
-          <td>${esc(i.que)}</td>
-          <td${i.quan ? '' : ' class="tenue"'}>${esc(i.quan || '—')}</td>
-          <td${i.qui ? '' : ' class="tenue"'}>${esc(i.qui || 'sense pagador')}</td>
-          <td class="tenue">${esc(i.forma ? nomFormaPagament(i.forma).toLowerCase() : '—')}</td>
-          <td class="num">${esc(euros(i.cents))}</td>
-        </tr>`).join('')
-      + `<tr class="inf-sagnat"><td class="tenue">Subtotal${esc(perNit)}</td><td></td><td></td><td></td><td class="num tenue">${esc(euros(suma))}</td></tr>`;
+    return `<tbody class="mem-junt">
+        <tr class="inf-cap-cat"><td colspan="5"><b>${esc(c)}</b></td></tr>
+        ${seus.length ? filaDetall(seus[0]) : ''}
+      </tbody>
+      <tbody>
+        ${seus.slice(1).map(filaDetall).join('')}
+        <tr class="inf-sagnat"><td class="tenue">Subtotal${esc(perNit)}</td><td></td><td></td><td></td><td class="num tenue">${esc(euros(suma))}</td></tr>
+      </tbody>`;
   }).join('');
 
   // ── Altres números ──
@@ -6596,19 +6762,34 @@ function informeDespesesHTML(v, seves) {
             : ''))}
     </div>`;
 
+  // Cada títol va LLIGAT al que ve a sota dins d'un .mem-junt (v169), que és
+  // la mateixa solució de la memòria: «break-after: avoid» al títol tot sol
+  // no és de fiar i deixava títols penjats al peu d'un full. Les seccions
+  // curtes hi caben senceres; la del detall, que és la que creix, es lliga
+  // només amb la capçalera de la taula i la primera categoria.
+  const junt = cos => `<div class="mem-junt">${cos}</div>`;
+  const capDetall = `<thead><tr><th>Què</th><th>Quan</th><th>Qui ho va pagar</th><th>Com</th><th class="num">Import</th></tr></thead>`;
+
+  // TOTS els junt() van AQUÍ i no on es construeix cada bloc, encara que
+  // quedi més llarg: així les sis seccions es veuen una sota l'altra i es
+  // pot comptar que cap títol s'ha quedat sense embolcall. A la v169 tres
+  // d'elles ja venien fetes des de més amunt, el seu títol no es veia en
+  // aquesta llista, i es van quedar despenjades fins que ella va imprimir
+  // un full i se'n va trobar un al peu (v171).
   return `<div class="full-doc mem-doc">
     ${capInformeHTML(v, nom, total, persones, dies)}
-    ${grup("En què se'n va anar", 'per categoria')}
-    ${taulaInforme(filesCat)}
-    ${blocAbans}
-    ${grup('Qui ha pagat què', 'i com ho va pagar')}
-    ${taulaInforme(filesQui)}
-    ${notaForma}
-    ${blocDeutes}
-    ${grup('El detall', "tot el que s'ha pagat, per categoria")}
-    ${taulaInforme(`<tr><th>Què</th><th>Quan</th><th>Qui ho va pagar</th><th>Com</th><th class="num">Import</th></tr>${filesDetall}<tr class="total"><td>Total</td><td></td><td></td><td></td><td class="num">${esc(euros(total))}</td></tr>`)}
+    ${junt(grup("En què se'n va anar", 'per categoria') + taulaInforme(filesCat))}
+    ${blocAbans ? junt(blocAbans) : ''}
+    ${junt(grup('Qui ha pagat què', 'i com ho va pagar') + taulaInforme(filesQui) + notaForma)}
+    ${blocDeutes ? junt(blocDeutes) : ''}
+    <table class="mem-taula">
+      <caption class="inf-caption">${grup('El detall', "tot el que s'ha pagat, per categoria")}</caption>
+      ${capDetall}
+      ${filesDetall}
+      <tbody><tr class="total"><td>Total</td><td></td><td></td><td></td><td class="num">${esc(euros(total))}</td></tr></tbody>
+    </table>
     ${items.some(i => !i.quan) ? `<p class="inf-nota">El guionet a «Quan» vol dir que la despesa no porta data: les despeses soltes no en tenen.</p>` : ''}
-    ${blocAltres}
+    ${junt(blocAltres)}
     <div class="full-doc-peu">
       <span>${esc(nom)} · informe de despeses</span>
       <span>Fet amb Els meus viatges · ${esc(dataBonica(isoDe(new Date())))}</span>
@@ -6634,12 +6815,18 @@ function capInformeHTML(v, nom, total, persones, dies) {
           : dif < 0 ? `Previst ${formataImport(previst)}. Ha sortit ${formataImport(-dif)} més barat, un ${pct} %.`
           : `Previst ${formataImport(previst)}, clavat.`;
   }
-  return `<div class="mem-cap">
+  // «Informe de despeses» com a subtítol i no a l'etiqueta petita de la
+  // dreta (v172): allà quedava amagat i el full no deia de què anava fins
+  // que no te'l llegies. Va just sota del nom del viatge, abans de les
+  // dates: quina mena de document és pesa més que quan va ser. I per això
+  // s'ha tret de l'etiqueta: dir-ho dues vegades a la mateixa capçalera no
+  // ho fa més clar.
+  return `<div class="mem-cap inf-cap-doc">
       <div>
         <h1 class="mem-titol">${esc(nom)}</h1>
+        <p class="inf-mena">Informe de despeses</p>
         <p class="mem-sub">${esc(sub)}</p>
       </div>
-      <div class="mem-etiq">Informe de despeses</div>
     </div>
     ${total ? `<div class="inf-xifres">
       ${xifra(euros(total), 'Total')}
@@ -10800,6 +10987,51 @@ function formaPagamentHTML(on, prefix) {
     + `</div>`;
 }
 
+/* ── La data d'una despesa solta (v173) ──
+   És OPCIONAL i s'escriu com la d'una visita: es llegeix «13/10/2026» i
+   interpretaData() entén també «12/10» sol, que completa amb l'any d'avui.
+   Cap camp de calendari: l'app no en fa servir enlloc.
+
+   Al formulari d'afegir hi surt la d'AVUI de sèrie, perquè les despeses
+   soltes s'apunten mentre hi ets. Això té un perill —buidar els tiquets d'un
+   viatge de fa mesos desaria dates d'avui— i per això hi ha l'avís de sota:
+   ho va decidir ella així, i l'avís és el que ho fa segur. */
+
+/* Si la data cau fora de les dates del viatge, la frase que ho diu. Torna ''
+   quan no hi ha res a dir: sense data, viatge sense dates, o data a dins.
+   NO impedeix res: hi ha despeses d'un viatge que es paguen abans de sortir
+   o en tornar, i han de poder entrar igual. */
+/* «2026-05-14» → «14/5». Sense any: totes les despeses d'un viatge el
+   comparteixen i la línia on va ja és llarga. */
+function diaCurt(iso) {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso || '';
+  const [, m, d] = iso.split('-');
+  return `${+d}/${+m}`;
+}
+
+function avisDataFora(v, iso) {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return '';
+  if (!v || !v.dataInici || !v.dataFi) return '';
+  if (iso >= v.dataInici && iso <= v.dataFi) return '';
+  // Entre parèntesis i no «que va del… al…»: rangViatge() torna formes
+  // diferents segons les dates («del 3 de novembre al 2 de desembre», però
+  // «3 → 7 de novembre» si cauen al mateix mes), i encaixar-les totes dins
+  // d'una frase feia sortir «que va 3 → 7 de novembre».
+  return `El ${dataBonica(iso)} queda fora del viatge (${rangViatge(v)}). Pots afegir-la igualment.`;
+}
+
+/* Posa o treu l'avís d'una data, sense repintar res: repintar esborraria el
+   que s'estigui escrivint als altres camps. */
+function repassaDataDespesa(camp, idAvis) {
+  const v = viatges.find(x => x.id === viatgeObert);
+  const caixa = $(idAvis);
+  if (!caixa) return;
+  const text = avisDataFora(v, interpretaData(camp.value));
+  caixa.textContent = text;
+  caixa.className = text ? 'avis mal' : 'avis';
+  camp.classList.toggle('avisada', !!text);
+}
+
 /* La categoria és text lliure amb suggeriments, com «qui ho paga» o les
    zones d'Inspiració: pots escriure'n de noves i queden disponibles a partir
    d'aleshores, sense cap emmagatzematge nou —viuen dins de les despeses, i
@@ -10836,11 +11068,16 @@ function filaDespesaHTML(d) {
   const cat = nomCategoria(d.categoria);
   const imp = importNum(d.import) != null ? formataImport(importNum(d.import)) : (d.import || '');
   const paga = (d.quiPaga || '').trim();
+  // La data va al DAVANT de la línia petita (v173): es llegeix com a part de
+  // la despesa. Va sense any —«14/5»— perquè totes les d'un viatge el
+  // comparteixen i la línia ja és prou llarga. Les que no en tenen comencen
+  // per la categoria, sense cap forat ni cap guionet.
+  const dia = d.dia ? diaCurt(d.dia) : '';
   return `<div class="despesa">
     <button class="despesa-obre" data-edita-despesa="${esc(d.id)}">
       <span class="despesa-info">
         <span class="despesa-concepte">${esc(d.concepte || cat)}</span>
-        <span class="despesa-meta">${esc(cat)}${paga ? ' · ' + esc(paga) : ''}${d.forma ? ' · ' + esc(nomFormaPagament(d.forma)) : ''}</span>
+        <span class="despesa-meta">${dia ? `<span class="dia">${esc(dia)}</span> · ` : ''}${esc(cat)}${paga ? ' · ' + esc(paga) : ''}${d.forma ? ' · ' + esc(nomFormaPagament(d.forma)) : ''}</span>
       </span>
       <span class="despesa-import">${esc(imp)}</span>
     </button>
@@ -10856,10 +11093,13 @@ function formEdicioDespesaHTML(d) {
       <input id="edita-despesa-import" class="despesa-camp import" value="${esc(d.import || '')}" placeholder="Import" inputmode="decimal">
     </div>
     <div class="despesa-fila">
+      <input id="edita-despesa-data" class="despesa-camp data" value="${esc(d.dia ? dataBonica(d.dia) : '')}"
+        placeholder="Dia" aria-label="Dia de la despesa" data-repassa-data="avis-data-edita" autocomplete="off">
       <input id="edita-despesa-categoria" class="despesa-camp categoria" value="${esc(nomCategoria(d.categoria))}"
         list="categories-conegudes" placeholder="Categoria" autocomplete="off">
       <input id="edita-despesa-paga" class="despesa-camp paga" value="${esc(d.quiPaga || '')}" placeholder="Qui ho paga (opcional)" list="noms-pagadors" autocomplete="off">
     </div>
+    <div class="avis" id="avis-data-edita"></div>
     ${formaPagamentHTML(d.forma || '', 'edita')}
     <div class="despesa-edicio-accions">
       <button class="despesa-elimina" data-treu-despesa="${esc(d.id)}">Elimina</button>
@@ -10884,10 +11124,13 @@ function despesesSoltesHTML(despeses) {
           <input id="nova-despesa-import" class="despesa-camp import" placeholder="Import" inputmode="decimal">
         </div>
         <div class="despesa-fila">
+          <input id="nova-despesa-data" class="despesa-camp data" value="${esc(dataBonica(isoDe(new Date())))}"
+            placeholder="Dia" aria-label="Dia de la despesa" data-repassa-data="avis-data-nova" autocomplete="off">
           <input id="nova-despesa-categoria" class="despesa-camp categoria"
             list="categories-conegudes" placeholder="Categoria" autocomplete="off">
           <input id="nova-despesa-paga" class="despesa-camp paga" placeholder="Qui ho paga (opcional)" list="noms-pagadors" autocomplete="off">
         </div>
+        <div class="avis" id="avis-data-nova"></div>
         ${formaPagamentHTML(formaNova, 'nova')}
         <div class="despesa-accio">
           <button class="primari mini" data-afegeix-despesa>Afegeix</button>
@@ -10965,8 +11208,9 @@ async function afegeixDespesa() {
     $('nova-despesa-import').focus();
     return;
   }
+  const dia = interpretaData($('nova-despesa-data').value);
   const despeses = Array.isArray(v.despeses) ? [...v.despeses] : [];
-  despeses.push({ id: nouId(), concepte, import: importText, categoria, quiPaga, forma: formaNova });
+  despeses.push({ id: nouId(), concepte, import: importText, categoria, quiPaga, forma: formaNova, dia });
   formaNova = '';
   await MagatzemViatges.actualitza(v.id, { despeses });
   treuElCursorDelDetall();
@@ -10986,7 +11230,8 @@ async function desaDespesa(id) {
   const concepte = $('edita-despesa-concepte').value.trim();
   const categoria = normalitzaCategoria($('edita-despesa-categoria').value);
   const quiPaga = $('edita-despesa-paga').value.trim();
-  const despeses = (v.despeses || []).map(d => d.id === id ? { ...d, concepte, import: importText, categoria, quiPaga, forma: formaEdicio } : d);
+  const dia = interpretaData($('edita-despesa-data').value);
+  const despeses = (v.despeses || []).map(d => d.id === id ? { ...d, concepte, import: importText, categoria, quiPaga, forma: formaEdicio, dia } : d);
   despesaEnEdicio = null;
   formaEdicio = '';
   await MagatzemViatges.actualitza(v.id, { despeses });
@@ -11751,11 +11996,18 @@ function fullReservesHTML(v, menes, seves) {
     // peu de pàgina que es repeteixi (només ho fa position:fixed, i no tots
     // els navegadors l'imprimeixen a totes les pàgines), i així un full solt
     // es pot identificar igualment.
-    return `<div class="full-grup">
-        <h2>${esc(TIPUS[t].plural || TIPUS[t].nom)}</h2>
-        <span class="full-grup-de">${identificacio}</span>
+    // El títol va LLIGAT a la primera reserva del grup (v170, .full-junt):
+    // la regla «no trenquis després del títol» no és de fiar i el títol es
+    // podia quedar penjat al peu d'un full. Mateixa solució que la memòria
+    // (.mem-junt) i que l'informe.
+    return `<div class="full-junt">
+        <div class="full-grup">
+          <h2>${esc(TIPUS[t].plural || TIPUS[t].nom)}</h2>
+          <span class="full-grup-de">${identificacio}</span>
+        </div>
+        ${blocReservaHTML(seus[0])}
       </div>`
-      + seus.map(blocReservaHTML).join('');
+      + seus.slice(1).map(blocReservaHTML).join('');
   }).join('');
 
   return `<div class="full-doc">
@@ -12436,6 +12688,14 @@ $('detall-viatge-vista').addEventListener('click', async e => {
 // Enter en un camp del formulari: afegeix (formulari nou) o desa (edició).
 // Esc dins de l'edició d'una visita la cancel·la (v148); només allà, que és
 // l'única edició del detall amb un text llarg on val la pena poder fugir.
+/* L'avís de la data d'una despesa (v173): es repassa en sortir del camp, no
+   mentre s'escriu. «change» salta quan el camp perd el focus amb el text
+   canviat, que és el moment en què ja saps què volia dir. */
+$('detall-viatge-vista').addEventListener('change', e => {
+  const camp = e.target.closest('[data-repassa-data]');
+  if (camp) repassaDataDespesa(camp, camp.dataset.repassaData);
+});
+
 $('detall-viatge-vista').addEventListener('keydown', e => {
   if (e.key === 'Escape' && visitaEnEdicio && e.target.closest('[data-visita-form]')) { e.preventDefault(); cancelaEdicioVisita(); return; }
   if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
