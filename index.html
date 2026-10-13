@@ -252,7 +252,7 @@
      TRIADA. Qui fa servir un lector de pantalla no veu quin botó està pintat:
      si no ho diu una etiqueta, no ho sap.
 
-     N'hi ha de dues menes, i no se n'ha d'inventar cap altra:
+     N'hi ha de dues classes, i no se n'ha d'inventar cap altra:
 
      · Canviar de PANTALLA (les tres pestanyes de dalt) → el contenidor porta
        <nav aria-label="…"> i el botó de la pantalla on ets, aria-current="page".
@@ -1774,7 +1774,7 @@
   .full-doc { line-height: 1.3; }
   .full-compte { font-size: 9pt; color: #333; text-align: right; flex: none; }
   .full-cap { display: flex; align-items: flex-end; justify-content: space-between; gap: 12pt; }
-  /* El títol d'una mena. A la dreta hi va el nom del viatge, petit: un full
+  /* El títol d'una categoria. A la dreta hi va el nom del viatge, petit: un full
      solt s'ha de poder identificar sense anar a buscar el primer. */
   .full-grup {
     display: flex; align-items: baseline; justify-content: space-between; gap: 12pt;
@@ -1894,6 +1894,32 @@
      prims, que són l'etiqueta i no la dada. */
   .mem-titular { font-size: 12.5pt; color: #000; margin: 8pt 0 17pt; }
   .mem-titular b { font-weight: 600; }
+  /* ── L'informe de despeses (v168) ──
+     Germà de la memòria: mateixa capçalera, mateixes taules, mateixos
+     títols de secció. La diferència és el que diu. La memòria explica com
+     va anar el viatge i a posta NO porta diners línia a línia; aquest porta
+     tot el detall econòmic i es pot demanar en qualsevol moment, també a
+     mitja escapada. Res de gràfics: les proporcions es diuen amb rectangles
+     plens, que s'imprimeixen bé en blanc i negre i no demanen cap llibreria. */
+  .inf-xifres { display: flex; gap: 26pt; margin: 10pt 0 2pt; flex-wrap: wrap; }
+  .inf-xifra-n { font-size: 17pt; font-weight: 600; color: #000; font-variant-numeric: tabular-nums; }
+  .inf-xifra-q { font-size: 8pt; color: #6E6E6E; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 1pt; }
+  /* El «display: block» no és decoratiu: un span sense ell no fa cas de
+     l'amplada i la barra no es veu. Va passar fent la mostra. */
+  .inf-barra { display: block; height: 5pt; background: #000; }
+  .inf-barra-cel { width: 42%; padding-left: 10pt !important; vertical-align: middle !important; }
+  .inf-pct { font-size: 8.8pt; color: #6E6E6E; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .inf-partit { display: flex; height: 7pt; margin: 3pt 0 5pt; }
+  .inf-partit i { display: block; height: 100%; }
+  .inf-partit i:first-child { background: #000; }
+  .inf-partit i:last-child { background: #BEBEBE; }
+  .inf-llegenda { display: flex; gap: 16pt; font-size: 8.8pt; color: #333; flex-wrap: wrap; }
+  .inf-llegenda span::before { content: ''; display: inline-block; width: 7pt; height: 7pt; margin-right: 4pt; vertical-align: -0.5pt; }
+  .inf-llegenda .abans::before { background: #000; }
+  .inf-llegenda .alla::before { background: #BEBEBE; }
+  .inf-nota { font-size: 8.5pt; color: #6E6E6E; margin: 6pt 0 0; }
+  .inf-sagnat td:first-child { padding-left: 10pt; }
+  .inf-cap-cat td { padding-top: 7pt; border-bottom: none; }
   .mem-dues { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24pt; }
   /* El títol d'una secció amb el seu primer element: junts (v154). */
   .mem-junt { break-inside: avoid; page-break-inside: avoid; }
@@ -1918,7 +1944,7 @@
   .full-persona:last-child { break-after: auto; page-break-after: auto; }
   .full-item { break-inside: avoid; page-break-inside: avoid; }
   /* Cap reserva partida entre dues pàgines: val més un full amb un pam de
-     blanc al peu que un telèfon a cavall de dues cares. El títol d'una mena
+     blanc al peu que un telèfon a cavall de dues cares. El títol d'una categoria
      no es pot quedar tot sol al final d'un full. */
   .full-res { break-inside: avoid; page-break-inside: avoid; }
   .full-grup { break-after: avoid; page-break-after: avoid; break-inside: avoid; }
@@ -1927,6 +1953,9 @@
   .mem-hora, .mem-allot, .mem-pend, .mem-taula tr { break-inside: avoid; page-break-inside: avoid; }
   .mem-dia { break-inside: avoid; page-break-inside: avoid; }
   .mem-grup { break-after: avoid; page-break-after: avoid; break-inside: avoid; }
+  /* L'informe: el nom d'una categoria del detall no es pot quedar sol al peu
+     d'un full, amb les seves despeses al full següent. */
+  .inf-cap-cat { break-after: avoid; page-break-after: avoid; }
 }
 </style>
 </head>
@@ -3550,9 +3579,61 @@ function parseReserva(textOriginal) {
       treu un full en blanc. S'arreglaria amb l'esdeveniment «beforeprint»,
       omplint el full segons la pantalla on ets. LA CLARA HO VA DESCARTAR
       (25/08/2026): no li calia.
-   FET · Còpia congelada 18, documentació 18 i el nom net (v167). Toquen
-      cada deu versions, en arribar a una acabada en 6; la v166 hi va
-      arribar i ella va dir endavant (9/10/2026).
+   FET · L'informe de despeses (v168). El full imprimible amb tot el detall
+      econòmic. Era idea seva des de la v154 —quan va treure el detall línia
+      a línia de la memòria del viatge «per a un informe pressupostari, si un
+      dia es fa»— i el pendent 14 de la documentació. Decidit sobre una
+      mostra de dos fulls A4.
+      · QUÈ HI HA: els quatre números de dalt (total, per persona, per dia i
+        PER PERSONA I DIA, que és l'únic comparable entre viatges), el
+        previst, en què se'n va anar per categoria amb percentatge i barra,
+        «reservat abans · gastat allà», qui ha pagat què amb efectiu i
+        targeta per persona, qui deu a qui, el detall línia a línia per
+        categoria amb subtotals, i «Altres números» (les cinc despeses més
+        grans, el preu per nit de cada allotjament i la mitjana, i quantes
+        despeses soltes hi ha i de quin import mitjà).
+      · ES POT DEMANAR SEMPRE, també a mitja escapada: serveix per saber on
+        vas, no només per recordar on vas anar. La memòria del viatge, en
+        canvi, demana que l'últim dia hagi passat. Botó al peu de la
+        subpestanya Pressupost (a Reserves no: això ja estava decidit).
+      · LA SUPOSICIÓ DE LA TARGETA, l'única cosa del full que no és una
+        dada. Les reserves no tenen forma de pagament, i sense suposar-ne
+        cap el repartiment d'efectiu i targeta només parlaria de les
+        despeses soltes. Es compten com a targeta —idea seva: un vol o un
+        hotel pagats dies abans ho són gairebé sempre—, PERÒ NO S'ESCRIU
+        ENLLOC: el camp es queda buit, la suposició s'aplica en pintar i el
+        full ho diu al peu. Si la reserva porta forma posada a mà, mana la
+        seva. Falta encara el botó per posar-la-hi, que anirà a la fitxa
+        d'Edita de la reserva.
+      · Les despeses soltes SENSE forma indicada no s'endevinen: surt una
+        columna «Sense dir» només quan n'hi ha, perquè les files segueixin
+        sumant el que la persona ha pagat.
+      · calculaRepartiment() surt de repartimentHTML() i es queda sense gens
+        d'HTML, perquè ara el fan servir la pantalla i el full. Si es
+        calculés dues vegades, un dia dirien coses diferents i costaria de
+        veure quin dels dos s'equivoca.
+      · Les barres són rectangles plens, no cap gràfic: s'imprimeixen bé en
+        blanc i negre i no demanen cap llibreria. Ull amb `.inf-barra`: un
+        span sense `display: block` no fa cas de l'amplada i la barra no es
+        veu. Va passar fent la mostra.
+      · El títol «Altres números · per comparar amb altres viatges» el va
+        triar ella: el primer que vaig posar («Quatre coses que es veuen
+        mirant-ho») no deia de què anava i xocava amb «les cinc més grans».
+   FET · Còpia congelada 18, documentació 18, el nom net i «categories» en
+      lloc de «menes» (v167). Toquen cada deu versions, en arribar a una
+      acabada en 6; la v166 hi va arribar i ella va dir endavant (9/10/2026).
+      · EL VOCABULARI. Ella va demanar no dir «menes» sinó «CATEGORIES»,
+        que s'entén molt millor. El parany: «categoria» ja volia dir una
+        altra cosa a l'app —les de les despeses soltes—. La sortida és
+        qualificar-les quan les dues surten juntes: **categories de
+        reserva** (allotjament, vol, cotxe, entrada; fixes) i **categories
+        de despesa** (Menjar, Transport…; text lliure). Canviat a tots els
+        textos, a la documentació i a l'únic avís de pantalla que ho deia
+        («Tria almenys una categoria de reserva»). Al codi els
+        identificadors de les primeres segueixen portant «mena» justament
+        per no xocar amb `categoria`, que ja és de les segones; hi ha un
+        avís de vocabulari escrit al costat de liniaMenaHTML() que ho
+        explica. Si algun dia es renomenen, totes dues famílies alhora.
       · `app-viatges-18.html` i `com-funciona-l-app-18.md` recullen de la
         v157 a la v167. La 17 arribava a la v156.
       · EL NOM. Fins ara aquest registre i la documentació li deien «Clara»,
@@ -3563,7 +3644,7 @@ function parseReserva(textOriginal) {
         totes les de la documentació. Les persones dels exemples porten noms
         inventats que no són el seu.
       · On entra cada cosa a la documentació 18, sense obrir cap apartat
-        nou: el desplegable dels noms, les menes del cost i el cost per
+        nou: el desplegable dels noms, les categories de reserva del cost i el cost per
         persona, al §6; el titular del full de memòria i els retocs de la
         v158–v162, al §5; la foto de portada des d'Edita, al §3. Les
         referències internes es diuen pel número i obrir un apartat al mig
@@ -3604,10 +3685,10 @@ function parseReserva(textOriginal) {
       · Amb menys de dues persones no es diu enlloc: repetiria el total.
         personesDelCost() pot tornar 0 (no se'n sap res) i per això qui la
         crida ha de comprovar-ho: dividir per zero no és cap número.
-   FET · Totes les menes del «Cost del viatge» es despleguen (v164). Ho va
+   FET · Totes les categories de reserva del «Cost del viatge» es despleguen (v164). Ho va
       demanar ella (9/10/2026): que «Allotjaments», «Vols», «Cotxes» i
       «Entrades» s'obrin igual que ja ho feia «Despeses soltes». A dins, les
-      reserves d'aquella mena pel nom i l'import.
+      reserves d'aquella categoria pel nom i l'import.
       · ORDRE DE DINS: el d'entrada, de la més vella a la més nova (`creatA`
         ascendent). Ho va triar ella, i NO és per import com a la resta del
         pressupost: és l'ordre en què recordes haver-les anat posant.
@@ -3626,10 +3707,10 @@ function parseReserva(textOriginal) {
         l'escaló de 34, pel mateix criteri que el sagnat del full imprès: la
         pertinença es veu per l'aire, sense ratlles ni requadres. Afecta
         també les categories de «Despeses soltes», que comparteixen classe.
-      · QUEDA DESIGUAL A POSTA: les quatre menes s'obren a coses (amb nom) i
-        «Despeses soltes» s'obre a categories (un agrupament). Se li va dir
-        abans de fer-ho; el detall de les despeses ja el té sencer a la
-        columna de la dreta.
+      · QUEDA DESIGUAL A POSTA: les quatre categories de RESERVA s’obren a
+        coses (reserves, amb nom) i «Despeses soltes» s’obre a categories
+        de DESPESA (un agrupament). Se li va dir abans de fer-ho; el detall
+        de les despeses ja el té sencer a la columna de la dreta.
    FET · Obrir un nom de «Qui deu a qui» i veure QUÈ ha pagat (v163). Ho va
       demanar Judy (8/10/2026): «un llistat de què ha pagat cadascú, ordenat
       per persones». Triat sobre una mostra a mida real, i amb una esmena
@@ -4272,7 +4353,7 @@ function parseReserva(textOriginal) {
       l'itinerari en fa el dossier de paper: el que t'endús perquè el mòbil
       es queda sense bateria o perquè no tens dades a l'estranger.
       NO és un itinerari —això ja ho fa l'Agenda—: és cada reserva amb totes
-      les seves dades, agrupada per menes i cronològica dins de cada mena,
+      les seves dades, agrupada per categories i cronològica dins de cada categoria,
       perquè dins d'un grup tots els blocs tenen els mateixos camps al mateix
       lloc i n'aprens la forma un cop.
       Els grups van SEGUITS. La primera idea era començar full nou a cada
@@ -4893,7 +4974,7 @@ function parseReserva(textOriginal) {
       una llista i prou, sense selector. Es desa dins del viatge (v.maleta),
       sense taula nova. Marcar i desmarcar no repinta —toca el DOM i desa—,
       o s'esborraria el que hi hagués al camp d'afegir.
-      Els suggeriments surten NOMÉS del que l'app sap del cert: les menes de
+      Els suggeriments surten NOMÉS del que l'app sap del cert: les categories de
       reserva del viatge (vol → documentació, targeta d'embarcament i líquids;
       cotxe → carnet; entrades → tiquets), la durada («Roba per a 5 dies»), un
       bàsic fix, i el que has posat a maletes d'altres viatges, del més
@@ -6327,6 +6408,256 @@ function memoriaViatgeHTML(v, seves, sevesVisites) {
       <span>${esc(dataBonica(isoDe(new Date())))}</span>
     </div>
   </div>`;
+}
+
+/* ═══════════════ L'INFORME DE DESPESES (v168) ═══════════════
+   El full de tot el detall econòmic. És el germà pobre de la memòria pel que
+   fa a imatges —no en porta cap— i el germà ric pel que fa a números: aquí
+   hi ha el detall línia a línia que la memòria NO porta a posta (v154).
+   Es pot demanar sempre, també a mitja escapada: serveix per saber on vas,
+   no només per recordar on vas anar.
+
+   LA SUPOSICIÓ DE LA TARGETA, que és l'única cosa d'aquest full que no és
+   una dada: les reserves no tenen forma de pagament i, sense suposar-ne cap,
+   el repartiment d'efectiu i targeta només parlaria de les despeses soltes,
+   que en un viatge normal són la cinquena part. Un vol o un hotel pagats
+   dies abans de sortir es paguen amb targeta gairebé sempre, o sigui que es
+   compten així. PERÒ NO S'ESCRIU ENLLOC: el camp de la reserva es queda
+   buit, la suposició s'aplica en pintar el full i el full ho diu al peu. Si
+   algun dia la reserva porta forma posada a mà, mana la seva. */
+
+/* Els elements del viatge amb import, preparats per a l'informe: reserves i
+   despeses soltes amb la mateixa forma, que és el que deixa sumar-los. */
+function elementsInforme(v, seves) {
+  const items = [];
+  for (const r of seves) {
+    const n = importNum(r.preu);
+    if (n == null) continue;
+    const t = tipusDe(r);
+    let quan = '';
+    if (r.checkinISO) {
+      quan = dataBonica(r.checkinISO);
+      if (r.checkoutISO && r.checkoutISO !== r.checkinISO) quan += ' → ' + dataBonica(r.checkoutISO);
+    }
+    let que = nomReserva(r);
+    if (t === 'allotjament' && nitsDe(r)) que += ' · ' + plural(nitsDe(r), 'nit', 'nits');
+    items.push({
+      que, cat: categoriaReserva(r), qui: (r.quiPaga || '').trim(), quan,
+      cents: centsDe(r.preu), reserva: true,
+      // La suposició. «suposada» és el que fa que el peu pugui dir-ho.
+      forma: r.forma || 'targeta', suposada: !r.forma,
+      nits: t === 'allotjament' ? nitsDe(r) : 0
+    });
+  }
+  for (const d of (v.despeses || [])) {
+    const n = importNum(d.import);
+    if (n == null) continue;
+    items.push({
+      que: d.concepte || categoriaDespesa(d), cat: categoriaDespesa(d),
+      qui: (d.quiPaga || '').trim(), quan: '', cents: centsDe(d.import),
+      reserva: false, forma: d.forma || '', suposada: false, nits: 0
+    });
+  }
+  return items;
+}
+
+/* Una taula de l'informe, amb les files ja fetes. */
+const taulaInforme = files => `<table class="mem-taula">${files}</table>`;
+const euros = cents => formataImport(cents / 100);
+
+function informeDespesesHTML(v, seves) {
+  const nom = v.nom || 'Viatge sense nom';
+  const items = elementsInforme(v, seves);
+  const grup = (titol, de) => `<div class="mem-grup"><h2>${titol}</h2><span class="mem-grup-de">${esc(de || '')}</span></div>`;
+
+  if (!items.length) {
+    return `<div class="full-doc mem-doc">
+      ${capInformeHTML(v, nom, 0, 0, 0)}
+      <p class="mem-buit">Aquest viatge encara no té cap despesa ni cap reserva amb preu.</p>
+    </div>`;
+  }
+
+  const total = items.reduce((s, i) => s + i.cents, 0);
+  const persones = personesDelCost(v, items.map(i => i.qui));
+  const dies = diesDeLaMemoria(v, seves, visites.filter(x => x.viatgeId === v.id)).length || 1;
+
+  // ── En què se'n va anar ──
+  const perCat = new Map();
+  for (const i of items) perCat.set(i.cat, (perCat.get(i.cat) || 0) + i.cents);
+  const cats = [...perCat.entries()].sort((a, b) => b[1] - a[1]);
+  const maxCat = cats.length ? cats[0][1] : 1;
+  const filesCat = cats.map(([c, n]) =>
+    `<tr><td>${esc(c)}</td><td class="num">${esc(euros(n))}</td>
+      <td class="inf-pct">${(n / total * 100).toFixed(1).replace('.', ',')} %</td>
+      <td class="inf-barra-cel"><span class="inf-barra" style="width:${Math.max(1, Math.round(n / maxCat * 100))}%"></span></td></tr>`).join('')
+    + `<tr class="total"><td>Total</td><td class="num">${esc(euros(total))}</td><td class="inf-pct">100 %</td><td></td></tr>`;
+
+  // ── Reservat abans · gastat allà ──
+  const centsAbans = items.filter(i => i.reserva).reduce((s, i) => s + i.cents, 0);
+  const centsAlla = total - centsAbans;
+  const pctAbans = total ? centsAbans / total * 100 : 0;
+  const blocAbans = (centsAbans && centsAlla) ? `
+    ${grup('Reservat abans · gastat allà', 'què ja estava pagat en sortir de casa')}
+    <div class="inf-partit"><i style="width:${pctAbans.toFixed(1)}%"></i><i style="width:${(100 - pctAbans).toFixed(1)}%"></i></div>
+    <div class="inf-llegenda">
+      <span class="abans"><b>${esc(euros(centsAbans))}</b> reservat abans · ${pctAbans.toFixed(1).replace('.', ',')} %</span>
+      <span class="alla"><b>${esc(euros(centsAlla))}</b> gastat allà · ${(100 - pctAbans).toFixed(1).replace('.', ',')} %</span>
+    </div>` : '';
+
+  // ── Qui ha pagat què, amb efectiu i targeta ──
+  const rep = calculaRepartiment(items.map(i => ({ preu: i.cents / 100, quiPaga: i.qui })), v.participants);
+  const senseForma = items.filter(i => i.qui && !i.forma).reduce((s, i) => s + i.cents, 0);
+  const colForma = (nomPersona, forma) =>
+    items.filter(i => i.qui.toLowerCase() === nomPersona.toLowerCase() && i.forma === forma)
+         .reduce((s, i) => s + i.cents, 0);
+  const colBuida = (nomPersona) =>
+    items.filter(i => i.qui.toLowerCase() === nomPersona.toLowerCase() && !i.forma)
+         .reduce((s, i) => s + i.cents, 0);
+  const totEfectiu = items.filter(i => i.forma === 'efectiu').reduce((s, i) => s + i.cents, 0);
+  const totTargeta = items.filter(i => i.forma === 'targeta').reduce((s, i) => s + i.cents, 0);
+  const orfes = items.filter(i => !i.qui);
+  const centsOrfes = orfes.reduce((s, i) => s + i.cents, 0);
+  const capBuida = senseForma > 0 || orfes.some(i => !i.forma) ? '<th class="num">Sense dir</th>' : '';
+  const celBuida = n => capBuida ? `<td class="num">${esc(euros(n))}</td>` : '';
+
+  const filesQui = `
+    <tr><th></th><th class="num">Ha pagat</th><th class="num">Efectiu</th><th class="num">Targeta</th>${capBuida}<th class="num">La seva part</th><th class="num">Saldo</th></tr>
+    ${rep.saldos.map(s => `<tr>
+      <td>${esc(s.nom)}</td>
+      <td class="num">${esc(euros(s.pagat))}</td>
+      <td class="num">${esc(euros(colForma(s.nom, 'efectiu')))}</td>
+      <td class="num">${esc(euros(colForma(s.nom, 'targeta')))}</td>
+      ${celBuida(colBuida(s.nom))}
+      <td class="num">${esc(euros(s.part))}</td>
+      <td class="num">${esc(s.saldo > 0 ? "li'n deuen " + euros(s.saldo) : s.saldo < 0 ? 'deu ' + euros(-s.saldo) : 'en paus')}</td>
+    </tr>`).join('')}
+    ${centsOrfes ? `<tr>
+      <td class="tenue">Sense pagador</td>
+      <td class="num tenue">${esc(euros(centsOrfes))}</td>
+      <td class="num tenue">${esc(euros(orfes.filter(i => i.forma === 'efectiu').reduce((s, i) => s + i.cents, 0)))}</td>
+      <td class="num tenue">${esc(euros(orfes.filter(i => i.forma === 'targeta').reduce((s, i) => s + i.cents, 0)))}</td>
+      ${capBuida ? `<td class="num tenue">${esc(euros(orfes.filter(i => !i.forma).reduce((s, i) => s + i.cents, 0)))}</td>` : ''}
+      <td class="num tenue">—</td><td class="num tenue">no entra al repartiment</td>
+    </tr>` : ''}
+    <tr class="total"><td>Total</td><td class="num">${esc(euros(total))}</td>
+      <td class="num">${esc(euros(totEfectiu))}</td><td class="num">${esc(euros(totTargeta))}</td>
+      ${capBuida ? `<td class="num">${esc(euros(total - totEfectiu - totTargeta))}</td>` : ''}
+      <td></td><td></td></tr>`;
+
+  const quantesSuposades = items.filter(i => i.suposada).length;
+  const notaForma = quantesSuposades
+    ? `<p class="inf-nota">Les reserves sense forma de pagament indicada es compten com a targeta: ${esc(plural(quantesSuposades, 'reserva', 'reserves'))} d'aquest viatge.</p>`
+    : '';
+
+  // ── Qui deu a qui ──
+  const blocDeutes = rep.moviments.length ? `
+    ${grup('Qui deu a qui', 'per quedar en paus')}
+    ${taulaInforme(rep.moviments.map(m =>
+      `<tr><td>${esc(m.de)} → ${esc(m.a)}</td><td class="num">${esc(euros(m.cents))}</td></tr>`).join(''))}` : '';
+
+  // ── El detall, per categoria ──
+  const filesDetall = cats.map(([c, suma]) => {
+    const seus = items.filter(i => i.cat === c);
+    const nits = seus.reduce((s, i) => s + (i.nits || 0), 0);
+    const perNit = nits ? ` · ${euros(Math.round(suma / nits))} per nit` : '';
+    return `<tr class="inf-cap-cat"><td colspan="5"><b>${esc(c)}</b></td></tr>`
+      + seus.map(i => `<tr class="inf-sagnat">
+          <td>${esc(i.que)}</td>
+          <td${i.quan ? '' : ' class="tenue"'}>${esc(i.quan || '—')}</td>
+          <td${i.qui ? '' : ' class="tenue"'}>${esc(i.qui || 'sense pagador')}</td>
+          <td class="tenue">${esc(i.forma ? nomFormaPagament(i.forma).toLowerCase() : '—')}</td>
+          <td class="num">${esc(euros(i.cents))}</td>
+        </tr>`).join('')
+      + `<tr class="inf-sagnat"><td class="tenue">Subtotal${esc(perNit)}</td><td></td><td></td><td></td><td class="num tenue">${esc(euros(suma))}</td></tr>`;
+  }).join('');
+
+  // ── Altres números ──
+  const grans = [...items].sort((a, b) => b.cents - a.cents).slice(0, 5);
+  const centsGrans = grans.reduce((s, i) => s + i.cents, 0);
+  const allotjaments = items.filter(i => i.nits > 0);
+  const nitsTotal = allotjaments.reduce((s, i) => s + i.nits, 0);
+  const centsAllotjament = allotjaments.reduce((s, i) => s + i.cents, 0);
+  const soltes = items.filter(i => !i.reserva);
+  const blocAltres = `
+    ${grup('Altres números', 'per comparar amb altres viatges')}
+    <div class="mem-dues">
+      ${taulaInforme(`<tr><th>Les cinc despeses més grans</th><th class="num"></th></tr>`
+        + grans.map(i => `<tr><td>${esc(i.que)}</td><td class="num">${esc(euros(i.cents))}</td></tr>`).join('')
+        + `<tr><td class="tenue nota" colspan="2">Entre totes sumen ${esc(euros(centsGrans))}, el ${(centsGrans / total * 100).toFixed(1).replace('.', ',')} % del viatge.</td></tr>`)}
+      ${taulaInforme((allotjaments.length
+        ? `<tr><th>Allotjament, per nit</th><th class="num"></th></tr>`
+          + allotjaments.map(i => `<tr><td>${esc(i.que)}</td><td class="num">${esc(euros(Math.round(i.cents / i.nits)))}/nit</td></tr>`).join('')
+          + (allotjaments.length > 1 && nitsTotal
+              ? `<tr><td>Mitjana del viatge · ${esc(plural(nitsTotal, 'nit', 'nits'))}</td><td class="num">${esc(euros(Math.round(centsAllotjament / nitsTotal)))}/nit</td></tr>`
+              : '')
+        : `<tr><th>Despeses soltes</th><th class="num"></th></tr>`)
+        + (soltes.length
+            ? `<tr><td class="tenue nota" colspan="2">Despeses soltes: ${esc(plural(soltes.length, 'despesa', 'despeses'))}, de ${esc(euros(Math.round(soltes.reduce((s, i) => s + i.cents, 0) / soltes.length)))} de mitjana.</td></tr>`
+            : ''))}
+    </div>`;
+
+  return `<div class="full-doc mem-doc">
+    ${capInformeHTML(v, nom, total, persones, dies)}
+    ${grup("En què se'n va anar", 'per categoria')}
+    ${taulaInforme(filesCat)}
+    ${blocAbans}
+    ${grup('Qui ha pagat què', 'i com ho va pagar')}
+    ${taulaInforme(filesQui)}
+    ${notaForma}
+    ${blocDeutes}
+    ${grup('El detall', "tot el que s'ha pagat, per categoria")}
+    ${taulaInforme(`<tr><th>Què</th><th>Quan</th><th>Qui ho va pagar</th><th>Com</th><th class="num">Import</th></tr>${filesDetall}<tr class="total"><td>Total</td><td></td><td></td><td></td><td class="num">${esc(euros(total))}</td></tr>`)}
+    ${items.some(i => !i.quan) ? `<p class="inf-nota">El guionet a «Quan» vol dir que la despesa no porta data: les despeses soltes no en tenen.</p>` : ''}
+    ${blocAltres}
+    <div class="full-doc-peu">
+      <span>${esc(nom)} · informe de despeses</span>
+      <span>Fet amb Els meus viatges · ${esc(dataBonica(isoDe(new Date())))}</span>
+    </div>
+  </div>`;
+}
+
+/* La capçalera de l'informe: la mateixa de la memòria, però amb els números
+   que responen la pregunta abans de llegir res. El «per persona i dia» és
+   l'únic que deixa comparar un viatge amb un altre. */
+function capInformeHTML(v, nom, total, persones, dies) {
+  const anys = fullAnys(v);
+  const qui = (v.participants || []).filter(Boolean);
+  const quiTxt = qui.length > 1 ? qui.slice(0, -1).join(', ') + ' i ' + qui[qui.length - 1] : (qui[0] || '');
+  const sub = [rangViatge(v) + (anys ? ' de ' + anys : ''), dies ? plural(dies, 'dia', 'dies') : '', quiTxt].filter(Boolean).join(' · ');
+  const xifra = (n, q) => `<div><div class="inf-xifra-n">${esc(n)}</div><div class="inf-xifra-q">${esc(q)}</div></div>`;
+  const previst = importNum(v.pressupost);
+  let frase = '';
+  if (previst != null && total) {
+    const dif = total / 100 - previst;
+    const pct = previst ? Math.round(Math.abs(dif) / previst * 100) : 0;
+    frase = dif > 0 ? `Previst ${formataImport(previst)}. Ha sortit ${formataImport(dif)} més car, un ${pct} %.`
+          : dif < 0 ? `Previst ${formataImport(previst)}. Ha sortit ${formataImport(-dif)} més barat, un ${pct} %.`
+          : `Previst ${formataImport(previst)}, clavat.`;
+  }
+  return `<div class="mem-cap">
+      <div>
+        <h1 class="mem-titol">${esc(nom)}</h1>
+        <p class="mem-sub">${esc(sub)}</p>
+      </div>
+      <div class="mem-etiq">Informe de despeses</div>
+    </div>
+    ${total ? `<div class="inf-xifres">
+      ${xifra(euros(total), 'Total')}
+      ${persones >= 2 ? xifra(euros(Math.round(total / persones)), 'Per persona') : ''}
+      ${xifra(euros(Math.round(total / dies)), 'Per dia')}
+      ${persones >= 2 ? xifra(euros(Math.round(total / persones / dies)), 'Per persona i dia') : ''}
+    </div>` : ''}
+    ${frase ? `<p class="inf-nota">${esc(frase)}</p>` : ''}`;
+}
+
+/* Fabrica el full i obre el diàleg d'imprimir. Sense fotos: no cal esperar
+   res, a diferència de la memòria. */
+function imprimeixInforme() {
+  const v = viatges.find(x => x.id === viatgeObert);
+  if (!v) return;
+  const seves = reserves.filter(r => r.viatgeId === v.id).sort(comparaCronologic);
+  $('full-imprimir').innerHTML = informeDespesesHTML(v, seves);
+  window.print();
 }
 
 /* Espera que totes les fotos del full tinguin adreça i estiguin carregades,
@@ -8939,7 +9270,7 @@ function llocReservaHTML(r) {
     </div>`;
 }
 
-/* clau és «tipus:id»: d'on ve el clic. N'hi ha quatre menes, i es
+/* clau és «tipus:id»: d'on ve el clic. N'hi ha quatre classes, i es
    distingeixen en dos eixos —què es corregeix i de qui és—, perquè cada
    combinació desa en un lloc diferent:
      reserva     → la zona (el poble) d'una reserva
@@ -10280,7 +10611,7 @@ function pressupostHTML(v, seves) {
 
   // Desglossament del resum: subtotals per tipus de reserva i UNA línia
   // agregada per a les despeses soltes (el detall va a la secció de sota).
-  // Des de la v164 cada mena també s'obre i ensenya les SEVES reserves, com
+  // Des de la v164 cada categoria de reserva també s'obre i ensenya les SEVES reserves, com
   // ja feia «Despeses soltes»: cal guardar-se-les, no només la suma.
   const perTipus = {};
   for (const r of ambPreu) {
@@ -10358,10 +10689,15 @@ function pressupostHTML(v, seves) {
 
   // Dues columnes: a l'esquerra el que es mira (resum + qui deu a qui), a la
   // dreta el que s'edita (les despeses soltes). Al mòbil s'apilen (CSS).
+  // El botó de l'informe va al peu de tota la subpestanya, no dins d'una
+  // columna: és una acció sobre el pressupost sencer. Surt SEMPRE que hi
+  // hagi res a explicar —també a mitja escapada—, a diferència de la memòria
+  // del viatge, que demana que l'últim dia hagi passat (v168).
   return `<div class="pressupost-columnes">
     <div class="pressupost-col">${resum}${repartimentHTML(itemsRepart, v.participants, colorsDelViatge(v, gentDelViatge(v, seves)))}</div>
     <div class="pressupost-col">${detall}</div>
-  </div>`;
+  </div>
+  <div class="agenda-peu"><button class="mini" data-informe-despeses>Imprimeix l'informe de despeses</button></div>`;
 }
 
 /* Una línia del desglossament: etiqueta a l'esquerra, import a la dreta. */
@@ -10372,16 +10708,29 @@ function liniaPressupost(etiqueta, valor) {
   </div>`;
 }
 
-/* Quines menes tenen el detall obert (v164). Com amb la resta de desplegables
-   del pressupost, obrir-ne una no repinta: es toca el DOM i prou. */
+/* ── UN AVÍS DE VOCABULARI, que aquí dins hi ha dues coses que es diuen
+   «categoria» ──
+   · Les CATEGORIES DE RESERVA són allotjament, vol, cotxe i entrada. Són
+     fixes i al codi es diuen `tipus` (TIPUS, ORDRE_TIPUS, tipusDe()).
+   · Les CATEGORIES DE DESPESA (Menjar, Transport…) són text lliure i al codi
+     es diuen `categoria` (CATEGORIES_DESPESA, nomCategoria()).
+   Als textos i a la documentació se'n diuen «categories de reserva» i
+   «categories de despesa», que és com ho diu ella. Al codi, els
+   identificadors d'aquest bloc porten «mena» per a les primeres justament
+   per no xocar amb `categoria`, que ja és de les segones. Si algun dia es
+   renomenen, s'han de renomenar totes dues famílies alhora. */
+
+/* Quines categories de reserva tenen el detall obert (v164). Com amb la
+   resta de desplegables del pressupost, obrir-ne una no repinta: es toca el
+   DOM i prou. */
 let menesObertes = new Set();
 
-/* Una mena del resum del cost, oberta o plegada. A dins, les seves reserves
-   pel nom i l'import, EN L'ORDRE EN QUÈ ES VAN ENTRAR (creatA, de més vella
-   a més nova): ho va triar ella, i és l'ordre en què les recordes d'haver-les
-   anat posant, no un rànquing de preus.
-   Una mena amb una sola reserva s'obre igualment: el que hi guanyes és el
-   nom, que la línia de dalt no et diu. */
+/* Una categoria de reserva del resum del cost, oberta o plegada. A dins, les
+   seves reserves pel nom i l'import, EN L'ORDRE EN QUÈ ES VAN ENTRAR (creatA,
+   de més vella a més nova): ho va triar ella, i és l'ordre en què les
+   recordes d'haver-les anat posant, no un rànquing de preus.
+   Una categoria amb una sola reserva s'obre igualment: el que hi guanyes és
+   el nom, que la línia de dalt no et diu. */
 function liniaMenaHTML(clau, etiqueta, ent) {
   const id = idUnic('mena');
   const obert = menesObertes.has(clau);
@@ -10670,7 +11019,7 @@ async function treuDespesa(id) {
    { id, text, fet, persona }; persona buida vol dir la llista única d'un
    viatge sense participants.
 
-   Els suggeriments surten NOMÉS del que l'app sap del cert: quines menes de
+   Els suggeriments surten NOMÉS del que l'app sap del cert: quines categories de
    reserva té el viatge, quants dies dura, i què vas posar a maletes
    anteriors. A posta NO s'endevina el temps que farà —ni per coordenades ni
    per les etiquetes de les visites—: a la muntanya no sempre hi fa fred i a
@@ -11217,7 +11566,7 @@ function imprimeixMaleta(quins) {
    perquè no tens dades a l'estranger. NO és un itinerari —això ja ho fa
    l'Agenda—: és el dossier amb TOTES les dades de cada reserva.
 
-   Va agrupat per menes i cronològic dins de cada mena, perquè dins d'un grup
+   Va agrupat per categories i cronològic dins de cada categoria, perquè dins d'un grup
    tots els blocs tenen els mateixos camps al mateix lloc i n'aprens la forma
    un cop. Els grups van SEGUITS i no un full per mena: un viatge amb dos
    vols i un cotxe hauria tret tres fulls amb una cinquena part plena.
@@ -11242,7 +11591,7 @@ const FULL_PROMOGUTS = {
   altres:      ['allotjament', 'llocRecollida']
 };
 
-/* Com es diuen les dues dates de cada mena quan es fonen data i hora en una
+/* Com es diuen les dues dates de cada categoria quan es fonen data i hora en una
    línia sola. NO es dedueix del nom del camp («Data d'entrada» → «entrada»):
    a les entrades i als altres el camp ja es diu «Dia» i no hi ha cap prefix
    a treure, i una regla que falla en dos casos de cinc no és cap regla. */
@@ -11433,7 +11782,7 @@ function imprimeixReserves(menes) {
   window.print();
 }
 
-/* Les menes que aquest viatge té, amb quantes en té de cada una. Preguntar
+/* Les categories de reserva que aquest viatge té, amb quantes en té de cada una. Preguntar
    per zero cotxes és soroll: les que no hi són no surten al diàleg. */
 function menesAmbReserves(seves) {
   return ORDRE_TIPUS
@@ -11504,7 +11853,7 @@ $('imprimir-fes').addEventListener('click', () => {
   // «esReserves» i no «reserves»: aquí dins, «reserves» taparia la llista global.
   const esReserves = modeImprimir === 'reserves';
   if (!quins.length) {
-    avisa($('avis-imprimir'), esReserves ? 'Tria almenys una mena de reserva.' : 'Tria almenys una llista.', 'mal');
+    avisa($('avis-imprimir'), esReserves ? 'Tria almenys una categoria de reserva.' : 'Tria almenys una llista.', 'mal');
     return;
   }
   tancaTriaImprimirUI();
@@ -11716,13 +12065,17 @@ function blocOrfesHTML(items, cents) {
   </div>`;
 }
 
-function repartimentHTML(ambPreu, participants, colors) {
+/* El càlcul del repartiment, sense gens d'HTML (v168). Viu a part perquè ara
+   el fan servir DOS llocs —la pantalla i l'informe de despeses imprès— i, si
+   es calculés dues vegades, un dia dirien coses diferents i costaria de
+   veure quin dels dos s'equivoca.
+   Treballa en cèntims (enters) perquè els saldos quadrin exactes, i suposa
+   una sola moneda, com la resta del pressupost. */
+function calculaRepartiment(ambPreu, participants) {
   const explicits = Array.isArray(participants) ? participants : [];
   const ambPagador = ambPreu.filter(r => (r.quiPaga || '').trim());
   const senseP = ambPreu.filter(r => !(r.quiPaga || '').trim());
   const centsSenseP = senseP.reduce((s, r) => s + centsDe(r.preu), 0);
-
-  const notaSense = centsSenseP > 0 ? blocOrfesHTML(senseP, centsSenseP) : '';
 
   // Pagat per persona (clau en minúscules per agrupar «Pepita»/«pepita»;
   // es mostra el nom tal com es va escriure la primera vegada).
@@ -11745,25 +12098,11 @@ function repartimentHTML(ambPreu, participants, colors) {
   const persones = [...pagatPer.values()].sort((a, b) => a.nom.localeCompare(b.nom, 'ca'));
   const totalPagat = persones.reduce((s, p) => s + p.cents, 0);
 
-  const embolcall = cos => `<div class="repartiment"><h4 class="agenda-titol">Qui deu a qui</h4>${cos}</div>`;
-
-  if (!persones.length) {
-    return embolcall(`<p class="repart-nota">Assigna «qui ho paga» a les reserves amb preu, o digues qui farà el viatge (editant-lo), i aquí veuràs qui deu a qui.</p>`);
-  }
-  if (totalPagat === 0) {
-    return embolcall(`<p class="repart-nota">Encara no hi ha cap pagament assignat: posa el preu i el «qui ho paga» a les reserves per veure el repartiment.</p>${notaSense}`);
-  }
-  if (persones.length === 1) {
-    return embolcall(
-      `<p class="repart-nota">De moment tot ho ha pagat <strong>${esc(persones[0].nom)}</strong>. Si éreu més d'una persona, digues qui farà el viatge (editant-lo) o assigna «qui ho paga» a la resta de reserves.</p>${notaSense}`);
-  }
-
   // Repartiment a parts iguals, en cèntims. El sobrant de la divisió es
   // reparteix un cèntim a cadascú dels primers, perquè la suma quadri.
   const N = persones.length;
-  const total = persones.reduce((s, p) => s + p.cents, 0);
-  const base = Math.floor(total / N);
-  const sobrant = total - base * N;
+  const base = N ? Math.floor(totalPagat / N) : 0;
+  const sobrant = N ? totalPagat - base * N : 0;
   const saldos = persones.map((p, i) => {
     const part = base + (i < sobrant ? 1 : 0);
     return { nom: p.nom, pagat: p.cents, part, saldo: p.cents - part, items: p.items };
@@ -11780,6 +12119,29 @@ function repartimentHTML(ambPreu, participants, colors) {
     deutors[di].q -= q; creditors[ci].q -= q;
     if (deutors[di].q === 0) di++;
     if (creditors[ci].q === 0) ci++;
+  }
+
+  return { persones, saldos, moviments, totalPagat, senseP, centsSenseP, explicits };
+}
+
+function repartimentHTML(ambPreu, participants, colors) {
+  const { persones, saldos, moviments, totalPagat, senseP, centsSenseP, explicits } =
+    calculaRepartiment(ambPreu, participants);
+
+  const notaSense = centsSenseP > 0 ? blocOrfesHTML(senseP, centsSenseP) : '';
+  const N = persones.length;
+
+  const embolcall = cos => `<div class="repartiment"><h4 class="agenda-titol">Qui deu a qui</h4>${cos}</div>`;
+
+  if (!persones.length) {
+    return embolcall(`<p class="repart-nota">Assigna «qui ho paga» a les reserves amb preu, o digues qui farà el viatge (editant-lo), i aquí veuràs qui deu a qui.</p>`);
+  }
+  if (totalPagat === 0) {
+    return embolcall(`<p class="repart-nota">Encara no hi ha cap pagament assignat: posa el preu i el «qui ho paga» a les reserves per veure el repartiment.</p>${notaSense}`);
+  }
+  if (persones.length === 1) {
+    return embolcall(
+      `<p class="repart-nota">De moment tot ho ha pagat <strong>${esc(persones[0].nom)}</strong>. Si éreu més d'una persona, digues qui farà el viatge (editant-lo) o assigna «qui ho paga» a la resta de reserves.</p>${notaSense}`);
   }
 
   const filesSaldo = saldos.map(s => {
@@ -11986,6 +12348,7 @@ $('detall-viatge-vista').addEventListener('click', async e => {
   // Imprimir: les dues finestres comparteixen diàleg (veure modeImprimir).
   if (e.target.closest('[data-imprimeix-reserves]')) { obreTriaImprimirReserves(); return; }
   if (e.target.closest('[data-fes-memoria]')) { imprimeixMemoria(); return; }
+  if (e.target.closest('[data-informe-despeses]')) { imprimeixInforme(); return; }
   if (e.target.closest('[data-imprimeix-maleta]')) { obreTriaImprimir(); return; }
   // Maleta
   const qui = e.target.closest('[data-maleta-persona]');
@@ -12016,7 +12379,7 @@ $('detall-viatge-vista').addEventListener('click', async e => {
     plegaD.setAttribute('aria-expanded', despesesObertes ? 'true' : 'false');
     return;
   }
-  // Obrir una mena del resum del cost (v164). Mateix criteri: no repinta.
+  // Obrir una categoria del resum del cost (v164). Mateix criteri: no repinta.
   const obreMena = e.target.closest('[data-obre-mena]');
   if (obreMena) {
     const clau = obreMena.dataset.obreMena;
